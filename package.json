@@ -1,0 +1,22 @@
+{
+  "name": "roboquest_ui",
+  "version": "2.0.0",
+  "description": "RoboQuest browser-based UI",
+  "keywords": [],
+  "author": "Bill Mania <bill@manialabs.us>",
+  "original_author": "Mark Skinner",
+  "license": "UNLICENSED",
+  "scripts": {
+    "rq_server": "node src/rq_server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "generate-ros-messages": "node_modules/.bin/generate-ros-messages"
+  },
+  "dependencies": {
+    "debug": "~2.6.9",
+    "express": "^4.18.2",
+    "morgan": "^1.10.0",
+    "rclnodejs": "^0.22.1"
+  }
+}

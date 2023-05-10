@@ -1,0 +1,11 @@
+{
+    "default_port": 3000,
+    "show_terminal": true,
+    "show_config_settings": true,
+    "allow_edit_mode": true,
+    "reset_usb_devices_on_boot": true,
+    "use_https": false,
+    "video_paths": [],
+    "video_blacklist": [],
+    "video_enabled": true
+}
