@@ -1,4 +1,4 @@
-# RoboQuest browser-base UI
+# RoboQuest browser-based UI
 
 The RoboQuest UI uses NodeJS, ExpressJS, and WebSocket to provide a
 user interface for a ROS2-based robot.
@@ -7,14 +7,14 @@ user interface for a ROS2-based robot.
 
 ```
 cd ros2ws
-node src/mypkg/src/index.js
+node src/roboquest_ui/src/rq_server.js
 ```
 
 ## Run via npm
 
 ```
-cd ros2ws/src/mypkg
-npm run index
+cd ros2ws/src/roboquest_ui
+npm run rq_server
 ```
 
 ## Run via ROS2 launch
@@ -22,5 +22,5 @@ npm run index
 ```
 cd ros2ws
 source install/setup.bash
-ros2 launch mypkg mypkg.launch.py
+ros2 launch roboquest_ui roboquest_ui.launch.py
 ```
