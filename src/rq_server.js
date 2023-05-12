@@ -1,32 +1,33 @@
+'use strict'
+
 const rclnodejs = require('rclnodejs')
+const logger = rclnodejs.logging.getLogger('rq_server')
+logger.setLoggerLevel(logger.LoggingSeverity.DEBUG)
+let counter = 1
+
+rclnodejs.init()
+const node = rclnodejs.createNode('rq_server')
+const publisher = node.createPublisher('std_msgs/msg/String', 'rclnode_topic')
 
 function telemetryCb (msg) {
-  console.log(`Received telemetry ${typeof msg}`, msg)
-};
+  logger.debug('Received telemetry ', msg)
+}
 
-function diagnosticsCb (msg) {
-  console.log(`Received diagnostics ${typeof msg}`, msg)
-  console.log(` values`, msg.status[0].values)
-};
+function stringPublisher () {
+  publisher.publish(`Here I am ${counter}`)
+  counter = counter + 1
+}
 
-async function rqServer () {
-  await rclnodejs.init()
-  const node = rclnodejs.createNode('rq_server')
+function main () {
+  setInterval(stringPublisher, 1000)
 
   node.createSubscription('rq_msgs/msg/Telemetry',
     'telemetry',
     telemetryCb)
+  logger.debug('Subscribed to telemetry')
 
-  node.createSubscription('diagnostic_msgs/msg/DiagnosticArray',
-    'diagnostics',
-    diagnosticsCb)
-
-  console.log('Started')
-  node.spin()
+  logger.info('rq_ui node started')
+  rclnodejs.spin(node)
 }
 
-(async function main () {
-  rqServer()
-}()).catch(() => {
-  process.exitCode = 1
-})
+main()
