@@ -1,5 +1,5 @@
 {
-    "default_port": 3000,
+    "default_port": 3456,
     "show_terminal": true,
     "show_config_settings": true,
     "allow_edit_mode": true,

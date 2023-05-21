@@ -1,32 +1,13 @@
-const rclnodejs = require('rclnodejs')
+'use strict'
 
-function telemetryCb (msg) {
-  console.log(`Received telemetry ${typeof msg}`, msg)
-};
+const RobotComms = require('./robot_comms.js')
+const robotComms = new RobotComms('rq_server')
 
-function diagnosticsCb (msg) {
-  console.log(`Received diagnostics ${typeof msg}`, msg)
-  console.log(` values`, msg.status[0].values)
-};
+const ExpressComms = require('./express_comms.js')
+// eslint-disable-next-line no-unused-vars
+const expressComms = new ExpressComms('RobotConsoleV2')
 
-async function rqServer () {
-  await rclnodejs.init()
-  const node = rclnodejs.createNode('rq_server')
+setInterval(expressComms.send_heartbeat.bind(expressComms), 1000)
 
-  node.createSubscription('rq_msgs/msg/Telemetry',
-    'telemetry',
-    telemetryCb)
-
-  node.createSubscription('diagnostic_msgs/msg/DiagnosticArray',
-    'diagnostics',
-    diagnosticsCb)
-
-  console.log('Started')
-  node.spin()
-}
-
-(async function main () {
-  rqServer()
-}()).catch(() => {
-  process.exitCode = 1
-})
+console.log('Starting main()')
+robotComms.main()

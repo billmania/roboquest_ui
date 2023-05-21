@@ -16,7 +16,17 @@
   "dependencies": {
     "debug": "~2.6.9",
     "express": "^4.18.2",
+    "http": "^0.0.1-security",
     "morgan": "^1.10.0",
-    "rclnodejs": "^0.22.1"
+    "path": "^0.12.7",
+    "rclnodejs": "^0.22.1",
+    "socket.io": "^4.6.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.40.0",
+    "eslint-config-standard": "^17.0.0",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-n": "^15.7.0",
+    "eslint-plugin-promise": "^6.1.1"
   }
 }
