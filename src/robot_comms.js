@@ -3,6 +3,9 @@
 const rclnodejs = require('rclnodejs')
 
 class RobotComms {
+  #counter
+  #telemetryMessages
+
   constructor (nodeName) {
     this.nodeName = nodeName
     this.rclnodejs = rclnodejs
@@ -10,6 +13,7 @@ class RobotComms {
     this.setupRos()
 
     this.counter = 0
+    this.telemetryMessages = 0
   }
 
   setupRos () {
@@ -30,7 +34,7 @@ class RobotComms {
   }
 
   telemetryCb (msg) {
-    this.logger.debug(`Telemetry: ${msg.header.stamp.sec}`)
+    this.telemetryMessages++
   }
 
   stringPublisher () {

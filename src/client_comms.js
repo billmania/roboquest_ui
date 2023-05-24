@@ -5,7 +5,7 @@
 
 'use strict'
 
-const socket = require('socket.io')
+const { Server } = require('socket.io')
 
 const PING_INTERVAL = 400
 const SOCKET_PING_TIMEOUT_S = 30
@@ -13,29 +13,39 @@ const SOCKET_PING_TIMEOUT_S = 30
 class ClientComms {
   constructor (expressServer) {
     this.client_connected = false
-    this.socket = socket
-    this.io = this.socket(
+    this.socket = null
+    this.io = new Server(
       expressServer,
       {
         pingInterval: PING_INTERVAL,
         pingTimeout: SOCKET_PING_TIMEOUT_S * 60
       }
     )
-
-    this.setup_io()
+    this.io.on('connection', this.setup_event_handlers.bind(this))
   }
 
-  setup_io () {
+  setup_event_handlers (socket) {
     /*
-     * Set the handlers for emits received from the browser-side.
+     * Set the handlers for events received from the browser-side.
      */
-    this.io.on(
-      'connection',
-      socket => {
-        this.client_connected = true
-        console.log('Client connected {' + socket)
+    this.socket = socket
+    console.log('Client connected on: ' + this.socket.id)
+    this.socket.on(
+      'disconnect',
+      () => {
+        this.client_connected = false
+        console.log('Client disconnected from: ' + this.socket.id)
+        this.socket = null
+      })
+
+    this.socket.on(
+      'hb',
+      payload => {
+        console.log(`Client heartbeat payload ${payload}`)
       }
     )
+
+    this.client_connected = true
   }
 
   heartbeat () {
