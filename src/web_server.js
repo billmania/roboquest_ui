@@ -1,12 +1,16 @@
 'use strict'
 
+/**
+ * The web server for serving static files and communicating with the browser
+ * client.
+ */
+
+const RQ_PARAMS = require('./params.js')
 const express = require('express')
 const http = require('http')
-const path = require('path')
 const ClientComms = require('./client_comms.js')
-const PORT_NUMBER = 3456
 
-class ExpressComms {
+class WebServer {
   #client
 
   constructor (clientName) {
@@ -17,7 +21,7 @@ class ExpressComms {
     this.setup_client_comms()
     this.setup_static()
 
-    this.express_server.listen(PORT_NUMBER)
+    this.express_server.listen(RQ_PARAMS.SERVER_PORT_NUMBER)
   }
 
   setup_static () {
@@ -25,19 +29,16 @@ class ExpressComms {
      * Define where the static HTML, CSS, and JS files will
      * be located.
      */
-    const STATIC_DIR = path.join(__dirname, '../public')
-    const STATIC = express.static(STATIC_DIR)
+    const STATIC = express.static(RQ_PARAMS.SERVER_STATIC_DIR)
     this.express_app.use(STATIC)
-    console.log('STATIC location set to ' + STATIC_DIR)
   }
 
   setup_client_comms () {
     /*
-     * Setup the channel for communication with the client. There may not
-     * be a client connected to the other end.
+     * Setup the channel for communication with the client. There may
+     * not immediately be a client connected to the other end.
      */
-    this.#client = new ClientComms(this.express_server, PORT_NUMBER)
-    console.log('Client communication setup')
+    this.#client = new ClientComms(this.express_server)
   }
 
   send_heartbeat () {
@@ -45,4 +46,4 @@ class ExpressComms {
   }
 }
 
-module.exports = ExpressComms
+module.exports = WebServer

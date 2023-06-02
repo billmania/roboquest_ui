@@ -27,12 +27,6 @@ install(FILES
   OPTIONAL
  )
  
- install(DIRECTORY 
-  config/
-  DESTINATION share/${PROJECT_NAME}/config
-  OPTIONAL
- )
- 
 install(DIRECTORY 
   config
   dist

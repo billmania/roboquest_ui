@@ -19,8 +19,8 @@
     <!--
     Setup the NAV bar at the top of the page. It includes the
     title, version, several buttons, and gamepad status. It also
-    shows the current status for the FPS, connection with the
-    robot, and pings from the server.
+    shows the current status for the FPS and pings from the
+    server.
   -->
 
     <DIV id='navBar'
@@ -104,8 +104,8 @@
       <DIV class="panel source"
            id="_button"
            style="width:200px;height:80px;"
-           onmouseenter='mouseEnterWidget(this)'
-           onmouseleave='mouseLeaveWidget(this)'>
+           onmouseenter='rqMain.mouseEnterWidget(this)'
+           onmouseleave='rqMain.mouseLeaveWidget(this)'>
         <DIV id="header">
           Button<BUTTON onclick="openConfig(this)"
                id="configButton">⚙️</BUTTON>
@@ -121,8 +121,8 @@
       <DIV class="panel source"
            id="_checkbox"
            style="width:200px;height:52px;"
-           onmouseenter='mouseEnterWidget(this)'
-           onmouseleave='mouseLeaveWidget(this)'>
+           onmouseenter='rqMain.mouseEnterWidget(this)'
+           onmouseleave='rqMain.mouseLeaveWidget(this)'>
         <DIV id="header">
           Checkbox<BUTTON onclick="openConfig(this)"
                id="configButton">⚙️</BUTTON>
@@ -139,8 +139,8 @@
       <DIV class="panel source"
            id="_joystick"
            style="width:200px;height:150px;"
-           onmouseenter='mouseEnterWidget(this)'
-           onmouseleave='mouseLeaveWidget(this)'>
+           onmouseenter='rqMain.mouseEnterWidget(this)'
+           onmouseleave='rqMain.mouseLeaveWidget(this)'>
         <DIV id="header">
           Joystick<BUTTON onclick="openConfig(this)"
                id="configButton">⚙️</BUTTON>
@@ -159,8 +159,8 @@
       <DIV class="panel source"
            id="_trigger"
            style="width:200px;height:57px;"
-           onmouseenter='mouseEnterWidget(this)'
-           onmouseleave='mouseLeaveWidget(this)'>
+           onmouseenter='rqMain.mouseEnterWidget(this)'
+           onmouseleave='rqMain.mouseLeaveWidget(this)'>
         <DIV id="header">
           Gamepad Trigger<BUTTON onclick="openConfig(this)"
                id="configButton">⚙️</BUTTON>
@@ -186,8 +186,8 @@
       <DIV class="panel source"
            id="_slider"
            style="width:200px;height:52px;"
-           onmouseenter='mouseEnterWidget(this)'
-           onmouseleave='mouseLeaveWidget(this)'>
+           onmouseenter='rqMain.mouseEnterWidget(this)'
+           onmouseleave='rqMain.mouseLeaveWidget(this)'>
         <DIV id="header">
           Slider<BUTTON onclick="openConfig(this)"
                id="configButton">⚙️</BUTTON>
@@ -205,8 +205,8 @@
       <DIV class="panel source"
            id="_inputbox"
            style="width:200px;height:57px;"
-           onmouseenter='mouseEnterWidget(this)'
-           onmouseleave='mouseLeaveWidget(this)'>
+           onmouseenter='rqMain.mouseEnterWidget(this)'
+           onmouseleave='rqMain.mouseLeaveWidget(this)'>
         <DIV id="header">
           Input Box<BUTTON onclick="openConfig(this)"
                id="configButton">⚙️</BUTTON>
@@ -223,8 +223,8 @@
       <DIV class="panel source"
            id="_dropdown"
            style="width:200px;height:49px;"
-           onmouseenter='mouseEnterWidget(this)'
-           onmouseleave='mouseLeaveWidget(this)'>
+           onmouseenter='rqMain.mouseEnterWidget(this)'
+           onmouseleave='rqMain.mouseLeaveWidget(this)'>
         <DIV id="header">
           Dropdown Select<BUTTON onclick="openConfig(this)"
                id="configButton">⚙️</BUTTON>
@@ -246,8 +246,8 @@
       <DIV class="panel source"
            id="_mouse"
            style="width:70px;height:50px;"
-           onmouseenter='mouseEnterWidget(this)'
-           onmouseleave='mouseLeaveWidget(this)'>
+           onmouseenter='rqMain.mouseEnterWidget(this)'
+           onmouseleave='rqMain.mouseLeaveWidget(this)'>
         <DIV id="header">
           Mouse position<BUTTON onclick="openConfig(this)"
                id="configButton">⚙️</BUTTON>
@@ -268,8 +268,8 @@
       <DIV class="panel source"
            id="_value"
            style="width:200px;height:50px;"
-           onmouseenter='mouseEnterWidget(this)'
-           onmouseleave='mouseLeaveWidget(this)'>
+           onmouseenter='rqMain.mouseEnterWidget(this)'
+           onmouseleave='rqMain.mouseLeaveWidget(this)'>
         <DIV id="header">
           Value<BUTTON onclick="openConfig(this)"
                id="configButton">⚙️</BUTTON>
@@ -288,8 +288,8 @@
       <DIV class="panel source"
            id="_light"
            style="width:200px;height:45px;"
-           onmouseenter='mouseEnterWidget(this)'
-           onmouseleave='mouseLeaveWidget(this)'>
+           onmouseenter='rqMain.mouseEnterWidget(this)'
+           onmouseleave='rqMain.mouseLeaveWidget(this)'>
         <DIV id="header">
           Indicator<BUTTON onclick="openConfig(this)"
                id="configButton">⚙️</BUTTON>
@@ -311,8 +311,8 @@
       <DIV class="panel source"
            id="_gauge"
            style="width:200px;height:200px;"
-           onmouseenter='mouseEnterWidget(this)'
-           onmouseleave='mouseLeaveWidget(this)'>
+           onmouseenter='rqMain.mouseEnterWidget(this)'
+           onmouseleave='rqMain.mouseLeaveWidget(this)'>
         <DIV id="header">
           Gauge<BUTTON onclick="openConfig(this)"
                id="configButton">⚙️</BUTTON>
@@ -334,8 +334,8 @@
       <DIV class="panel source"
            id="_compass"
            style="width:200px;height:200px;"
-           onmouseenter='mouseEnterWidget(this)'
-           onmouseleave='mouseLeaveWidget(this)'>
+           onmouseenter='rqMain.mouseEnterWidget(this)'
+           onmouseleave='rqMain.mouseLeaveWidget(this)'>
         <IMG class='fsImage showOnDrive'
              id='yaw_ap'
              src="img/compass/yaw.svg"> <IMG class='fsImage showOnDrive'
@@ -356,8 +356,8 @@
       <DIV class="panel source"
            id="_horizon"
            style="width:200px;height:200px;"
-           onmouseenter='mouseEnterWidget(this)'
-           onmouseleave='mouseLeaveWidget(this)'>
+           onmouseenter='rqMain.mouseEnterWidget(this)'
+           onmouseleave='rqMain.mouseLeaveWidget(this)'>
         <IMG class='fsImage showOnDrive'
              id='bkg_ap'
              src="img/horizon/back.svg"> <IMG class='fsImage showOnDrive'
@@ -379,8 +379,8 @@
       <DIV class="panel source"
            id="_rosImage"
            style="width:200px;height:200px;background:#f2f2f247"
-           onmouseenter='mouseEnterWidget(this)'
-           onmouseleave='mouseLeaveWidget(this)'>
+           onmouseenter='rqMain.mouseEnterWidget(this)'
+           onmouseleave='rqMain.mouseLeaveWidget(this)'>
         <DIV id="header">
           Image<BUTTON onclick="openConfig(this)"
                id="configButton">⚙️</BUTTON>
@@ -395,8 +395,8 @@
       <DIV class="panel source"
            id="_arm"
            style="width:200px;height:200px;"
-           onmouseenter='mouseEnterWidget(this)'
-           onmouseleave='mouseLeaveWidget(this)'>
+           onmouseenter='rqMain.mouseEnterWidget(this)'
+           onmouseleave='rqMain.mouseLeaveWidget(this)'>
         <DIV id="header">
           Robot Arm<BUTTON onclick="openConfig(this)"
                id="configButton">⚙️</BUTTON>
@@ -415,8 +415,8 @@
       <DIV class="panel source"
            id="_logger"
            style="width:200px;height:100px;"
-           onmouseenter='mouseEnterWidget(this)'
-           onmouseleave='mouseLeaveWidget(this)'>
+           onmouseenter='rqMain.mouseEnterWidget(this)'
+           onmouseleave='rqMain.mouseLeaveWidget(this)'>
         <DIV id="header">
           Logger<BUTTON onclick="openConfig(this)"
                id="configButton">⚙️</BUTTON>
@@ -434,8 +434,8 @@
       <DIV class="panel source"
            id="_audio"
            style="width:200px;height:70px;"
-           onmouseenter='mouseEnterWidget(this)'
-           onmouseleave='mouseLeaveWidget(this)'>
+           onmouseenter='rqMain.mouseEnterWidget(this)'
+           onmouseleave='rqMain.mouseLeaveWidget(this)'>
         <DIV id="header">
           Audio Indicator<BUTTON onclick="openConfig(this)"
                id="configButton">⚙️</BUTTON>
@@ -457,8 +457,8 @@
       <DIV class="panel source"
            id="_serial"
            style="width:200px;height:90px;"
-           onmouseenter='mouseEnterWidget(this)'
-           onmouseleave='mouseLeaveWidget(this)'>
+           onmouseenter='rqMain.mouseEnterWidget(this)'
+           onmouseleave='rqMain.mouseLeaveWidget(this)'>
         <DIV id="header">
           Serial Communication<BUTTON onclick="openConfig(this)"
                id="configButton">⚙️</BUTTON>
@@ -513,8 +513,8 @@
       <DIV class="panel source"
            id="_mic"
            style="width:60px;height:75px;z-index:300"
-           onmouseenter='mouseEnterWidget(this)'
-           onmouseleave='mouseLeaveWidget(this)'>
+           onmouseenter='rqMain.mouseEnterWidget(this)'
+           onmouseleave='rqMain.mouseLeaveWidget(this)'>
         <DIV id="header">
           Mic<BUTTON onclick="openConfig(this)"
                id="configButton">⚙️</BUTTON>
@@ -542,8 +542,8 @@
       <DIV class="panel source"
            id="_speaker"
            style="width:65px;height:75px;z-index:300"
-           onmouseenter='mouseEnterWidget(this)'
-           onmouseleave='mouseLeaveWidget(this)'>
+           onmouseenter='rqMain.mouseEnterWidget(this)'
+           onmouseleave='rqMain.mouseLeaveWidget(this)'>
         <DIV id="header">
           Speaker<BUTTON onclick="openConfig(this)"
                id="configButton">⚙️</BUTTON>
@@ -576,8 +576,8 @@
       <DIV class="panel source"
            id="_text"
            style="width:200px;height:50px;"
-           onmouseenter='mouseEnterWidget(this)'
-           onmouseleave='mouseLeaveWidget(this)'>
+           onmouseenter='rqMain.mouseEnterWidget(this)'
+           onmouseleave='rqMain.mouseLeaveWidget(this)'>
         <DIV id="header">
           Text<BUTTON onclick="openConfig(this)"
                id="configButton">⚙️</BUTTON>
@@ -767,6 +767,7 @@
     rq_canvas.js
     rq_help.js
     rq_main.js
+    rq_params.js - Configuration parameters
     rq_serial.js
     rq_socket.js - Setup two-way socket.io connection with the server.
                    Receive telemetry and configuration from the
@@ -774,18 +775,15 @@
     rq_streamAudio.js
     rq_widgets.js
 
-    <SCRIPT src="js/rq_canvas.js"
-          defer></SCRIPT> 
-    <SCRIPT src="js/rq_help.js"
-          defer></SCRIPT> 
-    <SCRIPT src="js/rq_serial.js"></SCRIPT> 
-    <SCRIPT src="js/rq_streamAudio.js"
-          defer></SCRIPT> 
-    <SCRIPT src="js/rq_widgets.js"
-          defer></SCRIPT>
+  It should go without saying explicitly that the order of the following
+  SCRIPT directives is intentional and required.
   -->
-    <SCRIPT src="js/rq_socket.js"></SCRIPT> 
+    <SCRIPT src="js/rq_params.js"
+            type="application/javascript"></SCRIPT> 
+    <SCRIPT src="js/rq_socket.js"
+            type="application/javascript"></SCRIPT> 
     <SCRIPT src="js/rq_main.js"
-          defer></SCRIPT> 
+            type="application/javascript"
+            defer></SCRIPT> 
   </BODY>
 </HTML>
