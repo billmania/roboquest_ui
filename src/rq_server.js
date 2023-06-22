@@ -5,11 +5,14 @@
  */
 
 const RQ_PARAMS = require('./params.js')
-const RobotComms = require('./robot_comms.js')
-const robotComms = new RobotComms('rq_server')
 
 const WebServer = require('./web_server.js')
 const webServer = new WebServer('RobotConsoleV2')
+
+const RobotComms = require('./robot_comms.js')
+const robotComms = new RobotComms(
+  'rq_server',
+  webServer.send_to_client.bind(webServer))
 
 setInterval(
   webServer.send_heartbeat.bind(webServer),

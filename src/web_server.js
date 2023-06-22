@@ -24,21 +24,38 @@ class WebServer {
     this.express_server.listen(RQ_PARAMS.SERVER_PORT_NUMBER)
   }
 
+  /**
+   * Define where the static HTML, CSS, and JS files will
+   * be located.
+   */
   setup_static () {
-    /*
-     * Define where the static HTML, CSS, and JS files will
-     * be located.
-     */
     const STATIC = express.static(RQ_PARAMS.SERVER_STATIC_DIR)
     this.express_app.use(STATIC)
   }
 
+  /**
+   * Setup the channel for communication with the client. There may
+   * not immediately be a client connected to the other end.
+   */
   setup_client_comms () {
-    /*
-     * Setup the channel for communication with the client. There may
-     * not immediately be a client connected to the other end.
-     */
     this.#client = new ClientComms(this.express_server)
+  }
+
+  /**
+   * Send a payload to the client. This method hides the specific
+   * details of the client communication.
+   *
+   * @param {string} payloadType - How the payload is identified for the client.
+   * @param {Array} payload - The bytes in the payload.
+   *
+   * @returns {boolean} - True if the payload was sent.
+   */
+  send_to_client (payloadType, payload) {
+    if (this.#client.send_event(payloadType, payload)) {
+      return true
+    }
+
+    return false
   }
 
   send_heartbeat () {

@@ -5,6 +5,7 @@
  */
 'use strict'
 
+
 class RQMain {
   /**
    * Setup the class.
@@ -15,7 +16,9 @@ class RQMain {
       this.disconnect_cb.bind(this))
     this.robotConnected = false
     this.pageBuilt = false
+    this.driveMode = false
     this.messageMask = document.getElementById('mask')
+    this.cameraFrames = document.getElementById('mainImage')
 
     this.widgetArray = null
     this.configSettings = null
@@ -54,18 +57,18 @@ class RQMain {
   /**
    * TODO: What is this method supposed to do?
    */
-	mouseEnterWidget (elementEntered){
+  mouseEnterWidget (elementEntered) {
     console.log(`Mouse entered widget ${elementEntered.id}`)
-		elementEntered.style.zIndex = 100;
-	}
+    elementEntered.style.zIndex = 100
+  }
 
   /**
    * TODO: What is this method supposed to do?
    */
-	mouseLeaveWidget (elementLeft){
+  mouseLeaveWidget (elementLeft) {
     console.log(`Mouse left widget ${elementLeft.id}`)
-		elementLeft.style.zIndex = 6;
-	}
+    elementLeft.style.zIndex = 6
+  }
 
   /**
    * Set the style of the widget using its description.
@@ -298,6 +301,174 @@ class RQMain {
   }
 
   /**
+   * Set or reset the visibility of a widget.
+   *
+   * @param {string} visibilityMode - The string 'visible' or 'hidden'.
+   */
+  setWidgetsVisibility (visibilityMode) {
+    for (let i = 0; i < this.widgetArray.length; i++) {
+      const widget = document.getElementById(this.widgetArray[i].id)
+      widget.style.visibility = visibilityMode
+      if (this.widgetArray[i].type === '_rosImage') {
+        set4style(widget, widgetArray[i])
+      }
+    }
+    document.getElementsByClassName('toggleWidgetHolder')[0]
+      .style
+      .visibility = visibilityMode
+  }
+
+  /**
+   * runCmdFromInput
+   *
+   */
+  runCmdFromInput () {
+    console.log('runCmdFromInput() called')
+  }
+
+  /**
+   * connectToSerial
+   *
+   * @param {element} argument - Unknown
+   */
+  connectToSerial (argument) {
+    console.log('connectToSerial() called')
+  }
+
+  /**
+   * openConfig
+   *
+   * @param {this object} argument - Unknown
+   */
+  openConfig (argument) {
+    console.log('openConfig() called')
+  }
+
+  /**
+   * applyConfigChanges
+   */
+  applyConfigChanges (argument) {
+    console.log('applyConfigChanges() called')
+  }
+
+  /**
+   * removeWidgetFromScreen
+   *
+   * @param {element} element - Unknown
+   */
+  removeWidgetFromScreen (element) {
+    console.log('removeWidgetFromScreen() called')
+
+    let deleteList = []
+    const WA = widgetArray[indexMap[element.id]]
+
+    // TODO: Why the following?
+    // socket.emit('shutROS',WA.topic)
+
+    if (WA.type === '_box' && WA.childids) {
+      deleteList = WA.childids
+    }
+    if (WA.type === '_serial') {
+      if (element.serialObject) {
+        element.serialObject.end()
+      }
+    }
+    element.remove()
+    deleteWidget(element.id)
+    deleteFromPanel(element.id)
+
+    for (let i = 0; i < deleteList.length; i++) {
+      element = document.getElementById(deleteList[i])
+      const WA = widgetArray[indexMap[element.id]]
+      socket.emit('shutROS', WA.topic)
+      if (WA.type === '_serial') {
+        if (element.serialObject) element.serialObject.end()
+      }
+      element.remove()
+      deleteWidget(element.id)
+      deleteFromPanel(element.id)
+    }
+  }
+
+  /**
+   * restartServer
+   *
+   * @param {integer} argument - Unknown
+   */
+  restartServer (argument) {
+    console.log('restartServer() called')
+  }
+
+  /**
+   * closeOtherClients
+   */
+  closeOtherClients () {
+    console.log('closeOtherClients() called')
+  }
+
+  /**
+   * clearTerminal
+   */
+  clearTerminal () {
+    console.log('clearTerminal() called')
+  }
+
+  /**
+   * openTerminal
+   */
+  openTerminal () {
+    console.log('openTerminal() called')
+  }
+
+  /**
+   * closeTerminal
+   */
+  closeTerminal () {
+    console.log('closeTerminal() called')
+  }
+
+  /**
+   * hideHelp
+   */
+  hideHelp () {
+    console.log('hideHelp() called')
+  }
+
+  /**
+   * toggleHelp
+   */
+  toggleHelp () {
+    console.log('toggleHelp() called')
+  }
+
+  /**
+   * toggleFullscreen
+   */
+  toggleFullscreen () {
+    console.log('toggleFullScreen() called')
+  }
+
+  /**
+   * Toggle between drive mode and no-drive mode, changing the visibility
+   * of the widgets appropriately.
+   */
+  toggleDriveMode () {
+    if (this.driveMode) {
+      this.driveMode = false
+      const dm = document.getElementById('driveModeButton')
+      dm.innerText = 'Drive'
+
+      this.setWidgetsVisibility('visible')
+    } else {
+      this.driveMode = true
+      const dm = document.getElementById('driveModeButton')
+      dm.innerText = 'Edit'
+      this.hideWidgetHolder()
+      this.setWidgetsVisibility('hidden')
+    }
+  }
+
+  /**
    * Define the contents of the RQ page using the contents of
    * the configuration file.
    *
@@ -309,7 +480,7 @@ class RQMain {
       this.widgetArray = configuration.widgets
 
       if (!this.configSettings || !this.widgetArray) {
-        console.log(`Problems with the configuration: ${configuration}`)
+        console.log(`Neither configSettings nor widgetArray found in: ${configuration}`)
         return
       }
 
@@ -321,22 +492,28 @@ class RQMain {
       document.getElementById('consoleName').innerText = this.configSettings.consoleName
       document.getElementById('title').innerText = this.configSettings.consoleName
       document.getElementById('body').style.backgroundColor = this.configSettings.background
+      const snapWidgets = this.configSettings.snaptogrid
 
       for (const widget of this.widgetArray) {
         this.addWidget(widget)
       }
-      this.showWidgetHolder()
+      if (!this.configSettings.loadInEditMode || isMobile()) {
+        this.toggleDriveMode()
+      } else {
+        this.showWidgetHolder()
+      }
 
       this.pageBuilt = true
     }
-  } // buildPage
+  }
 
   /**
-   * Define how to process incoming socket events.
+   * Define how to process incoming socket events by specifying
+   * the event name and the callback for it.
    */
   setupSocketEvents () {
-    // TODO: Implement
     this.socket.add_event('hb', this.heartbeat_cb.bind(this))
+    this.socket.add_event('mainImage', this.image_cb.bind(this))
     console.log('setupSocketEvents')
   }
 
@@ -348,6 +525,19 @@ class RQMain {
    */
   heartbeat_cb (payload) {
     console.log(`hb event received: ${payload}`)
+  }
+
+  /**
+   * Receive the mainImage event from the server and update
+   * the UI with the video frame.
+   *
+   * @param {ArrayBuffer} jpegImage - the frame to be displayed
+   *
+   * jpegImage is expected to be a complete JPEG representation
+   * of the image.
+   */
+  image_cb (jpegImage) {
+    this.cameraFrames.src = `data:image/jpeg;base64,${jpegImage}`
   }
 
   /**
