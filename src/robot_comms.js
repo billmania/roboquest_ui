@@ -110,7 +110,6 @@ class RobotComms {
    */
   configure_data_flow (configuration) {
     const widgets = configuration.widgets
-    this.logger.debug(`configuration ${JSON.stringify(widgets, null, 2)}`)
   }
 
   /**
