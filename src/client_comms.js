@@ -21,13 +21,14 @@ class ClientComms {
         pingTimeout: SOCKET_PING_TIMEOUT_S * 60
       }
     )
-    this.io.on('connection', this.setup_event_handlers.bind(this))
+    this.io.on('connection', this.setup_event_handlers_cb.bind(this))
   }
 
-  setup_event_handlers (socket) {
-    /*
-     * Set the handlers for events received from the browser-side.
-     */
+  /**
+   * Called each time a client connects to the socket. Sets the
+   * handlers for events received from the browser-side.
+   */
+  setup_event_handlers_cb (socket) {
     this.socket = socket
     console.log('Client connected on: ' + this.socket.id)
     this.socket.on(
@@ -48,16 +49,31 @@ class ClientComms {
     this.client_connected = true
   }
 
-  heartbeat () {
-    /*
-     * For sending heartbeats to the client.
-     */
+  /**
+   * Send an eventName with payload, only if there's a client connected.
+   *
+   * @param {string} eventName - The name of the event.
+   * @param {Array) payload - The payload of the event.
+   *
+   * @returns {boolean} - True if the payload was sent.
+   */
+  send_event (eventName, payload) {
     if (this.client_connected) {
       this.io.emit(
-        'hb',
-        Date.now().toString()
-      )
-    } else {
+        eventName,
+        payload)
+
+      return true
+    }
+
+    return false
+  }
+
+  /**
+   * Sends heartbeat events to the client.
+   */
+  heartbeat () {
+    if (!this.send_event('hb', Date.now().toString())) {
       console.log('Heartbeat not sent. No client.')
     }
   }
