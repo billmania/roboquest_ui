@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<HTML>
+  <HEAD>
+    <META name="viewport"
+          content="initial-scale=1, user-scalable=no">
+    <META charset="utf-8">
+    <LINK rel="stylesheet"
+          type="text/css"
+          href="css/rq_style.css">
+    <SCRIPT src="/socket.io/socket.io.js"></SCRIPT>
+    <TITLE id='title'>RQ testing v2</TITLE>
+  </HEAD>
+
+  <BODY id='body'>
+    <DIV id='navBar'
+         class='navBar'>
+      <H1 id='consoleName'
+          class="label"
+          style=
+          "color: #FFF;margin:5px 20px 5px 10px;white-space:nowrap">
+      </H1>
+      <H1 id='testing'
+          class="label"
+          style=
+          "color: #FFF;margin:5px 20px 5px 10px;white-space:nowrap">
+      RQ TESTING v2
+      </H1>
+
+      <BUTTON id='updateButton'
+           class="updateButton"
+           style='display'
+           onclick="rqTesting.updateSoftware();">UPDATE</BUTTON>
+    </DIV>
+
+    <!--
+    The video frames from the robot's camera(s) are placed into
+    the background of the page.
+     -->
+    <IMG id='mainImage'
+          class='image'
+          alt="Robot camera frame"
+          style="z-index:-50">
+    <DIV id='updateDiv'>
+            <TEXTAREA id='updateText'
+                    style=
+                    'display:none;width:calc(70% + 105px);height:calc(100%);margin-top:100px'>
+Connect the battery charger to the robot and connect the robot to the Internet. The update process could take half an hour, depending on the throughput of the Internet connection. If the Internet connection is interrupted or the robot loses power, the update process will fail.
+            </TEXTAREA>
+    </DIV>
+
+    <!--
+
+       It should go without saying explicitly that the order of the following
+       SCRIPT directives is intentional and required.
+      -->
+    <SCRIPT src="js/rq_params.js"
+            type="application/javascript"></SCRIPT> 
+    <SCRIPT src="js/rq_socket.js"
+            type="application/javascript"></SCRIPT> 
+    <SCRIPT src="js/rq_robot_controls.js"
+            type="application/javascript"></SCRIPT> 
+    <SCRIPT src="js/rq_testing.js"
+            type="application/javascript"
+            defer></SCRIPT> 
+  </BODY>
+</HTML>
