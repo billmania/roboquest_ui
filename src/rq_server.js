@@ -1,7 +1,8 @@
 'use strict'
 
 /**
- * rq_server.js is the script started by NodeJS.
+ * rq_server.js is the script started by NodeJS. It instantiates both
+ * WebServer and RobotComms and then acts as the broker between them.
  */
 
 const RQ_PARAMS = require('./params.js')

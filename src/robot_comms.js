@@ -17,6 +17,7 @@ const fs = require('fs')
 class RobotComms {
   #counter
   #telemetryMessages
+  #imageMessages
   #configuration
 
   /**
@@ -41,7 +42,9 @@ class RobotComms {
   }
 
   /**
-   * Setup the basic connection to the ROS graph.
+   * Setup the connections to the ROS graph. This includes the
+   * creation of a node, configuration of the logger, and some topic
+   * subscriptions.
    */
   setupRos () {
     this.rclnodejs.init()
@@ -60,8 +63,14 @@ class RobotComms {
     this.logger.debug('ROS setup completed')
   }
 
+  /**
+   * From the incoming ROS Telemetry message, assemble a JSON
+   * string and send it to the browser client as the 'telemetry'
+   * event.
+   */
   telemetry_cb (msg) {
     this.telemetryMessages++
+    this.send_to_client_cb('telemetry', JSON.stringify(msg))
   }
 
   /**

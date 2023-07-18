@@ -5,7 +5,6 @@
  */
 'use strict'
 
-
 class RQTesting {
   /**
    * Setup the class.
@@ -44,7 +43,7 @@ class RQTesting {
     console.log('updateSoftware() called')
 
     this.socket.send_event('control', 'charger=ON')
-    
+
     const mainImage = document.getElementById('mainImage')
     mainImage.style.display = 'none'
     const updateText = document.getElementById('updateText')
@@ -61,6 +60,7 @@ class RQTesting {
   setupSocketEvents () {
     this.socket.add_event('hb', this.heartbeat_cb.bind(this))
     this.socket.add_event('mainImage', this.image_cb.bind(this))
+    this.socket.add_event('telemetry', this.telemetry_cb.bind(this))
     console.log('setupSocketEvents')
   }
 
@@ -85,6 +85,18 @@ class RQTesting {
    */
   image_cb (jpegImage) {
     this.cameraFrames.src = `data:image/jpeg;base64,${jpegImage}`
+  }
+
+  /**
+   * Receive the telemetry JSON string. Extract the individual
+   * attributes and update the relevant entities on the page.
+   *
+   * @param {JSON string} telemetry - the stringified object containing
+   *                                  telemetry
+   */
+  telemetry_cb (telemetryStr) {
+    const telemetry = JSON.parse(telemetryStr)
+    console.log(`telemetry_cb: timestamp ${telemetry.header.stamp.sec}, Volts ${telemetry.battery_v}`)
   }
 
   /**

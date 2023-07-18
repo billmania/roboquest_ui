@@ -1,6 +1,6 @@
 /*
  * Setup a socket.io server-side connection, using an Express
- * instance, for two-way communicate with the browser-side.
+ * instance, for two-way communication with the browser-side.
  */
 
 'use strict'
@@ -11,7 +11,29 @@ const PING_INTERVAL = 400
 const SOCKET_PING_TIMEOUT_S = 30
 
 class ClientComms {
-  constructor (expressServer) {
+  /**
+   * Two-way streaming communication with the browser is implemented
+   * using the socket.io module. The browser is allowed to repeatedly
+   * open and close a connection to the socket, so the configuration
+   * of the socket and, most importantly, the handling of events,
+   * must be done each time the browser connects. As a specific example
+   * the setup of which socket events are expected from the browser and
+   * to be handled by a callback must be setup after each successful
+   * browser connection.
+   *
+   * @param {Object} expressServer -
+   * @param {Array} incoming_events - the list of events to catch
+   * @param {Function} eventCb - A function which expects two arguments:
+   *                              the name of the event and the event's
+   *                              payload.
+   */
+  constructor (
+    expressServer,
+    incomingEvents,
+    eventCb) {
+    this.incomingEvents = incomingEvents
+    this.eventCb = eventCb
+
     this.client_connected = false
     this.socket = null
     this.io = new Server(
@@ -25,8 +47,27 @@ class ClientComms {
   }
 
   /**
+   * Add event_name to the collection of events expected
+   *
+   * @param {string} event_name - the name of the event
+   */
+  add_event_handler (eventName) {
+    this.socket.on(
+      eventName,
+      payload => {
+        this.eventCb(eventName, payload)
+      }
+    )
+    console.log(`Added handler for event ${eventName}`)
+  }
+
+  /**
    * Called each time a client connects to the socket. Sets the
    * handlers for events received from the browser-side.
+   *
+   * disconnect and hb events are always handled. this.incoming_events
+   * is interpreted as a list of events to also handle, by passing
+   * their name and payload to this.eventCb.
    */
   setup_event_handlers_cb (socket) {
     this.socket = socket
@@ -45,6 +86,8 @@ class ClientComms {
         console.log(`Client heartbeat payload ${payload}`)
       }
     )
+
+    this.incomingEvents.forEach(this.add_event_handler.bind(this))
 
     this.client_connected = true
   }

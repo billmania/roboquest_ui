@@ -128,13 +128,11 @@ class RQMain {
     widgetClone.querySelector('#configButton').style.display = 'inline-block'
 
     let canvas = widgetClone.querySelector('#canvas_ap')
-    // TODO: Implement
-    /*
     if (canvas) {
       initJoystick(canvas)
       drawJoystick(canvas, 0, 0, false)
     }
-     */
+    /*
     canvas = widgetClone.querySelector('#gauge_ap')
     if (canvas) {
       // TODO: Implement
@@ -145,6 +143,7 @@ class RQMain {
       // TODO: Implement
       // drawArm(canvas)
     }
+     */
     document.getElementById('body').appendChild(widgetClone)
 
     return widgetClone
@@ -446,6 +445,15 @@ class RQMain {
    */
   toggleFullscreen () {
     console.log('toggleFullScreen() called')
+  }
+
+  /**
+   * Update the application software on the robot.
+   */
+  updateSoftware () {
+    console.log('updateSoftware() called')
+
+    const updateText = document.getElementById('updateText')
   }
 
   /**
