@@ -40,6 +40,40 @@
           class='image'
           alt="Robot camera frame"
           style="z-index:-50">
+
+    <!--
+    The collection of widget types which can be added to the page.
+     -->
+    <DIV class="panel source"
+         id="_indicator"
+         style="display:none;width:200px;height:50px;">
+      <DIV id="header">
+        _indicator
+      </DIV>
+
+      <DIV class='showOnDrive'
+           id='color_ap'>
+        <H1 class='textDisplay'
+            id='text_ap'
+            style="margin:0px;padding:0px;font-size:20px">
+          State
+        </H1>
+      </DIV>
+    </DIV>
+    <DIV class="panel source"
+         id="_value"
+         style="display:none;width:200px;height:50px;">
+      <DIV id="header">
+        _value
+      </DIV>
+
+      <H1 class='textDisplay showOnDrive'
+          id='text_ap'
+          style="margin:0px;padding:0px;font-size:20px">
+        0.0
+      </H1>
+    </DIV>
+
     <DIV id='updateDiv'>
             <TEXTAREA id='updateText'
                     style=
@@ -54,6 +88,8 @@ Connect the battery charger to the robot and connect the robot to the Internet. 
        SCRIPT directives is intentional and required.
       -->
     <SCRIPT src="js/rq_params.js"
+            type="application/javascript"></SCRIPT> 
+    <SCRIPT src="js/rq_widgets_utils.js"
             type="application/javascript"></SCRIPT> 
     <SCRIPT src="js/rq_socket.js"
             type="application/javascript"></SCRIPT> 
