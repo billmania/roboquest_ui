@@ -9,6 +9,9 @@ const RQ_PARAMS = require('./params.js')
 
 const WebServer = require('./web_server.js')
 const webServer = new WebServer('RobotConsoleV2')
+// TODO: get the events from the configuration file
+webServer.add_incoming_event('cmd_vel')
+webServer.setup_client_comms()
 
 const RobotComms = require('./robot_comms.js')
 const robotComms = new RobotComms(

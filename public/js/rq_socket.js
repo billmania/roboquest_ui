@@ -59,7 +59,6 @@ class RQSocket {
    */
   send_event (eventName, payload) {
     this.socket.emit(eventName, payload)
-    console.log(`Sent ${eventName} event with ${payload}`)
   }
 
   connect () {

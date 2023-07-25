@@ -18,10 +18,11 @@ class RQJoystick {
    *
    * @param {integer} joystickRadius - the size of the joystick in pixels
    * @param {Object} canvas - the HTML canvas for the joystick
-   * @param {function} callback - a function which takes two arguments. how this class
-   *                              makes the two joystick values available to its client
+   * @param {function} dataReturnCb - a function which takes oneArray argument.
+   *                                  how this class makes the two joystick
+   *                                  values available to its client
    */
-  constructor (joystickRadius, canvas, callback) {
+  constructor (joystickRadius, canvas, dataReturnCb) {
     this.xOrig = 0
     this.yOrig = 0
     this.joystickCoord = { x: 0, y: 0 }
@@ -32,6 +33,8 @@ class RQJoystick {
 
     this.joystickCanvas = canvas
     this.joystickContext = this.joystickCanvas.getContext('2d')
+
+    this.dataReturnCb = dataReturnCb
 
     const eventOptions = {
       capture: true
@@ -161,8 +164,8 @@ class RQJoystick {
     this.background()
     this.joystick(this.xOrig, this.yOrig)
 
-    if (this.callback) {
-      this.callback(0, 0)
+    if (this.dataReturnCb) {
+      this.dataReturnCb([0, 0])
     } else {
       console.log('(0, 0)')
     }
@@ -228,8 +231,8 @@ class RQJoystick {
     const xRelative = Math.round(x - this.xOrig)
     const yRelative = Math.round(y - this.yOrig)
 
-    if (this.callback) {
-      this.callback(xRelative, -yRelative)
+    if (this.dataReturnCb) {
+      this.dataReturnCb([xRelative, -yRelative])
     } else {
       console.log(`(${xRelative}, ${-yRelative})`)
     }

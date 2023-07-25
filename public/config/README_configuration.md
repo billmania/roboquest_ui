@@ -44,7 +44,7 @@ an array of objects uniquely identified with the properties "type" and "id".
 * msgAttribute - which attribute from the msgType on the topic, like 'header.stamp.sec'
 * msgType - a string defining the ROS interface for the service or topic. for
             example, std_msgs/msg/String.
-* name
+* name - a descriptive name for the widget, as a string
 * onPress
 * onRelease
 * prefix - prepended to the msgAttribute value before displaying

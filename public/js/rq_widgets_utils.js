@@ -78,10 +78,14 @@ function makeNewWidget (widgetType) {
  * Use the definition of a widget to configure it on the page.
  *
  * @param {Object} widgetConfig - The object which describes the widget.
+ * @param {function} sendEvent - the function used by the widget to send
+ *                               data it created. it's called with two
+ *                               arguments, an event name and an
+ *                               Array of values.
  *
  * @returns {Object} - the new widget
  */
-function addWidget (widgetConfig) {
+function addWidget (widgetConfig, sendEvent) {
   let canvas = null
   let imageAp = null
   let rqJoystick = null
@@ -132,10 +136,14 @@ function addWidget (widgetConfig) {
       canvas = tile.querySelector('#joystickCanvas')
       canvas.height = parseInt(widgetConfig.h)
       canvas.width = parseInt(widgetConfig.w)
+      tile['callback'] = (payload) => {
+        sendEvent(widgetConfig.topic, JSON.stringify(payload))
+      }
       rqJoystick = new RQJoystick(
         canvas.height / 3,
         canvas,
-        console.log)
+        tile.callback
+      )
       break
 
     case '_trigger':
@@ -232,11 +240,14 @@ function addWidget (widgetConfig) {
  * show the widget holder.
  *
  * @param {Object} configuration - The contents of the configuration file.
+ * @param {function} socket - a function which takes two arguments: an
+ *                               event name and a payload. used to send data
+ *                               created by widgets to the server.
  *
  * @returns {Object} - the collection of created widgets, indexed using the
  *                     configuration "id" attribute as the property name.
  */
-function buildPage (configuration) {
+function buildPage (configuration, callback) {
   const configSettings = configuration.config
   const widgetArray = configuration.widgets
   const widgetsList = {}
@@ -256,7 +267,7 @@ function buildPage (configuration) {
   document.getElementById('body').style.backgroundColor = configSettings.background
 
   for (const widgetConfig of widgetArray) {
-    const addedWidget = addWidget(widgetConfig)
+    const addedWidget = addWidget(widgetConfig, callback)
     if (addedWidget.id !== '') {
       widgetsList[widgetConfig.id] = addedWidget
     }

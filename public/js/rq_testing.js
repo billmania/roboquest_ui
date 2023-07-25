@@ -17,7 +17,12 @@ class RQTesting {
     this.subscriptionDataMap = null
     this.cameraFrames = document.getElementById('mainImage')
     this.pageBuilt = false
-    this.getConfiguration(buildPage, this.mapSubscriptionData.bind(this))
+    this.getConfiguration(
+      buildPage,
+      this.mapSubscriptionData.bind(this),
+      (eventName, payload) => { this.socket.send_event(eventName, payload) }
+    )
+//      (eventName, payload) => { console.log(eventName, payload) }
 
     this.setupSocketEvents()
     console.log('RQTesting instantiated')
@@ -44,15 +49,19 @@ class RQTesting {
    * cause it to be processed by buildPage().
    *
    * @param {Function} buildPage - The function which builds the page using the configuration.
-   * @param {Function} mapSubscriptionData - The function to associate subscribed date to a
+   * @param {Function} mapSubscriptionData - The function to associate subscribed data to a
    *                                         destination
+   * @param {Function} dataReturnCb - used by the widget to return an event_name and
+   *                                  a payload
    */
-  getConfiguration (buildPage, mapSubscriptionData) {
+  getConfiguration (buildPage, mapSubscriptionData, dataReturnCb) {
     const configRequest = new XMLHttpRequest()
     configRequest.onreadystatechange = function () {
       if (this.readyState === 4 && this.status === 200) {
         const configuration = JSON.parse(configRequest.responseText)
-        const widgetsList = buildPage(configuration)
+        const widgetsList = buildPage(
+          configuration,
+          dataReturnCb)
         mapSubscriptionData(configuration.widgets, widgetsList)
         this.pageBuilt = true
       }

@@ -11,20 +11,16 @@ const http = require('http')
 const fs = require('fs')
 const ClientComms = require('./client_comms.js')
 
-/*
- * The list of socket events expected from the browser.
- */
-const incomingEvents = ['update']
-
 class WebServer {
   #client
 
   constructor (clientName) {
     this.clientName = clientName
 
+    this.incomingEvents = ['update']
+
     this.express_app = express()
     this.express_server = http.createServer(this.express_app)
-    this.setup_client_comms()
     this.setup_static()
 
     this.express_server.listen(RQ_PARAMS.SERVER_PORT_NUMBER)
@@ -46,23 +42,32 @@ class WebServer {
   setup_client_comms () {
     this.#client = new ClientComms(
       this.express_server,
-      incomingEvents,
+      this.incomingEvents,
       this.event_cb.bind(this)
     )
+  }
+
+  /**
+   * Add eventName to the collection of socket events which are
+   * expected to come from the client. It must have been called
+   * for every event BEFORE setup_client_comms() is called.
+   *
+   * @param {string} eventName -
+   */
+  add_incoming_event (eventName) {
+    this.incomingEvents.push(eventName)
   }
 
   /**
    * The callback function which routes the payloads of
    * incomingEvents to their appropriate event handler.
    *
-   * @param {string} event_name - the name of the event, from
+   * @param {string} eventName - the name of the event, from
    *                              this.incoming_events
    * @param {JSON} payload - the payload for the event
    */
   event_cb (eventName, payload) {
-    console.log(`event_cb: event:${eventName} payload:${payload}`)
-
-    if (!incomingEvents.includes(eventName)) {
+    if (!this.incomingEvents.includes(eventName)) {
       console.log(`event_cb: ${eventName} not in incomingEvents`)
       return false
     }
@@ -73,6 +78,10 @@ class WebServer {
           '{"timestamp": 0, "version": 1, "action": "UPDATE", "args": "UI"}'
         )
         break
+
+      case 'cmd_vel':
+        console.log(`event_cb: Server received cmd_vel with ${payload}`)
+        break;
 
       default:
         console.log(`event_cb: ${eventName} not handled`)
