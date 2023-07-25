@@ -27,6 +27,7 @@ body {
   height:calc(100% - 40px);
   z-index:0;
 }
+
 .label{
   font-weight: normal;
 }
@@ -46,11 +47,6 @@ body {
   margin-top: 20px;
   margin-bottom: 20px;
   box-shadow:1px 1px 10px grey;
-}
-.canvas{
-  position: absolute;
-  left:0px;
-  top:20px;
 }
 /* top bar of widget */
 #header {
