@@ -24,6 +24,22 @@ class RQTesting {
   }
 
   /**
+   * TODO: What is this method supposed to do?
+   */
+  mouseEnterWidget (elementEntered) {
+    console.log(`Mouse entered widget ${elementEntered.id}`)
+    elementEntered.style.zIndex = 100
+  }
+
+  /**
+   * TODO: What is this method supposed to do?
+   */
+  mouseLeaveWidget (elementLeft) {
+    console.log(`Mouse left widget ${elementLeft.id}`)
+    elementLeft.style.zIndex = 6
+  }
+
+  /**
    * Retrieve the configuration file from the server. When it's received,
    * cause it to be processed by buildPage().
    *
@@ -52,7 +68,7 @@ class RQTesting {
   updateSoftware () {
     console.log('updateSoftware() called')
 
-    this.socket.send_event('control', 'charger=ON')
+    this.socket.send_event('control_hat', 'charger=ON')
 
     const mainImage = document.getElementById('mainImage')
     mainImage.style.display = 'none'
@@ -119,7 +135,7 @@ class RQTesting {
     this.socket.add_event('hb', this.heartbeat_cb.bind(this))
     this.socket.add_event('mainImage', this.image_cb.bind(this))
 
-    // TODO: Enhance this to accept a list of {topic, callback}
+    // TODO: Enhance this to instead use this.subscriptionDataMap
     this.socket.add_event('telemetry', this.telemetry_cb.bind(this))
 
     console.log('setupSocketEvents')
@@ -180,9 +196,8 @@ class RQTesting {
   telemetry_cb (telemetryStr) {
     const telemetry = JSON.parse(telemetryStr)
     for (const attribute in this.subscriptionDataMap.telemetry) {
-      console.log(`telemetry_cb: ${attribute} ${this.getMessageAttribute(telemetry, attribute)}`)
-      const text_ap = this.subscriptionDataMap.telemetry[attribute].widget.querySelector('#text_ap')
-      text_ap.innerText =
+      const textAp = this.subscriptionDataMap.telemetry[attribute].widget.querySelector('#text_ap')
+      textAp.innerText =
         this.subscriptionDataMap.telemetry[attribute].prefix +
         this.getMessageAttribute(telemetry, attribute).toFixed(2) +
         this.subscriptionDataMap.telemetry[attribute].suffix

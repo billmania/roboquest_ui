@@ -17,20 +17,20 @@ class RQJoystick {
    * with positive values on the top of the page.
    *
    * @param {integer} joystickRadius - the size of the joystick in pixels
-   * @param {string} canvasId - the element ID of the CANVAS
+   * @param {Object} canvas - the HTML canvas for the joystick
    * @param {function} callback - a function which takes two arguments. how this class
    *                              makes the two joystick values available to its client
    */
-  constructor (joystickRadius, canvasId, callback) {
-    this.joystickW = 0
-    this.joystickH = 0
+  constructor (joystickRadius, canvas, callback) {
     this.xOrig = 0
     this.yOrig = 0
     this.joystickCoord = { x: 0, y: 0 }
     this.paint = false
     this.joystickRadius = joystickRadius
+    this.joystickW = canvas.width
+    this.joystickH = canvas.height
 
-    this.joystickCanvas = document.getElementById(canvasId)
+    this.joystickCanvas = canvas
     this.joystickContext = this.joystickCanvas.getContext('2d')
 
     const eventOptions = {
@@ -47,21 +47,24 @@ class RQJoystick {
     this.resize()
   }
 
+  /**
+   * Get the current position of the mouse in the canvas.
+   *
+   * @param {Event} event - the mouse event to provide the position
+   */
   getPosition (event) {
-    const mouseX = event.clientX || event.touches[0].clientX
-    const mouseY = event.clientY || event.touches[0].clientY
-
-    this.joystickCoord.x = mouseX - this.joystickCanvas.offsetLeft
-    this.joystickCoord.y = mouseY - this.joystickCanvas.offsetTop
+    this.joystickCoord.x = event.offsetX
+    this.joystickCoord.y = event.offsetY
   }
 
   /**
-   * Update the saved (this.xOrig, this.yOrig) and then draw the background
-   * of the joystick.
+   * Calculate (this.xOrig, this.yOrig) and then draw the background
+   * of the joystick. The location of the background doesn't change.
    */
   background () {
+    // TODO: Only assign these once - they don't change
     this.xOrig = this.joystickW / 2
-    this.yOrig = this.joystickH / 3
+    this.yOrig = this.joystickH / 2
 
     this.joystickContext.beginPath()
     this.joystickContext.arc(
@@ -76,13 +79,13 @@ class RQJoystick {
   }
 
   /**
-   * Draw the knob of the joystick.
+   * Draw the knob of the joystick, centered on the current mouse position.
    */
-  joystick (width, height) {
+  joystick (mouseX, mouseY) {
     this.joystickContext.beginPath()
     this.joystickContext.arc(
-      width,
-      height,
+      mouseX,
+      mouseY,
       this.joystickRadius,
       0,
       Math.PI * 2,
@@ -95,21 +98,27 @@ class RQJoystick {
   }
 
   /**
-   * Record the current width and height of the joystick, set the canvas
-   * dimensions to that width and height, and then draw the resized
-   * background and knob of the joystick.
+   * Called to define the initial dimensions of the canvas.
+   *
+   * Don't change the size of the joystick canvas, just log the current size.
    */
   resize () {
-    this.joystickW = window.innerWidth
-    this.joystickH = this.joystickRadius * 6.5
+    // TODO: Only assign these values once - they don't change
     this.joystickContext.canvas.width = this.joystickW
     this.joystickContext.canvas.height = this.joystickH
 
     this.background()
-    this.joystick(this.joystickW / 2, this.joystickH / 3)
+    this.joystick(this.joystickW / 2, this.joystickH / 2)
   }
 
+  /**
+   * The event listener is bound to the canvas element, so the mousedown
+   * event can only happen when the mouse is on the joystick.
+   */
   mouseOnJoystick () {
+    return true
+
+    /*
     const currentRadius = Math.sqrt(
       Math.pow(this.joystickCoord.x - this.xOrig, 2) +
       Math.pow(this.joystickCoord.y - this.yOrig, 2)
@@ -119,6 +128,7 @@ class RQJoystick {
     }
 
     return false
+     */
   }
 
   /**
@@ -142,13 +152,20 @@ class RQJoystick {
 
   stopDrawing () {
     this.paint = false
+
     this.joystickContext.clearRect(
       0,
       0,
       this.joystickCanvas.width,
       this.joystickCanvas.height)
     this.background()
-    this.joystick(this.joystickW / 2, this.joystickH / 3)
+    this.joystick(this.xOrig, this.yOrig)
+
+    if (this.callback) {
+      this.callback(0, 0)
+    } else {
+      console.log('(0, 0)')
+    }
   }
 
   /**

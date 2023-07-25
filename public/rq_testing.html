@@ -37,9 +37,9 @@
     the background of the page.
      -->
     <IMG id='mainImage'
-          class='image'
-          alt="Robot camera frame"
-          style="z-index:-50">
+         class='image'
+         alt="Robot camera frame"
+         style="z-index:-50">
 
     <!--
     The collection of widget types which can be added to the page.
@@ -73,6 +73,43 @@
         0.0
       </H1>
     </DIV>
+    <DIV class="panel source"
+         id="_button"
+         style="display:none;width:200px;height:80px;">
+      <DIV id="header">
+        Button
+      </DIV>
+      <BUTTON id='button_ap'
+           class="button_ap showOnDrive"
+           type="button">Example Button</BUTTON> <IMG src=
+           "img/resize.png"
+           id="resize"
+           loading='lazy'>
+    </DIV>
+    <DIV class="panel source"
+         id="_slider"
+         style="display:none;width:200px;height:52px;">
+      <DIV id="header">
+        Slider
+      </DIV>
+      <INPUT min="0"
+           max="100"
+           step="1"
+           id='slider_ap'
+           type='range'
+           class='slider showOnDrive'> <IMG src="img/resize.png"
+           id="resize"
+           loading='lazy'>
+    </DIV>
+    <DIV class="panel source"
+         id="_joystick"
+         style="display:none;width:200px;height:200px;">
+      <CANVAS class='joystickCanvas showOnDrive'
+              id='joystickCanvas'
+              width="200px"
+              height="200px">
+      </CANVAS>
+    </DIV>
 
     <DIV id='updateDiv'>
             <TEXTAREA id='updateText'
@@ -93,7 +130,7 @@ Connect the battery charger to the robot and connect the robot to the Internet. 
             type="application/javascript"></SCRIPT> 
     <SCRIPT src="js/rq_socket.js"
             type="application/javascript"></SCRIPT> 
-    <SCRIPT src="js/rq_robot_controls.js"
+    <SCRIPT src="js/rq_joystick.js"
             type="application/javascript"></SCRIPT> 
     <SCRIPT src="js/rq_testing.js"
             type="application/javascript"

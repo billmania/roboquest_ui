@@ -54,8 +54,13 @@ function makeNewWidget (widgetType) {
   const widgetClone = menuWidget.cloneNode(true)
 
   widgetClone.className = 'panel dragable'
-  widgetClone.querySelector('#header').style = 'padding:11px;'
-  widgetClone.querySelector('#header').childNodes[0].data = ''
+  const widgetHeader = widgetClone.querySelector('#header')
+  if (widgetHeader) {
+    widgetClone.querySelector('#header').style = 'padding:11px;'
+    widgetClone.querySelector('#header').childNodes[0].data = ''
+  } else {
+    console.log(`No widget header for ${widgetType}`)
+  }
   widgetClone.id = ''
 
   const configButton = widgetClone.querySelector('#configButton')
@@ -79,6 +84,7 @@ function makeNewWidget (widgetType) {
 function addWidget (widgetConfig) {
   let canvas = null
   let imageAp = null
+  let rqJoystick = null
 
   if (!widgetConfig.type) {
     console.log(`widget ${widgetConfig} does not have a type so cannot be created`)
@@ -123,11 +129,13 @@ function addWidget (widgetConfig) {
       break
 
     case '_joystick':
-      canvas = tile.querySelector('#canvas_ap')
-      canvas.height = parseInt(widgetConfig.h) - 20
+      canvas = tile.querySelector('#joystickCanvas')
+      canvas.height = parseInt(widgetConfig.h)
       canvas.width = parseInt(widgetConfig.w)
-      // TODO: Implement
-      // drawJoystick(canvas, 0, 0)
+      rqJoystick = new RQJoystick(
+        canvas.height / 3,
+        canvas,
+        console.log)
       break
 
     case '_trigger':
