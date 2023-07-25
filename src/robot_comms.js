@@ -28,12 +28,16 @@ class RobotComms {
    */
   constructor (nodeName, sendToClientCb) {
     this.nodeName = nodeName
-    this.send_to_client_cb = sendToClientCb
 
     this.rclnodejs = rclnodejs
+    this.rclnodejs.init()
+    this.node = this.rclnodejs.createNode(this.nodeName)
+    this.logger = this.rclnodejs.logging.getLogger(this.nodeName)
+    this.logger.setLoggerLevel(this.logger.LoggingSeverity.DEBUG)
+
+    this.send_to_client_cb = sendToClientCb
 
     this.read_config_file()
-    this.setupRos()
 
     this.counter = 0
     this.telemetryMessages = 0
@@ -42,25 +46,87 @@ class RobotComms {
   }
 
   /**
-   * Setup the connections to the ROS graph. This includes the
-   * creation of a node, configuration of the logger, and some topic
-   * subscriptions.
+   * Create a subscriber and a callback based on a widget definition.
+   *
+   * @param {string} topicName -
+   * @param {string} msgType -
+   *
+   * @returns {Object} - the subscriber
    */
-  setupRos () {
-    this.rclnodejs.init()
-    this.node = this.rclnodejs.createNode(this.nodeName)
-    this.logger = this.rclnodejs.logging.getLogger(this.nodeName)
-    this.logger.setLoggerLevel(this.logger.LoggingSeverity.DEBUG)
+  create_subscriber (topicName, msgType) {
+    const subscriberName = topicName + '_sub'
+    const subscriberCallback = topicName + '_cb'
 
-    this.telemetry_sub = this.node.createSubscription(
-      'rq_msgs/msg/Telemetry',
-      'telemetry',
-      this.telemetry_cb.bind(this))
+    this.logger.debug(`create_subscriber: ${topicName}, ${msgType}`)
+
+    this[subscriberCallback] = (msg) => {
+      this.send_to_client_cb(topicName, JSON.stringify(msg))
+    }
+
+    this[subscriberName] = this.node.createSubscription(
+      msgType,
+      topicName,
+      this[subscriberCallback].bind(this))
+
+    return this[subscriberName]
+  }
+
+  /**
+   * Setup the connections to the ROS graph. This includes the
+   * creation of topic subscribers and publishers as well as service
+   * clients.
+   *
+   * @param {Object} widgetsConfig - the object which describes all of the
+   *                                 widgets, including those which require a
+   *                                 publisher, subscriber, or service client.
+   */
+  setup_ROS (widgetsConfig) {
+    this.logger.info(`${this.nodeName} started`)
+
+    this.subscribers = {}
+    this.publishers = {}
+    this.serviceClients = {}
+
+    /*
+     * The image_sub subscriber isn't associated with any widget.
+     */
     this.image_sub = this.node.createSubscription(
       'sensor_msgs/msg/CompressedImage',
       'image_raw/compressed',
       this.image_cb.bind(this))
-    this.logger.debug('ROS setup completed')
+
+    for (const widgetConfig of widgetsConfig) {
+      if (widgetConfig.topic) {
+        switch (widgetConfig.topicDirection) {
+          case 'subscribe': {
+            if (!this.subscribers[widgetConfig.topic]) {
+              this.subscribers[widgetConfig.topic] = this.create_subscriber(
+                widgetConfig.topic,
+                widgetConfig.msgType)
+              this.logger.debug('Added subscriber for ' + widgetConfig.topic)
+            }
+            break
+          }
+
+          case 'publish': {
+            break
+          }
+
+          default: {
+            this.logger.warn(
+              'widget ' + widgetConfig.id + ' had' +
+              ' topic ' + widgetConfig.topic + ' but no direction')
+            break
+          }
+        }
+
+        continue
+      }
+
+      if (widgetConfig.service) {
+        this.logger.debug('Found service ' + widgetConfig.service)
+      }
+    }
   }
 
   /**
@@ -112,25 +178,15 @@ class RobotComms {
   }
 
   /**
-   * Use the contents of the RQ_PARAMS.CONFIG_FILE as a definition
-   * of the ROS subscriptions.
-   *
-   * @param configuration {JSON} - The configuration data parsed from the file.
-   */
-  configure_data_flow (configuration) {
-    const widgets = configuration.widgets
-  }
-
-  /**
    * Read the contents of the RQ_PARAMS.CONFIG_FILE. If successful,
-   * pass the contents to configure_data_flow().
+   * pass the widgets portion to setup_ROS().
    */
   read_config_file () {
     /**
      * Process the Promise from reading the CONFIG_FILE.
      *
-     * @param error {?} - The completion status from reading the file
-     * @param contents {string} - The contents of the file
+     * @param {} error - The completion status from reading the file
+     * @param {string} contents - The contents of the file
      */
     function handlePromise (error, contents) {
       if (error) {
@@ -145,15 +201,13 @@ class RobotComms {
         throw new Error(`Failed to parse ${RQ_PARAMS.CONFIG_FILE}`)
       }
 
-      this.configure_data_flow(this.configuration)
+      this.setup_ROS(this.configuration.widgets)
     }
 
     fs.readFile(RQ_PARAMS.CONFIG_FILE, handlePromise.bind(this))
   }
 
   main () {
-    this.logger.info(`${this.nodeName} started`)
-
     this.rclnodejs.spin(this.node)
   }
 }
