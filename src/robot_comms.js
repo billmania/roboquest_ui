@@ -111,8 +111,13 @@ class RobotComms {
     }
 
     const rosMessage = TwistStamped
-    rosMessage.twist.linear.x = message[0]
-    rosMessage.twist.angular.z = message[1]
+    /*
+     * message is [x, y]. y represents the joystick fore-and-aft position.
+     * x represents the side-to-side. The y value is used to set the linear
+     * velocity and the x value to set the angular velocity.
+     */
+    rosMessage.twist.linear.x = message[1]
+    rosMessage.twist.angular.z = message[0]
 
     return rosMessage
   }
