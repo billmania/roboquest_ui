@@ -18,6 +18,7 @@ class WebServer {
     this.clientName = clientName
 
     this.incomingEvents = ['update']
+    this.send_to_robot = null
 
     this.express_app = express()
     this.express_server = http.createServer(this.express_app)
@@ -33,6 +34,15 @@ class WebServer {
   setup_static () {
     const STATIC = express.static(RQ_PARAMS.SERVER_STATIC_DIR)
     this.express_app.use(STATIC)
+  }
+
+  /**
+   * Setup the mechanism for sending data to the robot.
+   *
+   * @param {Function} send_function - a function taking two string arguments
+   */
+  setup_send_to_robot (sendFunction) {
+    this.send_to_robot = sendFunction
   }
 
   /**
@@ -79,12 +89,9 @@ class WebServer {
         )
         break
 
-      case 'cmd_vel':
-        console.log(`event_cb: Server received cmd_vel with ${payload}`)
-        break;
-
       default:
-        console.log(`event_cb: ${eventName} not handled`)
+        this.send_to_robot(eventName, payload)
+        break
     }
   }
 

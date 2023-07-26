@@ -5,10 +5,29 @@
  */
 
 const RQ_PARAMS = require('./params.js')
-// Use the rclnodejs module for interacting with the ROS graph
 const rclnodejs = require('rclnodejs')
-// Use the fs module for reading configuration and settings files.
-const fs = require('fs')
+const { readFileSync } = require('node:fs')
+const TwistStamped = {
+  header: {
+    stamp: {
+      sec: 0,
+      nanosec: 0
+    },
+    frame_id: ''
+  },
+  twist: {
+    linear: {
+      x: 0,
+      y: 0,
+      z: 0
+    },
+    angular: {
+      x: 0,
+      y: 0,
+      z: 0
+    }
+  }
+}
 
 /**
  * RobotComms reads the RQ_PARAMS.CONFIG_FILE and uses its
@@ -29,6 +48,11 @@ class RobotComms {
   constructor (nodeName, sendToClientCb) {
     this.nodeName = nodeName
 
+    this.subscribers = {}
+    this.publishers = {}
+    this.publishedTopics = []
+    this.serviceClients = {}
+
     this.rclnodejs = rclnodejs
     this.rclnodejs.init()
     this.node = this.rclnodejs.createNode(this.nodeName)
@@ -38,11 +62,59 @@ class RobotComms {
     this.send_to_client_cb = sendToClientCb
 
     this.read_config_file()
+    this.setup_ROS(this.configuration.widgets)
 
     this.counter = 0
     this.telemetryMessages = 0
     this.imageMessages = 0
     this.configuration = null
+  }
+
+  /**
+   * Return an Array of published topics.
+   *
+   * @returns {Array} - the topics as strings
+   */
+  published_topics_list () {
+    return this.publishedTopics
+  }
+
+  /**
+   * Publish a message onto a topic with the included data. Based on
+   * the topic name, the message object must be retrieved. The data
+   * from the message must then be inserted into the message object.
+   *
+   * @param {string} topicName -
+   * @param {string} message - as a JSON string with the data for the
+   *                           widgetConfig.msgAttribute(s)
+   */
+  publish_message (topicName, message) {
+    const rosMessage = this.buildRosMessage(topicName, message)
+    this.publishers[topicName].publish(rosMessage)
+  }
+
+  /**
+   * Using the topicName, retrieve the empty ROS message object.
+   * Using the contents of message, populate the required attributes
+   * of the ROS message object.
+   * Return the populated ROS message.
+   *
+   * @param {string} topicName
+   * @param {Array} message
+   *
+   * @returns {ROS message object
+   */
+  buildRosMessage (topicName, message) {
+    if (topicName !== 'cmd_vel') {
+      this.logger.warn('Only cmd_vel implemented so far')
+      return null
+    }
+
+    const rosMessage = TwistStamped
+    rosMessage.twist.linear.x = message[0]
+    rosMessage.twist.angular.z = message[1]
+
+    return rosMessage
   }
 
   /**
@@ -72,6 +144,27 @@ class RobotComms {
   }
 
   /**
+   * Create a publisher based on a widget definition.
+   *
+   * @param {string} topicName -
+   * @param {string} msgType -
+   *
+   * @returns {Object} - the publisher
+   */
+  create_publisher (topicName, msgType) {
+    const publisherName = topicName + '_pub'
+
+    this.logger.debug(`create_publisher: ${topicName}, ${msgType}`)
+
+    this[publisherName] = this.node.createPublisher(
+      topicName,
+      msgType
+    )
+
+    return this[publisherName]
+  }
+
+  /**
    * Setup the connections to the ROS graph. This includes the
    * creation of topic subscribers and publishers as well as service
    * clients.
@@ -82,10 +175,6 @@ class RobotComms {
    */
   setup_ROS (widgetsConfig) {
     this.logger.info(`${this.nodeName} started`)
-
-    this.subscribers = {}
-    this.publishers = {}
-    this.serviceClients = {}
 
     /*
      * The image_sub subscriber isn't associated with any widget.
@@ -109,6 +198,14 @@ class RobotComms {
           }
 
           case 'publish': {
+            if (!this.publishers[widgetConfig.topic]) {
+              this.publishers[widgetConfig.topic] = this.create_publisher(
+                widgetConfig.msgType,
+                widgetConfig.topic)
+              this.publishedTopics.push(widgetConfig.topic)
+              console.log(`publishedTopics: ${this.publishedTopics}`)
+              this.logger.debug('Added publisher for ' + widgetConfig.topic)
+            }
             break
           }
 
@@ -179,32 +276,16 @@ class RobotComms {
 
   /**
    * Read the contents of the RQ_PARAMS.CONFIG_FILE. If successful,
-   * pass the widgets portion to setup_ROS().
+   * save the parsed configuration as this.configuration.
    */
   read_config_file () {
-    /**
-     * Process the Promise from reading the CONFIG_FILE.
-     *
-     * @param {} error - The completion status from reading the file
-     * @param {string} contents - The contents of the file
-     */
-    function handlePromise (error, contents) {
-      if (error) {
-        this.logger.fatal(`Reading ${RQ_PARAMS.CONFIG_FILE}: ${error}`)
-        throw new Error(`Failed to read ${RQ_PARAMS.CONFIG_FILE}`)
-      }
-
-      try {
-        this.configuration = JSON.parse(contents)
-      } catch (exception) {
-        this.logger.fatal(`Parsing ${RQ_PARAMS.CONFIG_FILE}: ${exception}`)
-        throw new Error(`Failed to parse ${RQ_PARAMS.CONFIG_FILE}`)
-      }
-
-      this.setup_ROS(this.configuration.widgets)
+    try {
+      const configurationRaw = readFileSync(RQ_PARAMS.CONFIG_FILE)
+      this.configuration = JSON.parse(configurationRaw)
+    } catch (error) {
+      this.logger.fatal(`Reading ${RQ_PARAMS.CONFIG_FILE}: ${error}`)
+      throw new Error(`Failed to read ${RQ_PARAMS.CONFIG_FILE}`)
     }
-
-    fs.readFile(RQ_PARAMS.CONFIG_FILE, handlePromise.bind(this))
   }
 
   main () {

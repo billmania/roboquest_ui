@@ -25,7 +25,7 @@ class ClientComms {
    * @param {Array} incoming_events - the list of events to catch
    * @param {Function} eventCb - A function which expects two arguments:
    *                              the name of the event and the event's
-   *                              payload.
+   *                              payload as an object.
    */
   constructor (
     expressServer,
@@ -55,7 +55,7 @@ class ClientComms {
     this.socket.on(
       eventName,
       payload => {
-        this.eventCb(eventName, payload)
+        this.eventCb(eventName, JSON.parse(payload))
       }
     )
     console.log(`Added handler for event ${eventName}`)

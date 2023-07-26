@@ -20,9 +20,10 @@ class RQTesting {
     this.getConfiguration(
       buildPage,
       this.mapSubscriptionData.bind(this),
-      (eventName, payload) => { this.socket.send_event(eventName, payload) }
+      (eventName, payload) => {
+        this.socket.send_event(eventName, payload)
+      }
     )
-//      (eventName, payload) => { console.log(eventName, payload) }
 
     this.setupSocketEvents()
     console.log('RQTesting instantiated')
