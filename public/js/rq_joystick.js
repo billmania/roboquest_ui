@@ -10,24 +10,29 @@ class RQJoystick {
   /**
    * The constructor takes a reference to a callback function. Each time
    * the joystick knob is moved the (x, y) position of the knob is reported
-   * to the client by this.callback(x, y).
+   * to the client by this.dataReturnCb(x, y).
    * x describes the horizontal position of the knob between
-   * [-joystickRadius, joystickRadius] with the positive values on the right
-   * side of the page. y describes the horizontal position in the same range,
-   * with positive values on the top of the page.
+   * [-xScaleFactor, xScaleFactor] with the positive values on the right
+   * side of the page. y describes the horizontal position in the yScaleFactor range,
+   * with positive values on the top of the page. When the joystick is released
+   * and centered, it's at (0, 0).
    *
    * @param {integer} joystickRadius - the size of the joystick in pixels
    * @param {Object} canvas - the HTML canvas for the joystick
-   * @param {function} dataReturnCb - a function which takes oneArray argument.
+   * @param {Object} scaleFactors - an object with two floating point properties x
+   *                                and y. used to scale the x and y joystick
+   *                                positions before calling dataReturnCb.
+   * @param {function} dataReturnCb - a function which takes one Array argument.
    *                                  how this class makes the two joystick
    *                                  values available to its client
    */
-  constructor (joystickRadius, canvas, dataReturnCb) {
+  constructor (joystickRadius, canvas, scaleFactors, dataReturnCb) {
     this.xOrig = 0
     this.yOrig = 0
     this.joystickCoord = { x: 0, y: 0 }
     this.paint = false
     this.joystickRadius = joystickRadius
+    this.scaleFactors = scaleFactors
     this.joystickW = canvas.width
     this.joystickH = canvas.height
 
@@ -228,13 +233,13 @@ class RQJoystick {
     )
      */
 
-    const xRelative = Math.round(x - this.xOrig)
-    const yRelative = Math.round(y - this.yOrig)
+    const xScaled = (x - this.xOrig) / this.joystickRadius * this.scaleFactors.x
+    const yScaled = (y - this.yOrig) / this.joystickRadius * this.scaleFactors.y
 
     if (this.dataReturnCb) {
-      this.dataReturnCb([xRelative, -yRelative])
+      this.dataReturnCb([xScaled, -yScaled])
     } else {
-      console.log(`(${xRelative}, ${-yRelative})`)
+      console.log(`(${xScaled}, ${-yScaled})`)
     }
   }
 }

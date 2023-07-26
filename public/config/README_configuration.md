@@ -41,7 +41,8 @@ an array of objects uniquely identified with the properties "type" and "id".
          the left edge of the parent element.
 * max
 * min
-* msgAttribute - which attribute from the msgType on the topic, like 'header.stamp.sec'
+* msgAttribute - which attribute(s) from the msgType on the topic, like 'header.stamp.sec',
+*                separated by semi-colon(s)
 * msgType - a string defining the ROS interface for the service or topic. for
             example, std_msgs/msg/String.
 * name - a descriptive name for the widget, as a string
@@ -85,6 +86,8 @@ an array of objects uniquely identified with the properties "type" and "id".
            value. if "false" then do the opposite.
 * vertical
 * w - the width of the widget as "#px"
+* xScaleFactor, yScaleFactor - floating point value used with the joystick to scale
+                               the x and y values.
 
 ### config
 

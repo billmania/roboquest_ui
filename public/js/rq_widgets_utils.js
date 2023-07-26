@@ -132,19 +132,25 @@ function addWidget (widgetConfig, sendEvent) {
        */
       break
 
-    case '_joystick':
+    case '_joystick': {
       canvas = tile.querySelector('#joystickCanvas')
       canvas.height = parseInt(widgetConfig.h)
       canvas.width = parseInt(widgetConfig.w)
-      tile['callback'] = (payload) => {
+      const scaleFactors = {
+        x: parseFloat(widgetConfig.xScaleFactor),
+        y: parseFloat(widgetConfig.yScaleFactor)
+      }
+      tile.callback = (payload) => {
         sendEvent(widgetConfig.topic, JSON.stringify(payload))
       }
       rqJoystick = new RQJoystick(
         canvas.height / 3,
         canvas,
+        scaleFactors,
         tile.callback
       )
       break
+    }
 
     case '_trigger':
       tile.querySelector('#paddle_background').style.background = widgetConfig.back
