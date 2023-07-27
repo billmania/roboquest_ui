@@ -62,6 +62,7 @@
         {
             "type": "_value",
             "id": 4,
+            "name": "batteryMa",
             "left": "14px",
             "top": "991px",
             "useLeft": true,
@@ -84,6 +85,7 @@
         {
             "type": "_value",
             "id": 5,
+            "name": "systemMa",
             "left": "14px",
             "top": "991px",
             "useLeft": true,
@@ -106,6 +108,7 @@
         {
             "type": "_value",
             "id": 6,
+            "name": "adc0V",
             "left": "14px",
             "top": "991px",
             "useLeft": true,
@@ -128,6 +131,7 @@
         {
             "type": "_value",
             "id": 7,
+            "name": "adc1V",
             "left": "14px",
             "top": "991px",
             "useLeft": true,
@@ -150,6 +154,7 @@
         {
             "type": "_value",
             "id": 8,
+            "name": "adc2V",
             "left": "14px",
             "top": "991px",
             "useLeft": true,
@@ -172,6 +177,7 @@
         {
             "type": "_value",
             "id": 9,
+            "name": "adc3V",
             "left": "14px",
             "top": "991px",
             "useLeft": true,
@@ -194,6 +200,7 @@
         {
             "type": "_value",
             "id": 10,
+            "name": "adc4V",
             "left": "14px",
             "top": "991px",
             "useLeft": true,

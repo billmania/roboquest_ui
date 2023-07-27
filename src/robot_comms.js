@@ -123,6 +123,29 @@ class RobotComms {
   }
 
   /**
+   * Create a service client based on a widget definition.
+   *
+   * @param {string} msgType - the request/response message for the service
+   * @param {string} serviceName - the name of the service
+   *
+   */
+  create_service_client (msgType, serviceName) {
+    const serviceClient = this.node.createClient(
+      msgType,
+      serviceName
+    )
+
+    serviceClient.waitForService(1000)
+      .then((result) => {
+        if (!result) {
+          this.logger.warn(`Service ${serviceName} not available`)
+          return null
+        }
+      })
+    return serviceClient
+  }
+
+  /**
    * Create a subscriber and a callback based on a widget definition.
    *
    * @param {string} topicName -
@@ -133,8 +156,6 @@ class RobotComms {
   create_subscriber (topicName, msgType) {
     const subscriberName = topicName + '_sub'
     const subscriberCallback = topicName + '_cb'
-
-    this.logger.debug(`create_subscriber: ${topicName}, ${msgType}`)
 
     this[subscriberCallback] = (msg) => {
       this.send_to_client_cb(topicName, JSON.stringify(msg))
@@ -159,8 +180,6 @@ class RobotComms {
   create_publisher (topicName, msgType) {
     const publisherName = topicName + '_pub'
 
-    this.logger.debug(`create_publisher: ${topicName}, ${msgType}`)
-
     this[publisherName] = this.node.createPublisher(
       topicName,
       msgType
@@ -184,12 +203,14 @@ class RobotComms {
     /*
      * The image_sub subscriber isn't associated with any widget.
      */
+    // TODO: Replace this with a call to create_subscriber()
     this.image_sub = this.node.createSubscription(
       'sensor_msgs/msg/CompressedImage',
       'image_raw/compressed',
       this.image_cb.bind(this))
 
     for (const widgetConfig of widgetsConfig) {
+      this.logger.debug('Parsing widget ' + widgetConfig.type + ' ' + widgetConfig.name)
       if (widgetConfig.topic) {
         switch (widgetConfig.topicDirection) {
           case 'subscribe': {
@@ -199,7 +220,7 @@ class RobotComms {
                 widgetConfig.msgType)
               this.logger.debug('Added subscriber for ' + widgetConfig.topic)
             }
-            break
+            continue
           }
 
           case 'publish': {
@@ -208,25 +229,39 @@ class RobotComms {
                 widgetConfig.msgType,
                 widgetConfig.topic)
               this.publishedTopics.push(widgetConfig.topic)
-              console.log(`publishedTopics: ${this.publishedTopics}`)
               this.logger.debug('Added publisher for ' + widgetConfig.topic)
             }
-            break
+            continue
           }
 
           default: {
             this.logger.warn(
               'widget ' + widgetConfig.id + ' had' +
               ' topic ' + widgetConfig.topic + ' but no direction')
-            break
+            continue
           }
         }
-
-        continue
       }
 
       if (widgetConfig.service) {
-        this.logger.debug('Found service ' + widgetConfig.service)
+        if (this.serviceClients[widgetConfig.service]) {
+          /*
+           * Services can be called by multiple UI components. The response
+           * to a service call is ignored.
+           * */
+          continue
+        }
+
+        const serviceClient = this.create_service_client(
+          widgetConfig.msgType,
+          widgetConfig.service)
+        if (serviceClient) {
+          this.serviceClients[widgetConfig.service] = serviceClient
+          this.logger.debug('Added serviceClient for ' + widgetConfig.service)
+        } else {
+          this.logger.warn(`Service ${widgetConfig.service} not available`)
+        }
+        continue
       }
     }
   }

@@ -16,7 +16,6 @@ const robotComms = new RobotComms(
   webServer.send_to_client.bind(webServer))
 
 for (const topicToPublish of robotComms.published_topics_list()) {
-  console.log(`topicToPublish ${topicToPublish}`)
   webServer.add_incoming_event(topicToPublish)
 }
 webServer.setup_send_to_robot((eventName, payload) => {
