@@ -71,219 +71,6 @@ class RQMain {
   }
 
   /**
-   * Set the style of the widget using its description.
-   *
-   * @param {} tile -
-   * @param {JSON} widget - The JSON object describing the widget.
-   */
-  setWidgetStyle (tile, widget) {
-    if (widget.useTop) {
-      tile.style.top = widget.top
-      tile.style.bottom = ''
-    } else {
-      tile.style.top = ''
-      tile.style.bottom = widget.bottom
-    }
-    if (widget.useLeft) {
-      tile.style.right = ''
-      tile.style.left = widget.left
-    } else {
-      tile.style.left = ''
-      tile.style.right = widget.right
-    }
-    tile.style.width = widget.w
-    tile.style.height = widget.h
-
-    if (widget.type === '_rosImage') {
-      this.styleImageWidget(tile, widget)
-    }
-  }
-
-  /**
-   * Find the widget element from the widget menu and duplicate it.
-   * Returns a new widget-clone as a dragable half-functional widget.
-   *
-   * @param {string} widgetId - The ID of the widget.
-   *
-   * @returns {} - A clone of the widget.
-   */
-  widgetFromId (widgetId) {
-    const widgetItem = document.getElementById(widgetId)
-    if (!widgetItem) {
-      console.log(`widget with ID ${widgetId} does not exist`)
-      return
-    }
-
-    const widgetClone = widgetItem.cloneNode(true)
-    widgetClone.className = 'panel dragable'
-    widgetClone.style.zIndex = 60
-    if (widgetId === '_box') {
-      widgetClone.style.zIndex = 5
-    }
-    widgetClone.querySelector('#header').style = 'padding:11px;'
-    widgetClone.querySelector('#header').childNodes[0].data = ''
-    widgetClone.id = ''
-
-    // show the gear icon to allow for configuration of that widget
-    widgetClone.querySelector('#configButton').style.display = 'inline-block'
-
-    let canvas = widgetClone.querySelector('#canvas_ap')
-    // TODO: Implement
-    /*
-    if (canvas) {
-      initJoystick(canvas)
-      drawJoystick(canvas, 0, 0, false)
-    }
-     */
-    canvas = widgetClone.querySelector('#gauge_ap')
-    if (canvas) {
-      // TODO: Implement
-      // drawGauge(canvas, 0)
-    }
-    canvas = widgetClone.querySelector('#arm_ap')
-    if (canvas) {
-      // TODO: Implement
-      // drawArm(canvas)
-    }
-    document.getElementById('body').appendChild(widgetClone)
-
-    return widgetClone
-  }
-
-  /**
-   * Use the JSON definition of a widget to configure it on the page.
-   *
-   * @param {JSON} widget - The JSON object which describes the widget.
-   */
-  addWidget (widget) {
-    const type = widget.type
-    let canvas = null
-    let imageAp = null
-
-    if (!type) {
-      console.log(`widget ${widget} does not have a type so cannot be created`)
-      return
-    }
-    console.log(`creating widget ${widget} as ${type}`)
-    const tile = this.widgetFromId(type)
-    if (!tile) {
-      console.log(`widget type ${type} doesn't exist in this version of UI`)
-      return
-    }
-
-    // assign some properties
-    tile.id = widget.id
-    tile.style.zIndex = 20
-    if (type === '_box') tile.style.zIndex = 5
-
-    tile.style.width = widget.w
-    tile.style.height = widget.h
-
-    // customize the widget with information from the json array
-    switch (type) {
-      case '_button':
-        tile.querySelector('#button_ap').innerText = widget.label
-        if (widget.fontsize) tile.querySelector('#button_ap').style.fontSize = parseFloat(widget.fontsize) + 'px'
-        break
-
-      case '_checkbox':
-        tile.querySelector('#checkbox_text_ap').innerText = widget.label
-        tile.querySelector('#checkbox_ap').checked = widget.initial
-        tile.querySelector('#checkbox_text_ap').style.color = widget.textColor
-        // TODO: Implement
-        /*
-        if (widget.latching) {
-          sendToRos(
-            widget.topic,
-            { value: widget.initial ? widget.onPress : widget.onRelease },
-            '_checkbox')
-        }
-         */
-        break
-
-      case '_joystick':
-        canvas = tile.querySelector('#canvas_ap')
-        canvas.height = parseInt(widget.h) - 20
-        canvas.width = parseInt(widget.w)
-        // TODO: Implement
-        // drawJoystick(canvas, 0, 0)
-        break
-
-      case '_trigger':
-        tile.querySelector('#paddle_background').style.background = widget.back
-        tile.querySelector('#paddle_ap').style.background = widget.bar
-        break
-
-      case '_slider':
-        tile.querySelector('#slider_ap').min = widget.min
-        tile.querySelector('#slider_ap').max = widget.max
-        tile.querySelector('#slider_ap').value = (parseInt(widget.min) + parseInt(widget.max)) / 2
-        tile.querySelector('#slider_ap').step = widget.step
-        break
-
-      case '_value':
-        tile.querySelector('#text_ap').innerText = 'Waiting for ROS...'
-        tile.querySelector('#text_ap').style.color = widget.textColor
-        break
-
-      case '_light':
-        tile.querySelector('#text_ap').innerText = widget.text
-        break
-
-      case '_audio':
-        tile.querySelector('#speaker_ap').className = widget.hideondrive ? '' : 'showOnDrive'
-        break
-
-      case '_gauge':
-        canvas = tile.querySelector('#gauge_ap')
-        canvas.height = parseInt(widget.h) - 20
-        canvas.width = parseInt(widget.w)
-        canvas.setAttribute('data-config', JSON.stringify({ min: widget.min, max: widget.max, bigtick: widget.bigtick, smalltick: widget.smalltick, title: widget.label }))
-        // TODO: Implement
-        // drawGauge(canvas, widget.min, widget)
-        break
-
-      case '_rosImage':
-        imageAp = tile.querySelector('#imageAp')
-        if (widget.src) imageAp.src = widget.src
-        if (widget.aspr) imageAp.className = 'showOnDrive containImage'
-        if (widget.opac) imageAp.style.opacity = widget.opac + '%'
-        break
-
-      case '_arm':
-        canvas = tile.querySelector('#arm_ap')
-        canvas.height = parseInt(widget.h) - 20
-        canvas.width = parseInt(widget.w)
-        // TODO: Implement
-        // drawArm(canvas, widget.arms)
-        break
-
-      case '_dropdown':
-        // TODO: Implement
-        // tile.querySelector('#selector_ap').innerHTML = generateSelectorOptions(widget.dropdowns)
-        break
-
-      case '_text':
-        tile.querySelector('#text_ap').innerText = widget.text
-        tile.querySelector('#text_ap').style.color = widget.textColor
-        break
-
-      case '_box':
-        tile.querySelector('#panel_ap').style.backgroundColor = widget.bkColor
-        break
-
-      case '_speaker':
-        tile.querySelector('#label_ap').innerText = widget.label || ''
-        break
-    }
-
-    this.setWidgetStyle(tile, widget)
-
-    // TODO: Implement
-    // initFunctionality(widget.type, tile, tile.id)
-  }
-
-  /**
    * Retrieve the configuration file from the server. When it's received,
    * cause it to be processed by buildPage().
    *
@@ -449,6 +236,15 @@ class RQMain {
   }
 
   /**
+   * Update the application software on the robot.
+   */
+  updateSoftware () {
+    console.log('updateSoftware() called')
+
+    const updateText = document.getElementById('updateText')
+  }
+
+  /**
    * Toggle between drive mode and no-drive mode, changing the visibility
    * of the widgets appropriately.
    */
@@ -472,6 +268,18 @@ class RQMain {
    * Define the contents of the RQ page using the contents of
    * the configuration file.
    *
+   * First, remove all of the dynamic elements, which are identified with
+   * the class "panel" and "dragable". Next, set some names and background
+   * colors. Lastly, iterate through this.widgetArray calling addWidget()
+   * for each member.
+   *
+   * The intent of the class "panel dragable" is not (yet) clear, since there
+   * aren't any in the initial HTML page.
+   *
+   * If the configuration says to start in edit mode or if the browser
+   * is identified as a "mobile" device, either toggle drive mode or
+   * show the widget holder.
+   *
    * @param {JSON} configuration - The contents of the configuration file.
    */
   buildPage (configuration) {
@@ -494,8 +302,8 @@ class RQMain {
       document.getElementById('body').style.backgroundColor = this.configSettings.background
       const snapWidgets = this.configSettings.snaptogrid
 
-      for (const widget of this.widgetArray) {
-        this.addWidget(widget)
+      for (const widgetConfig of this.widgetArray) {
+        this.addWidget(widgetConfig)
       }
       if (!this.configSettings.loadInEditMode || isMobile()) {
         this.toggleDriveMode()

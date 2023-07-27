@@ -10,7 +10,7 @@ const path = require('path')
 const RQ_PARAMS = {}
 
 RQ_PARAMS.CONFIG_FILE = path.join(
-  __dirname, '../public/config/configuration.json')
+  __dirname, '../public/config/testing_config.json')
 RQ_PARAMS.SETTINGS_FILE = path.join(
   __dirname, '../public/config/hardcoded_settings.json')
 RQ_PARAMS.SERVER_STATIC_DIR = path.join(
