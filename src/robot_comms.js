@@ -7,6 +7,13 @@
 const RQ_PARAMS = require('./params.js')
 const rclnodejs = require('rclnodejs')
 const { readFileSync } = require('node:fs')
+const Control = {
+  set_charger: '',
+  set_fet1: '',
+  set_fet2: '',
+  set_motors: '',
+  set_servos: ''
+}
 const TwistStamped = {
   header: {
     stamp: {
@@ -52,6 +59,7 @@ class RobotComms {
     this.publishers = {}
     this.publishedTopics = []
     this.serviceClients = {}
+    this.services = []
 
     this.rclnodejs = rclnodejs
     this.rclnodejs.init()
@@ -80,17 +88,70 @@ class RobotComms {
   }
 
   /**
-   * Publish a message onto a topic with the included data. Based on
-   * the topic name, the message object must be retrieved. The data
-   * from the message must then be inserted into the message object.
+   * Return an Array of services.
    *
-   * @param {string} topicName -
+   * @returns {Array} - the service names as strings
+   */
+  services_list () {
+    return this.services
+  }
+
+  /**
+   * Handle a message incoming from the UI. It's either a message
+   * to be published onto a topic or a service to be called, determined
+   * by the name.
+   *
+   * @param {string} name - the name of the topic or the service
    * @param {string} message - as a JSON string with the data for the
    *                           widgetConfig.msgAttribute(s)
    */
-  publish_message (topicName, message) {
-    const rosMessage = this.buildRosMessage(topicName, message)
-    this.publishers[topicName].publish(rosMessage)
+  handle_message (name, message) {
+    if (this.publishedTopics.includes(name)) {
+      const rosMessage = this.buildRosMessage(name, message)
+      this.publishers[name].publish(rosMessage)
+    } else if (this.services.includes(name)) {
+      const serviceRequest = this.buildServiceMessage(name, message)
+      this.logger.debug(`Calling ${name} with ${serviceRequest}`)
+      this.serviceClients[name].sendRequest(
+        serviceRequest,
+        (response) => {
+          this.logger.debug(
+            `Service response for ${name}: ${typeof response} ${response}`)
+        }
+      )
+    } else {
+      this.logger.warn(`handle_message(): ${name} not recognized as publish or service`)
+    }
+  }
+
+  /**
+   * Using the serviceName, retrieve the empty ROS request object.
+   * Using the contents of message, populate the required attributes
+   * of the ROS request object.
+   * Return the populated ROS request message.
+   *
+   * @param {string} serviceName
+   * @param {JSON} message
+   *
+   * @returns {ROS request message}
+   */
+  buildServiceMessage (serviceName, message) {
+    if (serviceName !== 'control_hat') {
+      this.logger.warn('Only control_hat implemented so far')
+      return null
+    }
+
+    const requestMessage = Control
+    const requestAttributes = JSON.parse(message)
+    /*
+     * requestAttributes is an object with one or more of the properties defined
+     * for the Control message.
+     */
+    for (const attribute in requestAttributes) {
+      requestMessage[attribute] = requestAttributes[attribute]
+    }
+
+    return requestMessage
   }
 
   /**
@@ -257,6 +318,7 @@ class RobotComms {
           widgetConfig.service)
         if (serviceClient) {
           this.serviceClients[widgetConfig.service] = serviceClient
+          this.services.push(widgetConfig.service)
           this.logger.debug('Added serviceClient for ' + widgetConfig.service)
         } else {
           this.logger.warn(`Service ${widgetConfig.service} not available`)

@@ -15,12 +15,29 @@ const robotComms = new RobotComms(
   'rq_server',
   webServer.send_to_client.bind(webServer))
 
+/*
+ * Define which eventNames to expect coming from the UI, so they
+ * can be routed to the event handler.
+ */
 for (const topicToPublish of robotComms.published_topics_list()) {
   webServer.add_incoming_event(topicToPublish)
 }
+for (const serviceToCall of robotComms.services_list()) {
+  webServer.add_incoming_event(serviceToCall)
+}
+
+/*
+ * Setup the means to use messages from the UI to interact with
+ * the ROS graph.
+ */
 webServer.setup_send_to_robot((eventName, payload) => {
-  robotComms.publish_message(eventName, payload)
+  robotComms.handle_message(eventName, payload)
 })
+
+/*
+ * Now that all of the configuration and setup details have been
+ * given to the web server, actually start it.
+ */
 webServer.setup_client_comms()
 
 setInterval(
