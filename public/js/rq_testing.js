@@ -124,12 +124,12 @@ class RQTesting {
         subscriptionMap[widgetConfig.topic] = {}
         console.log(`adding topic ${widgetConfig.topic}`)
       }
-      subscriptionMap[widgetConfig.topic][widgetConfig.msgAttribute] = {
+      subscriptionMap[widgetConfig.topic][widgetConfig.topicAttribute] = {
         prefix: widgetConfig.prefix,
         suffix: widgetConfig.suffix,
         widget: widgetsList[widgetConfig.id]
       }
-      console.log(`added msgAttribute ${widgetConfig.msgAttribute}`)
+      console.log(`added topicAttribute ${widgetConfig.topicAttribute}`)
     }
 
     console.log('subscriptionMap: ' + JSON.stringify(subscriptionMap))
@@ -209,7 +209,7 @@ class RQTesting {
       const textAp = this.subscriptionDataMap.telemetry[attribute].widget.querySelector('#text_ap')
       textAp.innerText =
         this.subscriptionDataMap.telemetry[attribute].prefix +
-        this.getMessageAttribute(telemetry, attribute).toFixed(2) +
+        this.getMessageAttribute(telemetry, attribute) +
         this.subscriptionDataMap.telemetry[attribute].suffix
     }
   }
