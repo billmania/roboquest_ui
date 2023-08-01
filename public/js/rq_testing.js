@@ -95,18 +95,21 @@ class RQTesting {
    * The created subscription map is saved as this.subscriptionDataMap because
    * I still don't grok all of the JavaScript borkage of "this".
    *
+   * Each eventName:attribute can be assigned to only one widget. The last widget
+   * claiming the attribute is the winner.
+   *
    * @param {Object} widgetsConfig - the definition of the widgets
    * @param {Object} widgetsList - the collection of created widgets
    *
    * The map is an object like:
    *  "telemetry": {
    *    "battery_v": {
-   *      "destination": widget,
+   *      "widget": widget,
    *      "prefix": "Battery V ",
    *      "suffix": ""
    *    },
    *    "header.stamp.sec": {
-   *      "destination": otherWidget,
+   *      "widget": otherWidget,
    *      "prefix": "",
    *      "suffix": " secs"
    *    }
@@ -116,23 +119,48 @@ class RQTesting {
   mapSubscriptionData (widgetsConfig, widgetsList) {
     const subscriptionMap = {}
     for (const widgetConfig of widgetsConfig) {
-      if (!widgetConfig.topicDirection || !widgetConfig.topicDirection === 'subscribe') {
+      console.log(`widget ${widgetConfig.name} ${widgetConfig.id}`)
+
+      if (widgetConfig.topicDirection !== 'subscribe') {
         continue
       }
 
       if (!subscriptionMap[widgetConfig.topic]) {
         subscriptionMap[widgetConfig.topic] = {}
-        console.log(`adding topic ${widgetConfig.topic}`)
+        console.log(`adding new subscribed topic ${widgetConfig.topic}`)
+      } else {
+        console.log(`${widgetConfig.topic} already subscribed.`)
       }
-      subscriptionMap[widgetConfig.topic][widgetConfig.topicAttribute] = {
-        prefix: widgetConfig.prefix,
-        suffix: widgetConfig.suffix,
-        widget: widgetsList[widgetConfig.id]
+
+      switch (widgetConfig.type) {
+        case '_value': {
+          subscriptionMap[widgetConfig.topic][widgetConfig.topicAttribute] = {
+            type: widgetConfig.type,
+            prefix: widgetConfig.prefix,
+            suffix: widgetConfig.suffix,
+            widget: widgetsList[widgetConfig.id]
+          }
+          console.log(`added topicAttribute ${widgetConfig.topicAttribute}`)
+          break
+        }
+
+        case '_indicator': {
+          subscriptionMap[widgetConfig.topic][widgetConfig.topicAttribute] = {
+            type: widgetConfig.type,
+            trueText: widgetConfig.trueText,
+            falseText: widgetConfig.falseText,
+            widget: widgetsList[widgetConfig.id]
+          }
+          console.log(`added topicAttribute ${widgetConfig.topicAttribute}`)
+          break
+        }
+
+        default: {
+          console.log(`No support for widget type ${widgetConfig.type}`)
+        }
       }
-      console.log(`added topicAttribute ${widgetConfig.topicAttribute}`)
     }
 
-    console.log('subscriptionMap: ' + JSON.stringify(subscriptionMap))
     this.subscriptionDataMap = subscriptionMap
   }
 
@@ -198,6 +226,9 @@ class RQTesting {
   /**
    * Receive the telemetry JSON string. Extract the individual
    * attributes and update the relevant entities on the page.
+   * For a widget to receive telemetry data, it's type must be
+   * one of '_value' or '_indicator'. It must also have an element
+   * with the HTML ID 'text_ap'.
    *
    * @param {JSON string} telemetry - the stringified object containing
    *                                  telemetry
@@ -207,10 +238,31 @@ class RQTesting {
     const telemetry = JSON.parse(telemetryStr)
     for (const attribute in this.subscriptionDataMap.telemetry) {
       const textAp = this.subscriptionDataMap.telemetry[attribute].widget.querySelector('#text_ap')
-      textAp.innerText =
-        this.subscriptionDataMap.telemetry[attribute].prefix +
-        this.getMessageAttribute(telemetry, attribute) +
-        this.subscriptionDataMap.telemetry[attribute].suffix
+      switch (this.subscriptionDataMap.telemetry[attribute].type) {
+        case '_value': {
+          textAp.innerText =
+            this.subscriptionDataMap.telemetry[attribute].prefix +
+            this.getMessageAttribute(telemetry, attribute) +
+            this.subscriptionDataMap.telemetry[attribute].suffix
+          break
+        }
+
+        case '_indicator': {
+          textAp.innerText =
+            (this.getMessageAttribute(telemetry, attribute)
+              ? this.subscriptionDataMap.telemetry[attribute].trueText
+              : this.subscriptionDataMap.telemetry[attribute].falseText)
+          break
+        }
+
+        default: {
+          console.log(
+            'telemetry_cb() Does not support widget type ' +
+            this.subscriptionDataMap.telemetry[attribute].widget.type
+          )
+          break
+        }
+      }
     }
   }
 

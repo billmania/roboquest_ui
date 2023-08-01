@@ -172,7 +172,7 @@ function addWidget (widgetConfig, sendEvent) {
       break
 
     case '_indicator':
-      tile.querySelector('#text_ap').innerText = widgetConfig.text
+      tile.querySelector('#text_ap').innerText = widgetConfig.name
       break
 
     case '_audio':

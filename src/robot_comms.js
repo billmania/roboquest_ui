@@ -103,7 +103,7 @@ class RobotComms {
    *
    * @param {string} name - the name of the topic or the service
    * @param {string} message - as a JSON string with the data for the
-   *                           widgetConfig.msgAttribute(s)
+   *                           widgetConfig.topicAttribute(s)
    */
   handle_message (name, message) {
     if (this.publishedTopics.includes(name)) {
@@ -186,13 +186,13 @@ class RobotComms {
   /**
    * Create a service client based on a widget definition.
    *
-   * @param {string} msgType - the request/response message for the service
+   * @param {string} serviceType - the request/response message for the service
    * @param {string} serviceName - the name of the service
    *
    */
-  create_service_client (msgType, serviceName) {
+  create_service_client (serviceType, serviceName) {
     const serviceClient = this.node.createClient(
-      msgType,
+      serviceType,
       serviceName
     )
 
@@ -210,11 +210,11 @@ class RobotComms {
    * Create a subscriber and a callback based on a widget definition.
    *
    * @param {string} topicName -
-   * @param {string} msgType -
+   * @param {string} topicType -
    *
    * @returns {Object} - the subscriber
    */
-  create_subscriber (topicName, msgType) {
+  create_subscriber (topicName, topicType) {
     const subscriberName = topicName + '_sub'
     const subscriberCallback = topicName + '_cb'
 
@@ -223,7 +223,7 @@ class RobotComms {
     }
 
     this[subscriberName] = this.node.createSubscription(
-      msgType,
+      topicType,
       topicName,
       this[subscriberCallback].bind(this))
 
@@ -234,16 +234,16 @@ class RobotComms {
    * Create a publisher based on a widget definition.
    *
    * @param {string} topicName -
-   * @param {string} msgType -
+   * @param {string} topicType -
    *
    * @returns {Object} - the publisher
    */
-  create_publisher (topicName, msgType) {
+  create_publisher (topicName, topicType) {
     const publisherName = topicName + '_pub'
 
     this[publisherName] = this.node.createPublisher(
-      topicName,
-      msgType
+      topicType,
+      topicName
     )
 
     return this[publisherName]
@@ -278,7 +278,7 @@ class RobotComms {
             if (!this.subscribers[widgetConfig.topic]) {
               this.subscribers[widgetConfig.topic] = this.create_subscriber(
                 widgetConfig.topic,
-                widgetConfig.msgType)
+                widgetConfig.topicType)
               this.logger.debug('Added subscriber for ' + widgetConfig.topic)
             }
             continue
@@ -287,8 +287,8 @@ class RobotComms {
           case 'publish': {
             if (!this.publishers[widgetConfig.topic]) {
               this.publishers[widgetConfig.topic] = this.create_publisher(
-                widgetConfig.msgType,
-                widgetConfig.topic)
+                widgetConfig.topic,
+                widgetConfig.topicType)
               this.publishedTopics.push(widgetConfig.topic)
               this.logger.debug('Added publisher for ' + widgetConfig.topic)
             }
@@ -314,7 +314,7 @@ class RobotComms {
         }
 
         const serviceClient = this.create_service_client(
-          widgetConfig.msgType,
+          widgetConfig.serviceType,
           widgetConfig.service)
         if (serviceClient) {
           this.serviceClients[widgetConfig.service] = serviceClient
@@ -326,16 +326,6 @@ class RobotComms {
         continue
       }
     }
-  }
-
-  /**
-   * From the incoming ROS Telemetry message, assemble a JSON
-   * string and send it to the browser client as the 'telemetry'
-   * event.
-   */
-  telemetry_cb (msg) {
-    this.telemetryMessages++
-    this.send_to_client_cb('telemetry', JSON.stringify(msg))
   }
 
   /**
