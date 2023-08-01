@@ -289,7 +289,7 @@
             "service": "control_hat",
             "serviceAttribute": "set_charger",
             "serviceType": "rq_msgs/srv/Control",
-            "clickValue": true,
+            "clickValue": "ON",
             "useKeys": true,
             "usekey_hotkey": "",
             "fontsize": "16"
@@ -311,7 +311,7 @@
             "service": "control_hat",
             "serviceAttribute": "set_charger",
             "serviceType": "rq_msgs/srv/Control",
-            "clickValue": false,
+            "clickValue": "OFF",
             "useKeys": true,
             "usekey_hotkey": "",
             "fontsize": "16"
@@ -333,7 +333,7 @@
             "service": "control_hat",
             "serviceAttribute": "set_motors",
             "serviceType": "rq_msgs/srv/Control",
-            "clickValue": true,
+            "clickValue": "ON",
             "useKeys": true,
             "usekey_hotkey": "",
             "fontsize": "16"
@@ -355,7 +355,7 @@
             "service": "control_hat",
             "serviceAttribute": "set_motors",
             "serviceType": "rq_msgs/srv/Control",
-            "clickValue": false,
+            "clickValue": "OFF",
             "useKeys": true,
             "usekey_hotkey": "",
             "fontsize": "16"
@@ -375,7 +375,7 @@
             "service": "control_hat",
             "serviceAttribute": "set_servos",
             "serviceType": "rq_msgs/srv/Control",
-            "clickValue": true,
+            "clickValue": "ON",
             "screen": 1,
             "label": "Set servos ON",
             "usekey_hotkey": "",
@@ -396,7 +396,7 @@
             "service": "control_hat",
             "serviceAttribute": "set_servos",
             "serviceType": "rq_msgs/srv/Control",
-            "clickValue": false,
+            "clickValue": "OFF",
             "screen": 1,
             "label": "Set servos OFF",
             "usekey_hotkey": "",

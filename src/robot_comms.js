@@ -102,8 +102,9 @@ class RobotComms {
    * by the name.
    *
    * @param {string} name - the name of the topic or the service
-   * @param {string} message - as a JSON string with the data for the
-   *                           widgetConfig.topicAttribute(s)
+   * @param {string|object} message - string data for the
+   *                                  widgetConfig.topicAttribute(s)
+   *                                  or object for serviceAttribute(s)
    */
   handle_message (name, message) {
     if (this.publishedTopics.includes(name)) {
@@ -131,7 +132,7 @@ class RobotComms {
    * Return the populated ROS request message.
    *
    * @param {string} serviceName
-   * @param {JSON} message
+   * @param {object} message
    *
    * @returns {ROS request message}
    */
@@ -142,7 +143,7 @@ class RobotComms {
     }
 
     const requestMessage = Control
-    const requestAttributes = JSON.parse(message)
+    const requestAttributes = message
     /*
      * requestAttributes is an object with one or more of the properties defined
      * for the Control message.
