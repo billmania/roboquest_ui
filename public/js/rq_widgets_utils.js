@@ -116,7 +116,6 @@ function addWidget (widgetConfig, sendEvent) {
       tile.querySelector('#button_ap').innerText = widgetConfig.label
       tile.querySelector('#button_ap').onclick = () => {
         const payload = `{ "${widgetConfig.serviceAttribute}": "${widgetConfig.clickValue}" }`
-        console.log(`button event: ${widgetConfig.service} ${payload}`)
         sendEvent(widgetConfig.service, payload)
       }
       if (widgetConfig.fontsize) tile.querySelector('#button_ap').style.fontSize = parseFloat(widgetConfig.fontsize) + 'px'
