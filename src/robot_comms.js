@@ -7,6 +7,18 @@
 const RQ_PARAMS = require('./params.js')
 const rclnodejs = require('rclnodejs')
 const { readFileSync } = require('node:fs')
+/*
+ * It's possible to get these ROS message objects via rclnodejs.createMessageObject(),
+ * but it is not obivous how to initialize them to 0 and ''.
+ */
+// TODO: Convert these to classes to get a new object every time
+const Control = {
+  set_charger: '',
+  set_fet1: '',
+  set_fet2: '',
+  set_motors: '',
+  set_servos: ''
+}
 const TwistStamped = {
   header: {
     stamp: {
@@ -27,6 +39,20 @@ const TwistStamped = {
       z: 0
     }
   }
+}
+const ServoAngles = {
+  header: {
+    stamp: {
+      sec: 0,
+      nanosec: 0
+    },
+    frame_id: ''
+  },
+  servos: []
+}
+const ServoAngle = {
+  name: '',
+  angle: 0
 }
 
 /**
@@ -52,6 +78,7 @@ class RobotComms {
     this.publishers = {}
     this.publishedTopics = []
     this.serviceClients = {}
+    this.services = []
 
     this.rclnodejs = rclnodejs
     this.rclnodejs.init()
@@ -80,17 +107,73 @@ class RobotComms {
   }
 
   /**
-   * Publish a message onto a topic with the included data. Based on
-   * the topic name, the message object must be retrieved. The data
-   * from the message must then be inserted into the message object.
+   * Return an Array of services.
    *
-   * @param {string} topicName -
-   * @param {string} message - as a JSON string with the data for the
-   *                           widgetConfig.msgAttribute(s)
+   * @returns {Array} - the service names as strings
    */
-  publish_message (topicName, message) {
-    const rosMessage = this.buildRosMessage(topicName, message)
-    this.publishers[topicName].publish(rosMessage)
+  services_list () {
+    return this.services
+  }
+
+  /**
+   * Handle a message incoming from the UI. It's either a message
+   * to be published onto a topic or a service to be called, determined
+   * by the name.
+   *
+   * @param {string} name - the name of the topic or the service
+   * @param {string|object} message - string data for the
+   *                                  widgetConfig.topicAttribute(s)
+   *                                  or object for serviceAttribute(s)
+   */
+  handle_message (name, message) {
+    if (this.publishedTopics.includes(name)) {
+      const rosMessage = this.buildRosMessage(name, message)
+      // TODO: ROS topic messages must be published regularly
+      // TODO: Replace this with an interval
+      this.publishers[name].publish(rosMessage)
+    } else if (this.services.includes(name)) {
+      const serviceRequest = this.buildServiceMessage(name, message)
+      this.logger.debug(`Calling ${name} with ${serviceRequest}`)
+      this.serviceClients[name].sendRequest(
+        serviceRequest,
+        (response) => {
+          this.logger.debug(
+            `Service response for ${name}: ${typeof response} ${response}`)
+        }
+      )
+    } else {
+      this.logger.warn(`handle_message(): ${name} not recognized as publish or service`)
+    }
+  }
+
+  /**
+   * Using the serviceName, retrieve the empty ROS request object.
+   * Using the contents of message, populate the required attributes
+   * of the ROS request object.
+   * Return the populated ROS request message.
+   *
+   * @param {string} serviceName
+   * @param {object} message
+   *
+   * @returns {ROS request message}
+   */
+  buildServiceMessage (serviceName, message) {
+    if (serviceName !== 'control_hat') {
+      this.logger.warn('Only control_hat implemented so far')
+      return null
+    }
+
+    const requestMessage = Control
+    const requestAttributes = message
+    /*
+     * requestAttributes is an object with one or more of the properties defined
+     * for the Control message.
+     */
+    for (const attribute in requestAttributes) {
+      requestMessage[attribute] = requestAttributes[attribute]
+    }
+
+    return requestMessage
   }
 
   /**
@@ -105,43 +188,83 @@ class RobotComms {
    * @returns {ROS message object
    */
   buildRosMessage (topicName, message) {
-    if (topicName !== 'cmd_vel') {
-      this.logger.warn('Only cmd_vel implemented so far')
-      return null
+    let rosMessage
+
+    switch (topicName) {
+      case ('cmd_vel'): {
+        rosMessage = TwistStamped
+        /*
+         * message is [x, y]. y represents the joystick fore-and-aft position.
+         * x represents the side-to-side. The y value is used to set the linear
+         * velocity and the x value to set the angular velocity.
+         */
+        rosMessage.twist.linear.x = message[1]
+        rosMessage.twist.angular.z = message[0]
+        break
+      }
+
+      case ('servos'): {
+        rosMessage = ServoAngles
+        rosMessage.servos = []
+        const servoAngle = ServoAngle
+
+        servoAngle.name = message[0]
+        servoAngle.angle = message[1]
+        rosMessage.servos.push(servoAngle)
+        break
+      }
+
+      default: {
+        this.logger.warn(`messages for topic ${topicName} not yet implemented`)
+        return null
+      }
     }
 
-    const rosMessage = TwistStamped
-    /*
-     * message is [x, y]. y represents the joystick fore-and-aft position.
-     * x represents the side-to-side. The y value is used to set the linear
-     * velocity and the x value to set the angular velocity.
-     */
-    rosMessage.twist.linear.x = message[1]
-    rosMessage.twist.angular.z = message[0]
-
+    this.logger.info(`buildRosMessage: ${JSON.stringify(rosMessage)}`)
     return rosMessage
+  }
+
+  /**
+   * Create a service client based on a widget definition.
+   *
+   * @param {string} serviceType - the request/response message for the service
+   * @param {string} serviceName - the name of the service
+   *
+   */
+  create_service_client (serviceType, serviceName) {
+    const serviceClient = this.node.createClient(
+      serviceType,
+      serviceName
+    )
+
+    serviceClient.waitForService(1000)
+      .then((result) => {
+        if (!result) {
+          this.logger.warn(`Service ${serviceName} not available`)
+          return null
+        }
+      })
+    return serviceClient
   }
 
   /**
    * Create a subscriber and a callback based on a widget definition.
    *
    * @param {string} topicName -
-   * @param {string} msgType -
+   * @param {string} topicType -
    *
    * @returns {Object} - the subscriber
    */
-  create_subscriber (topicName, msgType) {
+  create_subscriber (topicName, topicType) {
     const subscriberName = topicName + '_sub'
     const subscriberCallback = topicName + '_cb'
-
-    this.logger.debug(`create_subscriber: ${topicName}, ${msgType}`)
 
     this[subscriberCallback] = (msg) => {
       this.send_to_client_cb(topicName, JSON.stringify(msg))
     }
 
     this[subscriberName] = this.node.createSubscription(
-      msgType,
+      topicType,
       topicName,
       this[subscriberCallback].bind(this))
 
@@ -152,18 +275,16 @@ class RobotComms {
    * Create a publisher based on a widget definition.
    *
    * @param {string} topicName -
-   * @param {string} msgType -
+   * @param {string} topicType -
    *
    * @returns {Object} - the publisher
    */
-  create_publisher (topicName, msgType) {
+  create_publisher (topicName, topicType) {
     const publisherName = topicName + '_pub'
 
-    this.logger.debug(`create_publisher: ${topicName}, ${msgType}`)
-
     this[publisherName] = this.node.createPublisher(
-      topicName,
-      msgType
+      topicType,
+      topicName
     )
 
     return this[publisherName]
@@ -184,61 +305,68 @@ class RobotComms {
     /*
      * The image_sub subscriber isn't associated with any widget.
      */
+    // TODO: Replace this with a call to create_subscriber()
     this.image_sub = this.node.createSubscription(
       'sensor_msgs/msg/CompressedImage',
       'image_raw/compressed',
       this.image_cb.bind(this))
 
     for (const widgetConfig of widgetsConfig) {
+      this.logger.debug('Parsing widget ' + widgetConfig.type + ' ' + widgetConfig.name)
       if (widgetConfig.topic) {
         switch (widgetConfig.topicDirection) {
           case 'subscribe': {
             if (!this.subscribers[widgetConfig.topic]) {
               this.subscribers[widgetConfig.topic] = this.create_subscriber(
                 widgetConfig.topic,
-                widgetConfig.msgType)
+                widgetConfig.topicType)
               this.logger.debug('Added subscriber for ' + widgetConfig.topic)
             }
-            break
+            continue
           }
 
           case 'publish': {
             if (!this.publishers[widgetConfig.topic]) {
               this.publishers[widgetConfig.topic] = this.create_publisher(
-                widgetConfig.msgType,
-                widgetConfig.topic)
+                widgetConfig.topic,
+                widgetConfig.topicType)
               this.publishedTopics.push(widgetConfig.topic)
-              console.log(`publishedTopics: ${this.publishedTopics}`)
               this.logger.debug('Added publisher for ' + widgetConfig.topic)
             }
-            break
+            continue
           }
 
           default: {
             this.logger.warn(
               'widget ' + widgetConfig.id + ' had' +
               ' topic ' + widgetConfig.topic + ' but no direction')
-            break
+            continue
           }
         }
-
-        continue
       }
 
       if (widgetConfig.service) {
-        this.logger.debug('Found service ' + widgetConfig.service)
+        if (this.serviceClients[widgetConfig.service]) {
+          /*
+           * Services can be called by multiple UI components. The response
+           * to a service call is ignored.
+           * */
+          continue
+        }
+
+        const serviceClient = this.create_service_client(
+          widgetConfig.serviceType,
+          widgetConfig.service)
+        if (serviceClient) {
+          this.serviceClients[widgetConfig.service] = serviceClient
+          this.services.push(widgetConfig.service)
+          this.logger.debug('Added serviceClient for ' + widgetConfig.service)
+        } else {
+          this.logger.warn(`Service ${widgetConfig.service} not available`)
+        }
+        continue
       }
     }
-  }
-
-  /**
-   * From the incoming ROS Telemetry message, assemble a JSON
-   * string and send it to the browser client as the 'telemetry'
-   * event.
-   */
-  telemetry_cb (msg) {
-    this.telemetryMessages++
-    this.send_to_client_cb('telemetry', JSON.stringify(msg))
   }
 
   /**

@@ -114,7 +114,12 @@ function addWidget (widgetConfig, sendEvent) {
   switch (widgetConfig.type) {
     case '_button':
       tile.querySelector('#button_ap').innerText = widgetConfig.label
+      tile.querySelector('#button_ap').onclick = () => {
+        const payload = `{ "${widgetConfig.serviceAttribute}": "${widgetConfig.clickValue}" }`
+        sendEvent(widgetConfig.service, payload)
+      }
       if (widgetConfig.fontsize) tile.querySelector('#button_ap').style.fontSize = parseFloat(widgetConfig.fontsize) + 'px'
+
       break
 
     case '_checkbox':
@@ -157,12 +162,19 @@ function addWidget (widgetConfig, sendEvent) {
       tile.querySelector('#paddle_ap').style.background = widgetConfig.bar
       break
 
-    case '_slider':
-      tile.querySelector('#slider_ap').min = widgetConfig.min
-      tile.querySelector('#slider_ap').max = widgetConfig.max
-      tile.querySelector('#slider_ap').value = (parseInt(widgetConfig.min) + parseInt(widgetConfig.max)) / 2
-      tile.querySelector('#slider_ap').step = widgetConfig.step
+    case '_slider': {
+      tile.querySelector('#header').min = widgetConfig.name
+      const slider = tile.querySelector('#slider_ap')
+      slider.min = widgetConfig.min
+      slider.max = widgetConfig.max
+      slider.value = widgetConfig.default
+      slider.step = widgetConfig.step
+      slider.addEventListener('input', (event) => {
+        const payload = `["${widgetConfig.name}",${event.target.value}]`
+        sendEvent(widgetConfig.topic, payload)
+      })
       break
+    }
 
     case '_value':
       tile.querySelector('#text_ap').innerText = widgetConfig.prefix
@@ -172,7 +184,7 @@ function addWidget (widgetConfig, sendEvent) {
       break
 
     case '_indicator':
-      tile.querySelector('#text_ap').innerText = widgetConfig.text
+      tile.querySelector('#text_ap').innerText = widgetConfig.name
       break
 
     case '_audio':

@@ -58,7 +58,6 @@ class ClientComms {
         this.eventCb(eventName, JSON.parse(payload))
       }
     )
-    console.log(`Added handler for event ${eventName}`)
   }
 
   /**
@@ -83,6 +82,7 @@ class ClientComms {
     this.socket.on(
       'hb',
       payload => {
+        // TODO: Do something useful with this info
         console.log(`Client heartbeat payload ${payload}`)
       }
     )

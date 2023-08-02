@@ -26,6 +26,7 @@ an array of objects uniquely identified with the properties "type" and "id".
 * bottom - a string in the format "#px" interpreted as the number of pixels from
            the bottom edge of the parent element.
 * childids
+* clickValue - the value assigned to the serviceAttribute when the button is clicked
 * default
 * falseText - what's displayed when msgAttribute is a boolean and false
 * fontsize
@@ -41,10 +42,7 @@ an array of objects uniquely identified with the properties "type" and "id".
          the left edge of the parent element.
 * max
 * min
-* msgAttribute - which attribute(s) from the msgType on the topic, like 'header.stamp.sec',
-*                separated by semi-colon(s)
-* msgType - a string defining the ROS interface for the service or topic. for
-            example, std_msgs/msg/String.
+
 * name - a descriptive name for the widget, as a string
 * onPress
 * onRelease
@@ -54,8 +52,9 @@ an array of objects uniquely identified with the properties "type" and "id".
 * right - a string in the format "#px" interpreted as the number of pixels from
          the right edge of the parent element.
 * screen
-* service - a string defining the associated ROS service. ROS services can only be
-            called on behalf of a widget.
+* service - a string defining the associated ROS service to call.
+* serviceAttribute - which attribute(s) of the serviceType are populated with data from the UI.
+* serviceType - a string defining the ROS interface for the service.
 * smalltick
 * step
 * suffix - appended to the msgAttribute value before displaying
@@ -64,8 +63,12 @@ an array of objects uniquely identified with the properties "type" and "id".
 * textColor2
 * top - a string in the format "#px" interpreted as the number of pixels from
         the top of the parent element.
-* topic - a string defining the associated ROS topic
+* topic - a string defining the associated ROS topic to publish or subscribe.
 * topicDirection - a string with one of "publish" or "subscribe"
+* topicAttribute - which attribute(s) of the topicType, like 'header.stamp.sec', are populated
+                   with data from the UI or used to update the UI. multiple attributes are
+                   separated by semi-colon(s).
+* topicType - a string defining the ROS interface for the topic, such as std_msgs/msg/String.
 * type - a string describing the widget type. must exist as an HTML DIV "id"
          attribute in the HTML page.
 * useAxis
