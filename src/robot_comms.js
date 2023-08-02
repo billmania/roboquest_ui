@@ -7,6 +7,11 @@
 const RQ_PARAMS = require('./params.js')
 const rclnodejs = require('rclnodejs')
 const { readFileSync } = require('node:fs')
+/*
+ * It's possible to get these ROS message objects via rclnodejs.createMessageObject(),
+ * but it is not obivous how to initialize them to 0 and ''.
+ */
+// TODO: Convert these to classes to get a new object every time
 const Control = {
   set_charger: '',
   set_fet1: '',
@@ -34,6 +39,20 @@ const TwistStamped = {
       z: 0
     }
   }
+}
+const ServoAngles = {
+  header: {
+    stamp: {
+      sec: 0,
+      nanosec: 0
+    },
+    frame_id: ''
+  },
+  servos: []
+}
+const ServoAngle = {
+  name: '',
+  angle: 0
 }
 
 /**
@@ -109,6 +128,8 @@ class RobotComms {
   handle_message (name, message) {
     if (this.publishedTopics.includes(name)) {
       const rosMessage = this.buildRosMessage(name, message)
+      // TODO: ROS topic messages must be published regularly
+      // TODO: Replace this with an interval
       this.publishers[name].publish(rosMessage)
     } else if (this.services.includes(name)) {
       const serviceRequest = this.buildServiceMessage(name, message)
@@ -167,20 +188,39 @@ class RobotComms {
    * @returns {ROS message object
    */
   buildRosMessage (topicName, message) {
-    if (topicName !== 'cmd_vel') {
-      this.logger.warn('Only cmd_vel implemented so far')
-      return null
+    let rosMessage
+
+    switch (topicName) {
+      case ('cmd_vel'): {
+        rosMessage = TwistStamped
+        /*
+         * message is [x, y]. y represents the joystick fore-and-aft position.
+         * x represents the side-to-side. The y value is used to set the linear
+         * velocity and the x value to set the angular velocity.
+         */
+        rosMessage.twist.linear.x = message[1]
+        rosMessage.twist.angular.z = message[0]
+        break
+      }
+
+      case ('servos'): {
+        rosMessage = ServoAngles
+        rosMessage.servos = []
+        const servoAngle = ServoAngle
+
+        servoAngle.name = message[0]
+        servoAngle.angle = message[1]
+        rosMessage.servos.push(servoAngle)
+        break
+      }
+
+      default: {
+        this.logger.warn(`messages for topic ${topicName} not yet implemented`)
+        return null
+      }
     }
 
-    const rosMessage = TwistStamped
-    /*
-     * message is [x, y]. y represents the joystick fore-and-aft position.
-     * x represents the side-to-side. The y value is used to set the linear
-     * velocity and the x value to set the angular velocity.
-     */
-    rosMessage.twist.linear.x = message[1]
-    rosMessage.twist.angular.z = message[0]
-
+    this.logger.info(`buildRosMessage: ${JSON.stringify(rosMessage)}`)
     return rosMessage
   }
 

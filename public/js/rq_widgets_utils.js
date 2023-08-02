@@ -163,12 +163,19 @@ function addWidget (widgetConfig, sendEvent) {
       tile.querySelector('#paddle_ap').style.background = widgetConfig.bar
       break
 
-    case '_slider':
-      tile.querySelector('#slider_ap').min = widgetConfig.min
-      tile.querySelector('#slider_ap').max = widgetConfig.max
-      tile.querySelector('#slider_ap').value = (parseInt(widgetConfig.min) + parseInt(widgetConfig.max)) / 2
-      tile.querySelector('#slider_ap').step = widgetConfig.step
+    case '_slider': {
+      tile.querySelector('#header').min = widgetConfig.name
+      const slider = tile.querySelector('#slider_ap')
+      slider.min = widgetConfig.min
+      slider.max = widgetConfig.max
+      slider.value = widgetConfig.default
+      slider.step = widgetConfig.step
+      slider.addEventListener('input', (event) => {
+        const payload = `["${widgetConfig.name}",${event.target.value}]`
+        sendEvent(widgetConfig.topic, payload)
+      })
       break
+    }
 
     case '_value':
       tile.querySelector('#text_ap').innerText = widgetConfig.prefix
