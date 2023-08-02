@@ -73,20 +73,25 @@ class RQTesting {
 
   /**
    * Update the application software on the robot. This action
-   * is expected to terminate the server.
+   * is expected to terminate the NodeJS server.
    */
   updateSoftware () {
     console.log('updateSoftware() called')
 
-    this.socket.send_event('control_hat', 'charger=ON')
+    this.socket.send_event('control_hat', '{"set_charger": "ON"}')
 
     const mainImage = document.getElementById('mainImage')
     mainImage.style.display = 'none'
+
+    const allWidgets = document.getElementsByClassName('panel dragable')
+    for (let widget of allWidgets) {
+      widget.style.display = 'none'
+    }
+
     const updateText = document.getElementById('updateText')
-    console.log('Display: ' + updateText.style.display)
     updateText.style.display = 'inline'
 
-    this.socket.send_event('update', '')
+    this.socket.send_event('update', '{}')
   }
 
   /**
