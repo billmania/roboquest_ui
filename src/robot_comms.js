@@ -308,7 +308,7 @@ class RobotComms {
     // TODO: Replace this with a call to create_subscriber()
     this.image_sub = this.node.createSubscription(
       'sensor_msgs/msg/CompressedImage',
-      'image_raw/compressed',
+      'rq_camera_node/image_raw/compressed',
       this.image_cb.bind(this))
 
     for (const widgetConfig of widgetsConfig) {
