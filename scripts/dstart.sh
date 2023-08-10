@@ -10,7 +10,7 @@ PERSIST_DIR="/usr/src/ros2ws/install/roboquest_ui/share/roboquest_ui/public/pers
 
 printf "Starting roboquest_ui on %s\n" $DOCKER_HOST
 
-docker run -it --rm \
+docker run -d --rm \
         --network host \
         --ipc host \
         -v /dev/shm:/dev/shm \

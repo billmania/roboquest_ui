@@ -362,8 +362,9 @@ class RQMain {
   /**
    * Responds when the socket connection is lost.
    */
-  disconnect_cb () {
+  disconnect_cb (reason, details) {
     this.robotConnected = false
+    console.log(`Socket disconnected because ${reason}, details ${JSON.stringify(details)}`)
     this.show_message('Robot disconnected', false)
   }
 
