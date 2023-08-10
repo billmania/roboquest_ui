@@ -282,9 +282,9 @@ class RQTesting {
   /**
    * Responds when the socket connection is lost.
    */
-  disconnect_cb () {
+  disconnect_cb (reason) {
     this.robotConnected = false
-    console.log('Robot disconnected')
+    console.log('Robot disconnected because ' + reason)
   }
 
   /**
