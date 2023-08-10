@@ -70,12 +70,12 @@ class ClientComms {
    */
   setup_event_handlers_cb (socket) {
     this.socket = socket
-    console.log('Client connected on: ' + this.socket.id)
+    console.log(`Client connection: ${this.socket.id}, from ${this.socket.handshake.address} at ${this.socket.handshake.time}`)
     this.socket.on(
       'disconnect',
-      () => {
+      (reason) => {
         this.client_connected = false
-        console.log('Client disconnected from: ' + this.socket.id)
+        console.log('Socket disconnected: ' + this.socket.id + ', Reason: ' + reason)
         this.socket = null
       })
 
