@@ -133,12 +133,13 @@ class RobotComms {
       this.publishers[name].publish(rosMessage)
     } else if (this.services.includes(name)) {
       const serviceRequest = this.buildServiceMessage(name, message)
-      this.logger.debug(`Calling ${name} with ${serviceRequest}`)
       this.serviceClients[name].sendRequest(
         serviceRequest,
         (response) => {
-          this.logger.debug(
-            `Service response for ${name}: ${typeof response} ${response}`)
+          if (!response.success) {
+            this.logger.warn(
+              `Service ${name} failed`)
+          }
         }
       )
     } else {
@@ -220,7 +221,6 @@ class RobotComms {
       }
     }
 
-    this.logger.info(`buildRosMessage: ${JSON.stringify(rosMessage)}`)
     return rosMessage
   }
 

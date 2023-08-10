@@ -4,7 +4,6 @@
   "description": "RoboQuest browser-based UI",
   "keywords": [],
   "author": "Bill Mania <bill@manialabs.us>",
-  "original_author": "Mark Skinner",
   "license": "UNLICENSED",
   "scripts": {
     "rq_server": "node src/rq_server.js",
