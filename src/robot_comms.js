@@ -266,6 +266,7 @@ class RobotComms {
     this[subscriberName] = this.node.createSubscription(
       topicType,
       topicName,
+      { history: 1, depth: 1 },
       this[subscriberCallback].bind(this))
 
     return this[subscriberName]
@@ -309,6 +310,7 @@ class RobotComms {
     this.image_sub = this.node.createSubscription(
       'sensor_msgs/msg/CompressedImage',
       'rq_camera_node/image_raw/compressed',
+      { history: 1, depth: 1 },
       this.image_cb.bind(this))
 
     for (const widgetConfig of widgetsConfig) {
