@@ -4,13 +4,13 @@
 # Start the docker container for roboquest_ui
 #
 
-IMAGE=rq_ui
+IMAGE=$1
 NAME=rq_ui
 PERSIST_DIR="/usr/src/ros2ws/install/roboquest_ui/share/roboquest_ui/public/persist"
 
-printf "Starting roboquest_ui on %s\n" $DOCKER_HOST
+printf "Starting %s on %s\n" "$IMAGE" $DOCKER_HOST
 
-docker run -d --rm \
+docker run -it --rm \
         --network host \
         --ipc host \
         -v /dev/shm:/dev/shm \

@@ -375,17 +375,20 @@ class RobotComms {
    * base64 encode a JPEG image.
    *
    * @param {ArrayBuffer} jpegImage - The complete JPEG image, in binary.
+   *
+   * Camera frames from the RaspiCam are about 2 MB, so this is a very
+   * expensive method.
    */
   image_to_base64 (jpegImage) {
-    let jpegImageAscii = ''
+    let jpegImageStr = ''
     const jpegImageBuffer = new Uint8Array(jpegImage)
 
     // TODO: Find a less brute-force method
     for (let i = 0; i < jpegImageBuffer.byteLength; i++) {
-      jpegImageAscii += String.fromCharCode(jpegImageBuffer[i])
+      jpegImageStr += String.fromCharCode(jpegImageBuffer[i])
     }
 
-    return btoa(jpegImageAscii)
+    return btoa(jpegImageStr)
   }
 
   /**
@@ -406,7 +409,7 @@ class RobotComms {
   image_cb (msg) {
     this.imageMessages++
     const jpegImage = msg.data
-    this.send_to_client_cb('mainImage', this.image_to_base64(jpegImage))
+    this.send_to_client_cb('mainImage', jpegImage)
   }
 
   /**
