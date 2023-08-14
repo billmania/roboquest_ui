@@ -7,8 +7,8 @@
 
 const { Server } = require('socket.io')
 
-const PING_INTERVAL = 400
-const SOCKET_PING_TIMEOUT_S = 30
+const PING_INTERVAL_MS = 25000
+const PING_TIMEOUT_MS = 20000
 
 class ClientComms {
   /**
@@ -39,8 +39,8 @@ class ClientComms {
     this.io = new Server(
       expressServer,
       {
-        pingInterval: PING_INTERVAL,
-        pingTimeout: SOCKET_PING_TIMEOUT_S * 60
+        pingInterval: PING_INTERVAL_MS,
+        pingTimeout: PING_TIMEOUT_MS
       }
     )
     this.io.on('connection', this.setup_event_handlers_cb.bind(this))
@@ -70,12 +70,12 @@ class ClientComms {
    */
   setup_event_handlers_cb (socket) {
     this.socket = socket
-    console.log('Client connected on: ' + this.socket.id)
+    console.log(`Client connection: ${this.socket.id}, from ${this.socket.handshake.address} at ${this.socket.handshake.time}`)
     this.socket.on(
       'disconnect',
-      () => {
+      (reason) => {
         this.client_connected = false
-        console.log('Client disconnected from: ' + this.socket.id)
+        console.log('Socket disconnected: ' + this.socket.id + ', Reason: ' + reason)
         this.socket = null
       })
 

@@ -21,6 +21,7 @@ def generate_launch_description():
         name='rq_server',
         executable='node',
         output='screen',
+        emulate_tty=True,
         parameters=[{'use_sim_time': use_sim_time}],
         arguments=[
             start_js_file
