@@ -203,6 +203,9 @@ class RQTesting {
    * jpegImage is expected to be a complete JPEG representation
    * of the image. Before it can be pasted into the cameraFrames
    * element src attribute, it must be base64-encoded.
+   *
+   * See https://developer.mozilla.org/en-US/docs/web/http/basics_of_http/data_urls
+   * and https://developer.mozilla.org/en-US/docs/Glossary/Base64
    */
   image_cb (jpegImage) {
     let jpegImageStr = ''
