@@ -120,29 +120,29 @@ class WebServer {
    * method is executing.
    *
    * The value of the constant updateFifo must match the constant
-   * UPDATE_FIFO in updater.py.
+   * UPDATE_FIFO in updater.py. If the FIFO exists, the command is written
+   * and then this process exits. Otherwise, this method returns false.
    *
    * @param {JSON string} command - the update command with a timestamp
    *                                and optional arguments
+   *
+   * @returns {boolean} - false if the FIFO doesn't exist
    */
   update_software (command) {
     console.log(`update_software: ${command}`)
 
     const updateFifo = '/tmp/update_fifo'
 
-    fs.appendFile(
+    if (!fs.existsSync(updateFifo)) {
+      return false
+    }
+
+    fs.appendFileSync(
       updateFifo,
-      command,
-      error => {
-        if (error) {
-          console.log(`update_software error: ${error}`)
-        } else {
-          console.log(`update_software wrote ${command}`)
-        }
-      }
+      command
     )
 
-    // process.exit(1)
+    process.exit(1)
   }
 
   send_heartbeat () {
