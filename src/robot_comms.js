@@ -4,9 +4,7 @@
  * The interface between the robot information and the UI.
  */
 
-const RQ_PARAMS = require('./params.js')
 const rclnodejs = require('rclnodejs')
-const { readFileSync } = require('node:fs')
 /*
  * It's possible to get these ROS message objects via rclnodejs.createMessageObject(),
  * but it is not obivous how to initialize them to 0 and ''.
@@ -56,7 +54,7 @@ const ServoAngle = {
 }
 
 /**
- * RobotComms reads the RQ_PARAMS.CONFIG_FILE and uses its
+ * RobotComms reads the and uses its
  * contents to connect to the ROS graph.
  */
 class RobotComms {
@@ -71,7 +69,7 @@ class RobotComms {
    * @param {string} nodeName - The name for the ROS node on the graph.
    * @param {Function} sendToClient_cb - The callback for sending payloads to the client.
    */
-  constructor (nodeName, sendToClientCb) {
+  constructor (nodeName, sendToClientCb, configFile) {
     this.nodeName = nodeName
 
     this.subscribers = {}
@@ -87,6 +85,7 @@ class RobotComms {
     this.logger.setLoggerLevel(this.logger.LoggingSeverity.DEBUG)
 
     this.send_to_client_cb = sendToClientCb
+    this.configFile = configFile
 
     this.read_config_file()
     this.setup_ROS(this.configuration.widgets)
@@ -413,16 +412,16 @@ class RobotComms {
   }
 
   /**
-   * Read the contents of the RQ_PARAMS.CONFIG_FILE. If successful,
+   * Read the contents of the configuration file. If successful,
    * save the parsed configuration as this.configuration.
    */
   read_config_file () {
     try {
-      const configurationRaw = readFileSync(RQ_PARAMS.CONFIG_FILE)
-      this.configuration = JSON.parse(configurationRaw)
+      this.configuration = this.configFile.get_config()
     } catch (error) {
-      this.logger.fatal(`Reading ${RQ_PARAMS.CONFIG_FILE}: ${error}`)
-      throw new Error(`Failed to read ${RQ_PARAMS.CONFIG_FILE}`)
+      this.configuration = null
+      this.logger.fatal(`Reading configuration file: ${error}`)
+      throw new Error('Failed to read configuration file')
     }
   }
 
