@@ -8,6 +8,18 @@ graph for topic subscriptions, topic publishing, and service calls. The frontend
 uses it to setup the widgets on the browser pages and associate two-way ROS-based 
 data flow with them.
 
+There are two locations for the configuration file: /public/config and
+/public/persist. When the server receives a GET request for the configuration, if
+the file exists in /public/persist, that file is returned and /public/config is ignored.
+Otherwise, the file from /public/config is returned.
+
+When the server receives a POST request to save a modified version of the
+configuration, it's always written to /public/persist. On a new, never-before-used
+installation, the configuration file exists only in the /public/config directory.
+/public/persist is a reference to a docker volume on the host OS filesystem and is
+the means for making a modified configuration available for both new container instances
+and new images.
+
 ## Sections
 
 The configuration file has four main sections and then several key-value pairs.

@@ -84,7 +84,7 @@ class RQTesting {
     mainImage.style.display = 'none'
 
     const allWidgets = document.getElementsByClassName('panel dragable')
-    for (let widget of allWidgets) {
+    for (const widget of allWidgets) {
       widget.style.display = 'none'
     }
 
@@ -201,10 +201,20 @@ class RQTesting {
    * @param {ArrayBuffer} jpegImage - the frame to be displayed
    *
    * jpegImage is expected to be a complete JPEG representation
-   * of the image.
+   * of the image. Before it can be pasted into the cameraFrames
+   * element src attribute, it must be base64-encoded.
+   *
+   * See https://developer.mozilla.org/en-US/docs/web/http/basics_of_http/data_urls
+   * and https://developer.mozilla.org/en-US/docs/Glossary/Base64
    */
   image_cb (jpegImage) {
-    this.cameraFrames.src = `data:image/jpeg;base64,${jpegImage}`
+    let jpegImageStr = ''
+    const jpegImageBuffer = new Uint8Array(jpegImage)
+    for (let i = 0; i < jpegImageBuffer.byteLength; i++) {
+      jpegImageStr += String.fromCharCode(jpegImageBuffer[i])
+    }
+
+    this.cameraFrames.src = `data:image/jpeg;base64,${btoa(jpegImageStr)}`
   }
 
   /**
@@ -282,9 +292,9 @@ class RQTesting {
   /**
    * Responds when the socket connection is lost.
    */
-  disconnect_cb () {
+  disconnect_cb (reason) {
     this.robotConnected = false
-    console.log('Robot disconnected')
+    console.log('Robot disconnected because ' + reason)
   }
 
   /**

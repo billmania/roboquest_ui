@@ -133,12 +133,13 @@ class RobotComms {
       this.publishers[name].publish(rosMessage)
     } else if (this.services.includes(name)) {
       const serviceRequest = this.buildServiceMessage(name, message)
-      this.logger.debug(`Calling ${name} with ${serviceRequest}`)
       this.serviceClients[name].sendRequest(
         serviceRequest,
         (response) => {
-          this.logger.debug(
-            `Service response for ${name}: ${typeof response} ${response}`)
+          if (!response.success) {
+            this.logger.warn(
+              `Service ${name} failed`)
+          }
         }
       )
     } else {
@@ -220,7 +221,6 @@ class RobotComms {
       }
     }
 
-    this.logger.info(`buildRosMessage: ${JSON.stringify(rosMessage)}`)
     return rosMessage
   }
 
@@ -266,6 +266,7 @@ class RobotComms {
     this[subscriberName] = this.node.createSubscription(
       topicType,
       topicName,
+      { history: 1, depth: 1 },
       this[subscriberCallback].bind(this))
 
     return this[subscriberName]
@@ -308,7 +309,8 @@ class RobotComms {
     // TODO: Replace this with a call to create_subscriber()
     this.image_sub = this.node.createSubscription(
       'sensor_msgs/msg/CompressedImage',
-      'image_raw/compressed',
+      'rq_camera_node/image_raw/compressed',
+      { history: 1, depth: 1 },
       this.image_cb.bind(this))
 
     for (const widgetConfig of widgetsConfig) {
@@ -373,17 +375,20 @@ class RobotComms {
    * base64 encode a JPEG image.
    *
    * @param {ArrayBuffer} jpegImage - The complete JPEG image, in binary.
+   *
+   * Camera frames from the RaspiCam are about 2 MB, so this is a very
+   * expensive method.
    */
   image_to_base64 (jpegImage) {
-    let jpegImageAscii = ''
+    let jpegImageStr = ''
     const jpegImageBuffer = new Uint8Array(jpegImage)
 
     // TODO: Find a less brute-force method
     for (let i = 0; i < jpegImageBuffer.byteLength; i++) {
-      jpegImageAscii += String.fromCharCode(jpegImageBuffer[i])
+      jpegImageStr += String.fromCharCode(jpegImageBuffer[i])
     }
 
-    return btoa(jpegImageAscii)
+    return btoa(jpegImageStr)
   }
 
   /**
@@ -404,7 +409,7 @@ class RobotComms {
   image_cb (msg) {
     this.imageMessages++
     const jpegImage = msg.data
-    this.send_to_client_cb('mainImage', this.image_to_base64(jpegImage))
+    this.send_to_client_cb('mainImage', jpegImage)
   }
 
   /**
