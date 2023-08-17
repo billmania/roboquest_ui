@@ -60,7 +60,7 @@ class ConfigFile {
     }
     fs.writeFileSync(
       RQ_PARAMS.CONFIG_FILE,
-      JSON.stringify(configuration)
+      JSON.stringify(configuration, null, '  ')
     )
   }
 
