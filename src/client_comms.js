@@ -39,6 +39,10 @@ class ClientComms {
     this.io = new Server(
       expressServer,
       {
+        cors: {
+          origin: 'http://127.0.0.1:8080', // Replace with your actual client's origin
+          methods: ['GET', 'POST']
+        },
         pingInterval: PING_INTERVAL,
         pingTimeout: SOCKET_PING_TIMEOUT_S * 60
       }
