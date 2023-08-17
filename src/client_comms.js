@@ -4,7 +4,7 @@
  */
 
 'use strict'
-
+const RQ_PARAMS = require('./params.js')
 const { Server } = require('socket.io')
 
 const PING_INTERVAL_MS = 25000
@@ -40,7 +40,7 @@ class ClientComms {
       expressServer,
       {
         cors: {
-          origin: 'http://127.0.0.1:8080', // Replace with your actual client's origin
+          origin: RQ_PARAMS.EXTERNAL_UI_ORIGIN,
           methods: ['GET', 'POST']
         },
         pingInterval: PING_INTERVAL,
