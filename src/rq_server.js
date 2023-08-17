@@ -10,7 +10,9 @@ const ConfigFile = require('./config_file.js')
 const configFile = new ConfigFile()
 
 const WebServer = require('./web_server.js')
-const webServer = new WebServer('RobotConsoleV2')
+const webServer = new WebServer(
+  'RobotConsoleV2',
+  configFile)
 
 const RobotComms = require('./robot_comms.js')
 const robotComms = new RobotComms(

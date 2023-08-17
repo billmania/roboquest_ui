@@ -40,6 +40,8 @@ class ConfigFile {
    * configuration file is moved to the .old file. Lastly, the configuration
    * object is stringified and written.
    *
+   * This is a synchronous call, so it's expensive.
+   *
    * @param {string|object} configuration - the configuration
    */
   save_config (configuration) {
