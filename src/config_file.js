@@ -43,17 +43,28 @@ class ConfigFile {
    * This is a synchronous call, so it's expensive.
    *
    * @param {string|object} configuration - the configuration
+   *
+   * @returns {boolean} - true on success, false for anything else
    */
   save_config (configuration) {
     const oldConfigFile = RQ_PARAMS.CONFIG_FILE + '.old'
-    if (fs.existsSync(oldConfigFile)) {
-      fs.rmSync(oldConfigFile)
+    try {
+      if (fs.existsSync(oldConfigFile)) {
+        fs.rmSync(oldConfigFile)
+      }
+      fs.renameSync(RQ_PARAMS.CONFIG_FILE, oldConfigFile)
+    } catch (error) {
+      console.log('save_config: Error saving old config file')
+      return false
     }
 
-    fs.renameSync(RQ_PARAMS.CONFIG_FILE, oldConfigFile)
-
     if (typeof configuration === 'string') {
-      configuration = JSON.parse(configuration)
+      try {
+        configuration = JSON.parse(configuration)
+      } catch (error) {
+        console.log('save_config: Exception parsing')
+        return false
+      }
     }
     if (!configuration.version) {
       configuration.version = RQ_PARAMS.CONFIG_FORMAT_VERSION
@@ -62,6 +73,8 @@ class ConfigFile {
       RQ_PARAMS.CONFIG_FILE,
       JSON.stringify(configuration, null, '  ')
     )
+
+    return true
   }
 
   /**

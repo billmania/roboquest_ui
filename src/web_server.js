@@ -47,14 +47,26 @@ class WebServer {
     this.express_app.use(STATIC)
 
     this.express_app.use(express.json())
+    this.express_app.use((error, request, response, next) => {
+      console.error('Unable to parse config file')
+      return response.status(400).json(
+        { success: false, error: 'Unable to parse config file' }
+      )
+    })
+
     this.express_app.post('/config', (request, response) => {
       if (request.body.widgets && request.body.config) {
-        this.configFile.save_config(request.body)
-        response.status(200).json({ success: true })
-        console.log('process_config_post() success')
+        if (this.configFile.save_config(request.body)) {
+          response.status(200).json({ success: true })
+          console.log('process_config_post() success')
+        } else {
+          response.status(400).json(
+            { success: false, error: 'Failed to save the config' })
+          console.log('POST failure, config not saved')
+        }
       } else {
         response.status(400).json({ success: false, error: 'Missing configuration file' })
-        console.log('process_config_post() failure')
+        console.log('POST failure, missing config file')
       }
     })
   }
