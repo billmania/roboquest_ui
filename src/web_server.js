@@ -14,26 +14,61 @@ const ClientComms = require('./client_comms.js')
 class WebServer {
   #client
 
-  constructor (clientName) {
+  constructor (clientName, configFile) {
     this.clientName = clientName
-
+    this.configFile = configFile
     this.incomingEvents = ['update']
     this.send_to_robot = null
 
     this.express_app = express()
     this.express_server = http.createServer(this.express_app)
-    this.setup_static()
+    this.setup_express()
 
     this.express_server.listen(RQ_PARAMS.SERVER_PORT_NUMBER)
   }
 
   /**
    * Define where the static HTML, CSS, and JS files will
-   * be located.
+   * be located. Define the handling of POST requests.
+   *
+   * A POST request to /config will expect a JSON representation
+   * of the complete configuration file in the body of the request.
+   * That object will replace the current configuration file and
+   * the current file will be renamed with ".old" appended. If the
+   * request succeeds, the response will contain the JSON representation
+   * of '{ success: true }' and the status code 200.
+   * If the request doesn't contain a valid JSON representation of
+   * the configuration file, the status code will be 400 and the
+   * response will contain
+   * '{ success: false, error: "Missing configuration file" }'.
    */
-  setup_static () {
+  setup_express () {
     const STATIC = express.static(RQ_PARAMS.SERVER_STATIC_DIR)
     this.express_app.use(STATIC)
+
+    this.express_app.use(express.json())
+    this.express_app.use((error, request, response, next) => {
+      console.error('Unable to parse config file')
+      return response.status(400).json(
+        { success: false, error: 'Unable to parse config file' }
+      )
+    })
+
+    this.express_app.post('/config', (request, response) => {
+      if (request.body.widgets && request.body.config) {
+        if (this.configFile.save_config(request.body)) {
+          response.status(200).json({ success: true })
+          console.log('process_config_post() success')
+        } else {
+          response.status(400).json(
+            { success: false, error: 'Failed to save the config' })
+          console.log('POST failure, config not saved')
+        }
+      } else {
+        response.status(400).json({ success: false, error: 'Missing configuration file' })
+        console.log('POST failure, missing config file')
+      }
+    })
   }
 
   /**

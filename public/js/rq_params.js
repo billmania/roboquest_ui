@@ -12,7 +12,6 @@
 
 const RQ_PARAMS = {}
 
-RQ_PARAMS.CONFIG_FILE = 'config/configuration.json'
-RQ_PARAMS.TEST_CONFIG_FILE = 'config/testing_config.json'
-RQ_PARAMS.SETTINGS_FILE = 'config/hardcoded_settings.json'
+RQ_PARAMS.CONFIG_FILE = 'persist/configuration.json'
+RQ_PARAMS.TEST_CONFIG_FILE = 'persist/testing_config.json'
 RQ_PARAMS.MESSAGE_DURATION_S = 15
