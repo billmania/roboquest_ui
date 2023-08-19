@@ -1,0 +1,120 @@
+{
+    "widgets": [
+        {
+            "type": "indicator",
+            "id": 1,
+            "label": "wallPow",
+            "position": {
+                "my": "left top",
+                "at": "left top"
+            },
+            "format": {
+                "trueText": "Charger has power",
+                "trueColor": "#75ff75",
+                "falseText": "No charger power",
+                "falseColor": "#ff6666"
+            },
+            "data": {
+                "topic": "telemetry",
+                "topicType": "rq_msgs/msg/Telemetry",
+                "topicDirection": "subscribe",
+                "topicAttribute": "charger_has_power"
+            }            
+        },{
+            "type": "value",
+            "id": 3,
+            "label": "batteryVoltage",
+            "position": {
+
+            },
+            "format": {
+                "prefix": "Battery V ",
+                "suffix": "",
+                "textColor": "#000000",
+                "precision": 6
+            },
+            "data": {
+                "topic": "telemetry",
+                "topicType": "rq_msgs/msg/Telemetry",
+                "topicDirection": "subscribe",
+                "topicAttribute": "battery_v"
+            }
+        },{
+            "type": "button",
+            "id": 11,
+            "label": "chargerOn",
+            "position":{
+                "my":"left top",
+                "at":"left top"
+            },
+            "format":{
+                "text": "Set charger ON"
+            },
+            "data":{
+                "service": "control_hat",
+                "serviceAttribute": "set_charger",
+                "serviceType": "rq_msgs/srv/Control",
+                "clickValue": "ON"
+            }
+        },{
+            "type": "joystick",
+            "id": 14,
+            "label": "robotVelocity",
+            "position": {
+                "my":"left top",
+                "at":"left top"
+            },
+            "format": {},
+            "data": {
+                "topic": "cmd_vel",
+                "topicDirection": "publish",
+                "topicType": "geometry_msgs/msg/TwistStamped",
+                "topicAttribute": ["twist.angular.z", "twist.linear.x"],
+                "scale": [3.14, 2.0]
+            }
+        },
+        {
+            "type": "slider",
+            "id": 16,
+            "label": "camera_pan",
+            "position": {
+                "my":"left top",
+                "at":"left top"
+            },
+            "format": {
+                "min": "0",
+                "max": "180",
+                "step": "1",
+                "default": "90",
+                "orientation": false
+            },
+            "data": {
+                "topic": "servos",
+                "topicDirection": "publish",
+                "topicAttribute": "servos",
+                "topicType": "rq_msgs/msg/ServoAngles",
+                "topicArray": [
+                    {
+                        "name": "camera_pan",
+                        "value": 90
+                    }
+                ]
+            }
+        }
+    ],
+    "config": {
+        "macros": [
+        ],
+        "consoleName": "RoboQuest Testing",
+        "loadInEditMode": false,
+        "background": "#fccffc",
+        "snaptogrid": false,
+        "saveWidgets": true,
+        "consoleText": "",
+        "lockRos": false,
+        "heartbeat": "",
+        "useUDPVideo": false,
+        "useUDPRos": false,
+        "notes": ""
+    }
+}
