@@ -29,81 +29,65 @@ The configuration file has four main sections and then several key-value pairs.
 The definition of the widgets placed on the page. The "widgets" property is
 an array of objects uniquely identified with the properties "type" and "id".
 
-#### widget CSS properties
+widget types:
+        socketValue: displayed float value
+        socketButton: emit a value when clicked
+        socketState: display boolean state
+        socketSlider: emit value in a range
+        socketJoystick: emit x,y values in a range
+
+#### widget properties
 
 [CSS reference](https://www.w3schools.com/cssref/index.php)
+[widget lib](https://jqueryui.com/widget/)
+[position lib](https://jqueryui.com/position/)
+[button lib](https://jqueryui.com/button/)
+[slider lib](https://jqueryui.com/slider/)
 
-* bigtick
-* bkColor
-* bottom - a string in the format "#px" interpreted as the number of pixels from
-           the bottom edge of the parent element.
-* childids
-* clickValue - the value assigned to the serviceAttribute when the button is clicked
-* default
-* falseText - what's displayed when msgAttribute is a boolean and false
-* fontsize
-* formatmode
-* formatvalue
-* gp_Decrease
-* gp_Increase
-* h - the height of the widget as "#px".
-* id - a unique integer for each widget
-* label
-* latching
-* left - a string in the format "#px" interpreted as the number of pixels from
-         the left edge of the parent element.
-* max
-* min
+the widget properties have the following sections:
+        root: top level properties generic to all widgets
+        position: properties for positioning the widget
+        format: properties for formatting the display of the widget content
+        data: topics and services associated with the widget
 
-* name - a descriptive name for the widget, as a string
-* onPress
-* onRelease
-* prefix - prepended to the msgAttribute value before displaying
-* repeatdelay
-* reverse
-* right - a string in the format "#px" interpreted as the number of pixels from
-         the right edge of the parent element.
-* screen
-* service - a string defining the associated ROS service to call.
-* serviceAttribute - which attribute(s) of the serviceType are populated with data from the UI.
-* serviceType - a string defining the ROS interface for the service.
-* smalltick
-* step
-* suffix - appended to the msgAttribute value before displaying
-* trueText - what's displayed when msgAttribute is a boolean and true
-* textColor
-* textColor2
-* top - a string in the format "#px" interpreted as the number of pixels from
-        the top of the parent element.
-* topic - a string defining the associated ROS topic to publish or subscribe.
-* topicDirection - a string with one of "publish" or "subscribe"
-* topicAttribute - which attribute(s) of the topicType, like 'header.stamp.sec', are populated
-                   with data from the UI or used to update the UI. multiple attributes are
-                   separated by semi-colon(s).
-* topicType - a string defining the ROS interface for the topic, such as std_msgs/msg/String.
-* type - a string describing the widget type. must exist as an HTML DIV "id"
-         attribute in the HTML page.
-* useAxis
-* useButton
-* useGamepad
-* usekey_Decrease
-* usekey_down
-* usekey_hotkey
-* usekey_Increase
-* usekey_left
-* usekey_right
-* useKeys
-* usekey_up
-* useLeft - SUPERFLUOUS - if "true" use the "left" value to position the widget and ignore the right
-            value. if "false" then do the opposite.
-* useROS
-* useTop - SUPERFLUOUS - if "true" use the "top" value to position the widget and ignore the bottom
-           value. if "false" then do the opposite.
-* vertical
-* w - the width of the widget as "#px"
-* xScaleFactor, yScaleFactor - floating point value used with the joystick to scale
-                               the x and y values.
+* id: unique integer for each widget
+* type: string defining the widget type
+* label: string displayed on the widget header
 
+* position.my: string defining x,y of widget to position with respect to the parent
+* position.at: string defining x,y of parent to position widget
+
+* format.prefix: (value) string prepended to the value before displaying
+* format.suffix: (value) string appended to the value before displaying
+* format.precision: (value) number of decimal places to display for values 
+
+* format.trueText: (state) string displayed when state is true
+* format.falseText: (state) string displayed when state is false
+* format.trueColor: (state) color of text when state is true
+* format.falseColor: (state) color of text when state is false
+
+* format.min: (slider) minimum value of slider
+* format.max: (slider) maximum value of slider
+* format.step: (slider) increment value of slider
+* format.orientation: (slider) horizontal or vertical
+* format.default: (slider) default value of slider
+* format.animate: (slider) true | false animate the slider when clicking to jump values
+ 
+* format.text: (button) string displayed on the button
+
+* data.topic: (value, state, joystick) ROS topic to subscribe to
+* data.topicType: (value, state, joystick) ROS message type of the topic
+* data.topicDirection: (value, state, joystick) ROS topic direction (pub/sub)
+* data.topicAttribute: (value, state) ROS message attribute to display
+  
+* data.service: (button) ROS service to call
+* data.serviceType: (button) ROS service type of the service
+* data.serviceAttribute: (button) ROS message attribute to display
+* data.clickValue: (button) value to emit when button is clicked
+
+
+* data.scale : (joystick) floating point values array [x, y]
+* data.topicAttribute: (joystick) ["x string path to attribute", "y string path to attribute"]
 ### config
 
 Configuration details for cameras and macros.
