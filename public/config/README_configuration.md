@@ -30,11 +30,11 @@ The definition of the widgets placed on the page. The "widgets" property is
 an array of objects uniquely identified with the properties "type" and "id".
 
 widget types:
-        socketValue: displayed float value
-        socketButton: emit a value when clicked
-        socketState: display boolean state
-        socketSlider: emit value in a range
-        socketJoystick: emit x,y values in a range
+        value: displayed float value
+        button: emit a value when clicked
+        indicator: display boolean state
+        slider: emit value in a range
+        joystick: emit x,y values in a range
 
 #### widget properties
 

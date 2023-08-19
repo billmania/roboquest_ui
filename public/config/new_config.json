@@ -1,7 +1,7 @@
 {
     "widgets": [
         {
-            "type": "socketState",
+            "type": "indicator",
             "id": 1,
             "label": "wallPow",
             "position": {
@@ -21,7 +21,7 @@
                 "topicAttribute": "charger_has_power"
             }            
         },{
-            "type": "socketValue",
+            "type": "value",
             "id": 3,
             "label": "batteryVoltage",
             "position": {
@@ -40,7 +40,7 @@
                 "topicAttribute": "battery_v"
             }
         },{
-            "type": "socketButton",
+            "type": "button",
             "id": 11,
             "label": "chargerOn",
             "position":{
@@ -57,7 +57,7 @@
                 "clickValue": "ON"
             }
         },{
-            "type": "socketJoystick",
+            "type": "joystick",
             "id": 14,
             "label": "robotVelocity",
             "position": {
@@ -74,7 +74,7 @@
             }
         },
         {
-            "type": "socketSlider",
+            "type": "slider",
             "id": 16,
             "label": "camera_pan",
             "position": {
@@ -92,7 +92,7 @@
                 "topic": "servos",
                 "topicDirection": "publish",
                 "topicAttribute": "name",
-                "topicType": "rq_msgs/msg/ServoAngles",
+                "topicType": "rq_msgs/msg/ServoAngles"
             }
         }
     ],
