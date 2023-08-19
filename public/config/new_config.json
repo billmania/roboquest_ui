@@ -91,8 +91,14 @@
             "data": {
                 "topic": "servos",
                 "topicDirection": "publish",
-                "topicAttribute": "name",
-                "topicType": "rq_msgs/msg/ServoAngles"
+                "topicAttribute": "servos",
+                "topicType": "rq_msgs/msg/ServoAngles",
+                "topicArray": [
+                    {
+                        "name": "camera_pan",
+                        "value": 90
+                    }
+                ]
             }
         }
     ],
