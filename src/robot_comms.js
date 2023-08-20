@@ -121,14 +121,12 @@ class RobotComms {
    *
    * @param {string} name - the name of the topic or the service
    * @param {string|object} message - string data for the
-   *                                  widgetConfig.topicAttribute(s)
+   *                                  widgetConfig.data.topicAttribute(s)
    *                                  or object for serviceAttribute(s)
    */
   handle_message (name, message) {
     if (this.publishedTopics.includes(name)) {
       const rosMessage = this.buildRosMessage(name, message)
-      // TODO: ROS topic messages must be published regularly
-      // TODO: Replace this with an interval
       this.publishers[name].publish(rosMessage)
     } else if (this.services.includes(name)) {
       const serviceRequest = this.buildServiceMessage(name, message)
@@ -313,26 +311,26 @@ class RobotComms {
       this.image_cb.bind(this))
 
     for (const widgetConfig of widgetsConfig) {
-      this.logger.debug('Parsing widget ' + widgetConfig.type + ' ' + widgetConfig.name)
-      if (widgetConfig.topic) {
-        switch (widgetConfig.topicDirection) {
+      this.logger.debug('Parsing widget ' + widgetConfig.type + ' ' + widgetConfig.label)
+      if (widgetConfig.data.topic) {
+        switch (widgetConfig.data.topicDirection) {
           case 'subscribe': {
-            if (!this.subscribers[widgetConfig.topic]) {
-              this.subscribers[widgetConfig.topic] = this.create_subscriber(
-                widgetConfig.topic,
-                widgetConfig.topicType)
-              this.logger.debug('Added subscriber for ' + widgetConfig.topic)
+            if (!this.subscribers[widgetConfig.data.topic]) {
+              this.subscribers[widgetConfig.data.topic] = this.create_subscriber(
+                widgetConfig.data.topic,
+                widgetConfig.data.topicType)
+              this.logger.debug('Added subscriber for ' + widgetConfig.data.topic)
             }
             continue
           }
 
           case 'publish': {
-            if (!this.publishers[widgetConfig.topic]) {
-              this.publishers[widgetConfig.topic] = this.create_publisher(
-                widgetConfig.topic,
-                widgetConfig.topicType)
-              this.publishedTopics.push(widgetConfig.topic)
-              this.logger.debug('Added publisher for ' + widgetConfig.topic)
+            if (!this.publishers[widgetConfig.data.topic]) {
+              this.publishers[widgetConfig.data.topic] = this.create_publisher(
+                widgetConfig.data.topic,
+                widgetConfig.data.topicType)
+              this.publishedTopics.push(widgetConfig.data.topic)
+              this.logger.debug('Added publisher for ' + widgetConfig.data.topic)
             }
             continue
           }
@@ -340,14 +338,14 @@ class RobotComms {
           default: {
             this.logger.warn(
               'widget ' + widgetConfig.id + ' had' +
-              ' topic ' + widgetConfig.topic + ' but no direction')
+              ' topic ' + widgetConfig.data.topic + ' but no direction')
             continue
           }
         }
       }
 
-      if (widgetConfig.service) {
-        if (this.serviceClients[widgetConfig.service]) {
+      if (widgetConfig.data.service) {
+        if (this.serviceClients[widgetConfig.data.service]) {
           /*
            * Services can be called by multiple UI components. The response
            * to a service call is ignored.
@@ -356,14 +354,14 @@ class RobotComms {
         }
 
         const serviceClient = this.create_service_client(
-          widgetConfig.serviceType,
-          widgetConfig.service)
+          widgetConfig.data.serviceType,
+          widgetConfig.data.service)
         if (serviceClient) {
-          this.serviceClients[widgetConfig.service] = serviceClient
-          this.services.push(widgetConfig.service)
-          this.logger.debug('Added serviceClient for ' + widgetConfig.service)
+          this.serviceClients[widgetConfig.data.service] = serviceClient
+          this.services.push(widgetConfig.data.service)
+          this.logger.debug('Added serviceClient for ' + widgetConfig.data.service)
         } else {
-          this.logger.warn(`Service ${widgetConfig.service} not available`)
+          this.logger.warn(`Service ${widgetConfig.data.service} not available`)
         }
         continue
       }

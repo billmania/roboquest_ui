@@ -79,6 +79,10 @@ the widget properties have the following sections:
 * data.topicType: (value, state, joystick) ROS message type of the topic
 * data.topicDirection: (value, state, joystick) ROS topic direction (pub/sub)
 * data.topicAttribute: (value, state) ROS message attribute to display
+* data.topicPeriodS: (joystick, slider) Only when data.topicDirection is "publish",
+                                        the browser UI will continually publish the
+                                        current value with a period of
+                                        data.topicPeriodS seconds
   
 * data.service: (button) ROS service to call
 * data.serviceType: (button) ROS service type of the service

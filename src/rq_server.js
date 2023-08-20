@@ -5,6 +5,7 @@
  * WebServer and RobotComms and then acts as the broker between them.
  */
 
+const RQ_PARAMS = require('./params.js')
 const ConfigFile = require('./config_file.js')
 const configFile = new ConfigFile()
 
@@ -43,5 +44,9 @@ webServer.setup_send_to_robot((eventName, payload) => {
  * given to the web server, actually start it.
  */
 webServer.setup_client_comms()
+
+setInterval(
+  webServer.send_event_counters.bind(webServer),
+  RQ_PARAMS.COUNTERS_PERIOD_S * 1000)
 
 robotComms.main()
