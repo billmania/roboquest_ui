@@ -179,10 +179,6 @@ class WebServer {
 
     process.exit(1)
   }
-
-  send_heartbeat () {
-    this.#client.heartbeat()
-  }
 }
 
 module.exports = WebServer

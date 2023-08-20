@@ -64,7 +64,7 @@ class ClientComms {
    * Called each time a client connects to the socket. Sets the
    * handlers for events received from the browser-side.
    *
-   * disconnect and hb events are always handled. this.incoming_events
+   * disconnect events are always handled. this.incoming_events
    * is interpreted as a list of events to also handle, by passing
    * their name and payload to this.eventCb.
    */
@@ -78,14 +78,6 @@ class ClientComms {
         console.log('Socket disconnected: ' + this.socket.id + ', Reason: ' + reason)
         this.socket = null
       })
-
-    this.socket.on(
-      'hb',
-      payload => {
-        // TODO: Do something useful with this info
-        console.log(`Client heartbeat payload ${payload}`)
-      }
-    )
 
     this.incomingEvents.forEach(this.add_event_handler.bind(this))
 
@@ -110,15 +102,6 @@ class ClientComms {
     }
 
     return false
-  }
-
-  /**
-   * Sends heartbeat events to the client.
-   */
-  heartbeat () {
-    if (!this.send_event('hb', Date.now().toString())) {
-      console.log('Heartbeat not sent. No client.')
-    }
   }
 }
 
