@@ -5,6 +5,8 @@
  */
 'use strict'
 
+const FRAMES_PER_CYCLE = 1000
+
 class RQTesting {
   /**
    * Setup the class.
@@ -17,6 +19,8 @@ class RQTesting {
     this.subscriptionDataMap = null
     this.cameraFrames = document.getElementById('mainImage')
     this.pageBuilt = false
+    this.framesReceived = 0
+    this.framesStartTimestamp = Date.now()
     this.getConfiguration(
       buildPage,
       this.mapSubscriptionData.bind(this),
@@ -197,6 +201,15 @@ class RQTesting {
    * and https://developer.mozilla.org/en-US/docs/Glossary/Base64
    */
   image_cb (jpegImage) {
+    this.framesReceived++
+    if (this.framesReceived > FRAMES_PER_CYCLE) {
+      const fps = (this.framesReceived /
+        (Date.now() - this.framesStartTimestamp) * 1000)
+      console.log(`Camera FPS: ${fps}`)
+      this.framesReceived = 0
+      this.framesStartTimestamp = Date.now()
+    }
+
     let jpegImageStr = ''
     const jpegImageBuffer = new Uint8Array(jpegImage)
     for (let i = 0; i < jpegImageBuffer.byteLength; i++) {
