@@ -175,23 +175,12 @@ class RQTesting {
    *
    */
   setupSocketEvents () {
-    this.socket.add_event('hb', this.heartbeat_cb.bind(this))
     this.socket.add_event('mainImage', this.image_cb.bind(this))
 
     // TODO: Enhance this to instead use this.subscriptionDataMap
     this.socket.add_event('telemetry', this.telemetry_cb.bind(this))
 
     console.log('setupSocketEvents')
-  }
-
-  /**
-   * Receive the heartbeat event from the server and update
-   * the UI.
-   *
-   * @param {int} payload - the millisecond timestamp of the heartbeat.
-   */
-  heartbeat_cb (payload) {
-    console.log(`hb event received: ${payload}`)
   }
 
   /**
@@ -298,18 +287,6 @@ class RQTesting {
   }
 
   /**
-   * Send a heartbeat to the robot.
-   *
-   */
-  send_heartbeat () {
-    if (this.robotConnected) {
-      this.socket.send_event('hb', Date.now().toString())
-    } else {
-      console.log('Heartbeat not sent because robot not connected')
-    }
-  }
-
-  /**
    * Control visibility of the message widget and set its text.
    *
    * @param {string} text - The message to display.
@@ -352,5 +329,3 @@ class RQTesting {
 } // RQTesting
 
 const rqTesting = new RQTesting()
-
-setInterval(rqTesting.send_heartbeat.bind(rqTesting), 10000)
