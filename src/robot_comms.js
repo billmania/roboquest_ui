@@ -54,7 +54,21 @@ const ServoAngle = {
 }
 
 /**
- * RobotComms reads the and uses its
+ * Get current wall time as a ROS header.stamp object.
+ *
+ * @returns {object}
+ */
+function getRosTimestamp () {
+  const timestamp = Date.now()
+
+  return {
+    sec: Math.trunc(timestamp / 1000),
+    nanosec: Math.trunc(timestamp / 1000 % 1 * 1000000000)
+  }
+}
+
+/**
+ * RobotComms reads the configuration file and uses its
  * contents to connect to the ROS graph.
  */
 class RobotComms {
@@ -126,7 +140,7 @@ class RobotComms {
    */
   handle_message (name, message) {
     if (this.publishedTopics.includes(name)) {
-      const rosMessage = this.buildRosMessage(name, message)
+      const rosMessage = this.buildPublishMessage(name, message)
       this.publishers[name].publish(rosMessage)
     } else if (this.services.includes(name)) {
       const serviceRequest = this.buildServiceMessage(name, message)
@@ -148,10 +162,17 @@ class RobotComms {
    * Using the serviceName, retrieve the empty ROS request object.
    * Using the contents of message, populate the required attributes
    * of the ROS request object.
+   * It is the responsibility of the UI to:
+   *
+   * 1. know the ROS service message request properties
+   * 2. map the widget's value(s) to the appropriate property
+   *
    * Return the populated ROS request message.
    *
    * @param {string} serviceName
-   * @param {object} message
+   * @param {object} message - contains key-value pairs, where the key is a
+   *                           property of the message and the value is the
+   *                           value for that property
    *
    * @returns {ROS request message}
    */
@@ -168,6 +189,7 @@ class RobotComms {
      * for the Control message.
      */
     for (const attribute in requestAttributes) {
+      console.log(`${serviceName}: ${attribute}=${requestAttributes[attribute]}`)
       requestMessage[attribute] = requestAttributes[attribute]
     }
 
@@ -178,37 +200,50 @@ class RobotComms {
    * Using the topicName, retrieve the empty ROS message object.
    * Using the contents of message, populate the required attributes
    * of the ROS message object.
+   *
+   * It is the responsibility of the UI to:
+   *
+   * 1. know the ROS service message request properties
+   * 2. map the widget's value(s) to the appropriate property
+   *
    * Return the populated ROS message.
    *
    * @param {string} topicName
-   * @param {Array} message
+   * @param {object} message - contains key-value pairs, where the key is a
+   *                           property of the message and the value is the
+   *                           value for that property
    *
-   * @returns {ROS message object
+   * @returns {ROS message object}
    */
-  buildRosMessage (topicName, message) {
-    let rosMessage
+  buildPublishMessage (topicName, message) {
+    let publishMessage = null
+    const publishAttributes = message
 
     switch (topicName) {
       case ('cmd_vel'): {
-        rosMessage = TwistStamped
-        /*
-         * message is [x, y]. y represents the joystick fore-and-aft position.
-         * x represents the side-to-side. The y value is used to set the linear
-         * velocity and the x value to set the angular velocity.
-         */
-        rosMessage.twist.linear.x = message[1]
-        rosMessage.twist.angular.z = message[0]
+        publishMessage = TwistStamped
+        publishMessage.header.stamp = getRosTimestamp()
+
+        for (const attribute in publishAttributes) {
+          console.log(`${topicName}: ${attribute}=${publishAttributes[attribute]}`)
+          publishMessage[attribute] = publishAttributes[attribute]
+        }
+
         break
       }
 
       case ('servos'): {
-        rosMessage = ServoAngles
-        rosMessage.servos = []
+        publishMessage = ServoAngles
+        publishMessage.header.stamp = getRosTimestamp()
+        publishMessage.servos = []
         const servoAngle = ServoAngle
 
-        servoAngle.name = message[0]
-        servoAngle.angle = message[1]
-        rosMessage.servos.push(servoAngle)
+        for (const attribute in publishAttributes) {
+          console.log(`${topicName}: ${attribute}=${publishAttributes[attribute]}`)
+          servoAngle[attribute] = publishAttributes[attribute]
+          publishMessage.servos.push(servoAngle)
+        }
+
         break
       }
 
@@ -218,7 +253,7 @@ class RobotComms {
       }
     }
 
-    return rosMessage
+    return publishMessage
   }
 
   /**
