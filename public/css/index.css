@@ -1,0 +1,191 @@
+html, body{
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: #000;
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    color: #CC894E;
+    line-height: 1.5;
+    overflow-x: hidden;
+}
+
+.full-height{
+    height: 100vh;
+}
+
+.newWidgetType{
+    display: none;
+}
+
+.ui-widget{
+    font-family: 'Roboto', sans-serif;
+    border: 1px solid #3392ff;
+}
+
+.ui-dialog{
+    background: rgba(0, 0, 0, .8);
+}
+
+
+label{
+    display: inline-block;
+    width: 150px;
+    text-align: right;
+    margin-bottom:10px;
+    color: #3392ff;
+}
+
+input, select{
+    display: inline-block;
+    width: 248px;
+    padding: 5px;
+    border: 1px solid #3392ff;
+    border-radius: 5px;
+    background: rgba(0, 0, 0, .5);
+    color: #CC894E;
+}
+
+#widgets{
+    height: 100vh;
+    font-family: 'Roboto', sans-serif;
+    z-index: 0;
+}
+
+.widget{
+    display: inline-block;
+    background: rgba(0, 0, 0, .5);
+    border: 1px solid #CC894E;
+    width:200px;
+    overflow-x: hidden;
+    padding: 5px;
+    z-index: 1;
+    clip-path: polygon(
+        0 5%,
+        5% 0,
+        95% 0,
+        100% 5%,
+        100% 95%,
+        95% 100%,
+        5% 100%,
+        0% 95%,
+        0% 5%
+    )
+}
+
+.widget-header{
+    cursor: move;
+    width: 100%;
+    min-height:25px;
+    font-weight: bold;
+    text-align: center;
+    border-bottom: 1px solid rgba(50, 90, 255, .5)
+}
+.widget-content{
+    width: 100%;
+    min-height:24px;
+    text-align: center;
+}
+.widget-content .ui-button{
+    padding:4px;
+    margin-bottom: -2px;
+    font-size: 14px;
+}
+
+#button{
+    display: inline-block
+}
+.JOYSTICK{
+    cursor: crosshair;
+    overflow-x: hidden;
+    overflow-y: hidden;
+}
+
+#mainImage{
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+}
+/* centered */
+#menu{
+    cursor: pointer;
+    position: absolute;
+    top: 5px;
+    left: 50%;
+    transform: translate(-50%, 0%);
+    z-index: 1;
+    text-align: center;
+    padding: 5px;
+    border: 1px solid #3392ff;
+    clip-path: polygon(
+        0 10%,
+        10% 0,
+        90% 0,
+        100% 10%,
+        100% 90%,
+        90% 100%,
+        10% 100%,
+        0% 90%,
+        0% 10%
+    )
+}
+.menuButton{
+    display: inline-block;
+    padding: 5px;
+    margin: 5px;
+    border: 1px solid #3392ff;
+    background: rgba(0, 0, 0, .5);
+    color: #CC894E;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+#trash{
+    cursor: pointer;
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 1;
+    width: 80px;
+    height: 80px;
+    background: rgba(0, 0, 0, .5);
+    border: 1px solid #cc4e4e;
+    clip-path: polygon(
+        0 10%,
+        10% 0,
+        90% 0,
+        100% 10%,
+        100% 90%,
+        90% 100%,
+        10% 100%,
+        0% 90%,
+        0% 10%
+    )
+}
+
+#edit{
+    cursor: pointer;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    width: 80px;
+    height: 80px;
+    background: rgba(0, 0, 0, .5);
+    border: 1px solid #4ecc72;
+    clip-path: polygon(
+        0 10%,
+        10% 0,
+        90% 0,
+        100% 10%,
+        100% 90%,
+        90% 100%,
+        10% 100%,
+        0% 90%,
+        0% 10%
+    )
+}

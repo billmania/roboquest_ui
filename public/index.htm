@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RoboQuest UI</title>
+<link rel="stylesheet" href="./jquery-ui/jquery-ui.css">
+<link rel="stylesheet" href="./jquery-ui/jquery-ui.theme.css">
+<link rel="stylesheet" href="./css/index.css">
+</head>
+<body>
+    <div id="edit"></div>
+    <div id="menu"> MENU </div>
+    <div id="trash"></div>
+    <div id="widgets"></div>
+    <img id='mainImage'
+        alt="Robot camera frame"
+        src="./img/background.jpg"
+    />
+    <div id="menuDialog" title="Configuration Settings">
+        <form id="menuForm">
+            <div class="menuButton">update</div>
+            <div class="menuButton">load defaults</div>
+            <div class="menuButton" id="saveConfig">save config</div>
+            <div class="menuButton" id="addWidget">add widget</div>
+            <br/>
+            <input id="socketUri" type="text" />
+            <div class="menuButton" id="setSocket">set socket</div>
+        </form>
+    </div>
+    <div id="newWidget" title="Configure a New Widget">
+        <form id="newWidgetForm">
+            <label>widget type:</label>
+            <select id="newWidgetType" name="type" data-section="root">
+                <option value="button">Button</option>
+                <option value="value">Value</option>
+                <option value="slider">Slider</option>
+                <option value="state">Indicator</option>
+                <option value="joystick">Joystick</option>
+            </select>
+            <br/>
+            <label> widget label:</label> <input type="text" id="newWidgetLabel" name="label" value="" data-section="root">
+            <h3>Position</h3>
+            <label>widget anchor:</label> 
+            <select id="widgetPositionMyX" name="myX" style="width:100px" data-section="position">
+                <option value="left">Left</option>
+                <option value="center">Center</option>
+                <option value="bottom">Right</option>
+            </select>
+            <select id="widgetPositionMyY" name="myY" style="width:100px" data-section="position">
+                <option value="top">Top</option>
+                <option value="center">Center</option>
+                <option value="bottom">Bottom</option>
+            </select><br/>
+            <label>parent anchor:</label> 
+            <select id="parentPositionAtX" name="atX" style="width:100px" data-section="position">
+                <option value="left">Left</option>
+                <option value="center">Center</option>
+                <option value="bottom">Right</option>
+            </select>
+            <select id="parentPositionAtY" name="atY" style="width:100px" data-section="position">
+                <option value="top">Top</option>
+                <option value="center">Center</option>
+                <option value="bottom">Bottom</option>
+            </select><br/>
+            <h3>Format</h3>
+            <div class="newWidgetType" id="button">
+                <label>button text:</label> <input type="text" value="" name="text" data-section="format"><br/>
+                <h3>Robot Communications</h3>
+                <label>service:</label> <input type="text" data-section="data" value="" name="service"><br/>
+                <label>service attribute:</label> <input type="text" value="" data-section="data" name="serviceAttribute"><br/>
+                <label>service type:</label> <input type="text" data-section="data" value="" name="serviceType"><br/>
+                <label>service value:</label> <input type="text" data-section="data" value="" name="serviceValue"><br/>
+            </div>
+            <div class="newWidgetType" id="value">
+                <label>text color:</label> <input type="text" value="" name="textColor"><br/>
+                <label>display prefix:</label> <input type="text" value="" name="prefix"><br/>
+                <label>display suffix:</label> <input type="text" value="" name="suffix"><br/>
+                <h3>Robot Communications</h3>
+                <label>topic:</label> <input type="text" class="socket" value="" name="topic"><br/>
+                <label>topic type:</label> <input type="text" value="" name="topicType"><br/>
+                <label>topic direction:</label> <input type="text" class="socket" value="" name="topicDirection"><br/>
+                <label>topic attribute:</label> <input type="text" class="socket" value="" name="topicAttribute"><br/>
+            </div>
+            <div class="newWidgetType" id="slider">
+                <label>slider min:</label> <input type="text" value="" name="min"><br/>
+                <label>slider max:</label> <input type="text" value="" name="max"><br/>
+                <h3>Robot Communications</h3>
+                <label>topic:</label> <input type="text" class="socket" value="" name="topic"><br/>
+                <label>topic direction:</label> <input type="text" class="socket" value="" name="topicDirection"><br/>
+                <label>topic attribute:</label> <input type="text" class="socket" value="" name="topicAttribute"><br/>
+                <label>topic type:</label> <input type="text" class="socket" value="" name="topicType"><br/>
+                
+            </div>
+            <div class="newWidgetType" id="state">
+                <label>true text:</label> <input type="text" value="" name="trueText"><br/>
+                <label>true color:</label> <input type="text" value="" name="trueColor"><br/>
+                <label>false text:</label> <input type="text" value="" name="falseText"><br/>
+                <label>false color:</label> <input type="text" value="" name="falseColor"><br/>
+                <h3>Robot Communications</h3>
+                <label>topic:</label> <input type="text" data-section="data" value="" name="topic"><br/>
+                <label>topic type:</label> <input type="text" class="socket" value="" name="topicType"><br/>
+                <label>topic direction:</label> <input type="text" class="socket" value="" name="topicDirection"><br/>
+                <label>topic attribute:</label> <input type="text" class="socket" value="" name="topicAttribute"><br/>
+            </div>
+        </form>
+    </div>
+</body>
+<SCRIPT src="./js/socket.io.js"></SCRIPT>
+<script src="./js/jquery.min.js"></script>
+<script src="./js/rq_params.js"></script>
+<script src="./jquery-ui/jquery-ui.min.js"></script>
+<script src="./js/wButton.js"></script>
+<script src="./js/wValue.js"></script>
+<script src="./js/wSlider.js"></script>
+<script src="./js/wState.js"></script>
+<script src="./js/joy.min.js"></script>
+<script src="./js/wJoystick.js"></script>
+<script src="./js/index.js"></script>
+</html>
