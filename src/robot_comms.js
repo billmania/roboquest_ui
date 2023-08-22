@@ -129,21 +129,21 @@ class RobotComms {
   }
 
   /**
-   * Handle a message incoming from the UI. It's either a message
-   * to be published onto a topic or a service to be called, determined
-   * by the name.
+   * Handle a payload incoming from the UI. It's either for a message
+   * to be published onto a topic or for a service to be called, determined
+   * by the name. The name is either a topic name or a service name. The name
+   * always corresponds one-to-one with an event name.
    *
    * @param {string} name - the name of the topic or the service
-   * @param {string|object} message - string data for the
-   *                                  widgetConfig.data.topicAttribute(s)
-   *                                  or object for serviceAttribute(s)
+   * @param {object} payload - data for the widgetConfig.data.topicAttribute(s)
+   *                           or widgetConfig.data.serviceAttribute(s)
    */
-  handle_message (name, message) {
+  handle_payload (name, payload) {
     if (this.publishedTopics.includes(name)) {
-      const rosMessage = this.buildPublishMessage(name, message)
+      const rosMessage = this.buildPublishMessage(name, payload)
       this.publishers[name].publish(rosMessage)
     } else if (this.services.includes(name)) {
-      const serviceRequest = this.buildServiceMessage(name, message)
+      const serviceRequest = this.buildServiceMessage(name, payload)
       this.serviceClients[name].sendRequest(
         serviceRequest,
         (response) => {
@@ -154,7 +154,7 @@ class RobotComms {
         }
       )
     } else {
-      this.logger.warn(`handle_message(): ${name} not recognized as publish or service`)
+      this.logger.warn(`handle_payload(): ${name} not recognized as publish or service`)
     }
   }
 

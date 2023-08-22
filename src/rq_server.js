@@ -34,9 +34,10 @@ for (const serviceToCall of robotComms.services_list()) {
 /*
  * Setup the means to use messages from the UI to interact with
  * the ROS graph.
+ * The eventName argument is a string. The payload is an object.
  */
 webServer.setup_send_to_robot((eventName, payload) => {
-  robotComms.handle_message(eventName, payload)
+  robotComms.handle_payload(eventName, payload)
 })
 
 /*
