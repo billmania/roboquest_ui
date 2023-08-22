@@ -12,8 +12,6 @@ const fs = require('fs')
 const ClientComms = require('./client_comms.js')
 
 class WebServer {
-  #client
-
   constructor (clientName, configFile) {
     this.clientName = clientName
     this.configFile = configFile
@@ -85,7 +83,7 @@ class WebServer {
    * not immediately be a client connected to the other end.
    */
   setup_client_comms () {
-    this.#client = new ClientComms(
+    this.client = new ClientComms(
       this.express_server,
       this.incomingEvents,
       this.event_cb.bind(this)
@@ -140,7 +138,7 @@ class WebServer {
    * @returns {boolean} - True if the payload was sent.
    */
   send_to_client (eventName, payload) {
-    if (this.#client.send_event(eventName, payload)) {
+    if (this.client.send_event(eventName, payload)) {
       return true
     }
 
@@ -178,6 +176,13 @@ class WebServer {
     )
 
     process.exit(1)
+  }
+
+  /**
+   * Call the ClientComms method which emits the eventCounters.
+   */
+  send_event_counters () {
+    this.client.send_event_counters()
   }
 }
 

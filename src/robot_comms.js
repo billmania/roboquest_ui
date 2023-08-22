@@ -54,7 +54,21 @@ const ServoAngle = {
 }
 
 /**
- * RobotComms reads the and uses its
+ * Get current wall time as a ROS header.stamp object.
+ *
+ * @returns {object}
+ */
+function getRosTimestamp () {
+  const timestamp = Date.now()
+
+  return {
+    sec: Math.trunc(timestamp / 1000),
+    nanosec: Math.trunc(timestamp / 1000 % 1 * 1000000000)
+  }
+}
+
+/**
+ * RobotComms reads the configuration file and uses its
  * contents to connect to the ROS graph.
  */
 class RobotComms {
@@ -121,14 +135,12 @@ class RobotComms {
    *
    * @param {string} name - the name of the topic or the service
    * @param {string|object} message - string data for the
-   *                                  widgetConfig.topicAttribute(s)
+   *                                  widgetConfig.data.topicAttribute(s)
    *                                  or object for serviceAttribute(s)
    */
   handle_message (name, message) {
     if (this.publishedTopics.includes(name)) {
-      const rosMessage = this.buildRosMessage(name, message)
-      // TODO: ROS topic messages must be published regularly
-      // TODO: Replace this with an interval
+      const rosMessage = this.buildPublishMessage(name, message)
       this.publishers[name].publish(rosMessage)
     } else if (this.services.includes(name)) {
       const serviceRequest = this.buildServiceMessage(name, message)
@@ -150,10 +162,17 @@ class RobotComms {
    * Using the serviceName, retrieve the empty ROS request object.
    * Using the contents of message, populate the required attributes
    * of the ROS request object.
+   * It is the responsibility of the UI to:
+   *
+   * 1. know the ROS service message request properties
+   * 2. map the widget's value(s) to the appropriate property
+   *
    * Return the populated ROS request message.
    *
    * @param {string} serviceName
-   * @param {object} message
+   * @param {object} message - contains key-value pairs, where the key is a
+   *                           property of the message and the value is the
+   *                           value for that property
    *
    * @returns {ROS request message}
    */
@@ -170,6 +189,7 @@ class RobotComms {
      * for the Control message.
      */
     for (const attribute in requestAttributes) {
+      console.log(`${serviceName}: ${attribute}=${requestAttributes[attribute]}`)
       requestMessage[attribute] = requestAttributes[attribute]
     }
 
@@ -180,37 +200,50 @@ class RobotComms {
    * Using the topicName, retrieve the empty ROS message object.
    * Using the contents of message, populate the required attributes
    * of the ROS message object.
+   *
+   * It is the responsibility of the UI to:
+   *
+   * 1. know the ROS service message request properties
+   * 2. map the widget's value(s) to the appropriate property
+   *
    * Return the populated ROS message.
    *
    * @param {string} topicName
-   * @param {Array} message
+   * @param {object} message - contains key-value pairs, where the key is a
+   *                           property of the message and the value is the
+   *                           value for that property
    *
-   * @returns {ROS message object
+   * @returns {ROS message object}
    */
-  buildRosMessage (topicName, message) {
-    let rosMessage
+  buildPublishMessage (topicName, message) {
+    let publishMessage = null
+    const publishAttributes = message
 
     switch (topicName) {
       case ('cmd_vel'): {
-        rosMessage = TwistStamped
-        /*
-         * message is [x, y]. y represents the joystick fore-and-aft position.
-         * x represents the side-to-side. The y value is used to set the linear
-         * velocity and the x value to set the angular velocity.
-         */
-        rosMessage.twist.linear.x = message[1]
-        rosMessage.twist.angular.z = message[0]
+        publishMessage = TwistStamped
+        publishMessage.header.stamp = getRosTimestamp()
+
+        for (const attribute in publishAttributes) {
+          console.log(`${topicName}: ${attribute}=${publishAttributes[attribute]}`)
+          publishMessage[attribute] = publishAttributes[attribute]
+        }
+
         break
       }
 
       case ('servos'): {
-        rosMessage = ServoAngles
-        rosMessage.servos = []
+        publishMessage = ServoAngles
+        publishMessage.header.stamp = getRosTimestamp()
+        publishMessage.servos = []
         const servoAngle = ServoAngle
 
-        servoAngle.name = message[0]
-        servoAngle.angle = message[1]
-        rosMessage.servos.push(servoAngle)
+        for (const attribute in publishAttributes) {
+          console.log(`${topicName}: ${attribute}=${publishAttributes[attribute]}`)
+          servoAngle[attribute] = publishAttributes[attribute]
+          publishMessage.servos.push(servoAngle)
+        }
+
         break
       }
 
@@ -220,7 +253,7 @@ class RobotComms {
       }
     }
 
-    return rosMessage
+    return publishMessage
   }
 
   /**
@@ -313,26 +346,26 @@ class RobotComms {
       this.image_cb.bind(this))
 
     for (const widgetConfig of widgetsConfig) {
-      this.logger.debug('Parsing widget ' + widgetConfig.type + ' ' + widgetConfig.name)
-      if (widgetConfig.topic) {
-        switch (widgetConfig.topicDirection) {
+      this.logger.debug('Parsing widget ' + widgetConfig.type + ' ' + widgetConfig.label)
+      if (widgetConfig.data.topic) {
+        switch (widgetConfig.data.topicDirection) {
           case 'subscribe': {
-            if (!this.subscribers[widgetConfig.topic]) {
-              this.subscribers[widgetConfig.topic] = this.create_subscriber(
-                widgetConfig.topic,
-                widgetConfig.topicType)
-              this.logger.debug('Added subscriber for ' + widgetConfig.topic)
+            if (!this.subscribers[widgetConfig.data.topic]) {
+              this.subscribers[widgetConfig.data.topic] = this.create_subscriber(
+                widgetConfig.data.topic,
+                widgetConfig.data.topicType)
+              this.logger.debug('Added subscriber for ' + widgetConfig.data.topic)
             }
             continue
           }
 
           case 'publish': {
-            if (!this.publishers[widgetConfig.topic]) {
-              this.publishers[widgetConfig.topic] = this.create_publisher(
-                widgetConfig.topic,
-                widgetConfig.topicType)
-              this.publishedTopics.push(widgetConfig.topic)
-              this.logger.debug('Added publisher for ' + widgetConfig.topic)
+            if (!this.publishers[widgetConfig.data.topic]) {
+              this.publishers[widgetConfig.data.topic] = this.create_publisher(
+                widgetConfig.data.topic,
+                widgetConfig.data.topicType)
+              this.publishedTopics.push(widgetConfig.data.topic)
+              this.logger.debug('Added publisher for ' + widgetConfig.data.topic)
             }
             continue
           }
@@ -340,14 +373,14 @@ class RobotComms {
           default: {
             this.logger.warn(
               'widget ' + widgetConfig.id + ' had' +
-              ' topic ' + widgetConfig.topic + ' but no direction')
+              ' topic ' + widgetConfig.data.topic + ' but no direction')
             continue
           }
         }
       }
 
-      if (widgetConfig.service) {
-        if (this.serviceClients[widgetConfig.service]) {
+      if (widgetConfig.data.service) {
+        if (this.serviceClients[widgetConfig.data.service]) {
           /*
            * Services can be called by multiple UI components. The response
            * to a service call is ignored.
@@ -356,14 +389,14 @@ class RobotComms {
         }
 
         const serviceClient = this.create_service_client(
-          widgetConfig.serviceType,
-          widgetConfig.service)
+          widgetConfig.data.serviceType,
+          widgetConfig.data.service)
         if (serviceClient) {
-          this.serviceClients[widgetConfig.service] = serviceClient
-          this.services.push(widgetConfig.service)
-          this.logger.debug('Added serviceClient for ' + widgetConfig.service)
+          this.serviceClients[widgetConfig.data.service] = serviceClient
+          this.services.push(widgetConfig.data.service)
+          this.logger.debug('Added serviceClient for ' + widgetConfig.data.service)
         } else {
-          this.logger.warn(`Service ${widgetConfig.service} not available`)
+          this.logger.warn(`Service ${widgetConfig.data.service} not available`)
         }
         continue
       }

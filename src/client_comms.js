@@ -33,6 +33,13 @@ class ClientComms {
     eventCb) {
     this.incomingEvents = incomingEvents
     this.eventCb = eventCb
+    this.eventCounters = {
+      timestamp_ms: 0,
+      sent: 0,
+      received: 0,
+      string: 0,
+      object: 0
+    }
 
     this.client_connected = false
     this.socket = null
@@ -55,9 +62,32 @@ class ClientComms {
     this.socket.on(
       eventName,
       payload => {
+        this.increment_event_counter(eventName, 'received', typeof payload)
         this.eventCb(eventName, JSON.parse(payload))
       }
     )
+  }
+
+  /**
+   * Increment a specific event counter.
+   *
+   * @param {string} eventName - the name of the event
+   * @param {string} eventDirection - sent or received
+   * @param {string} payloadType - string or object
+   */
+  increment_event_counter (eventName, eventDirection, payloadType) {
+    this.eventCounters[eventDirection]++
+    this.eventCounters[payloadType]++
+
+    if (eventName in this.eventCounters) {
+      if (eventDirection in this.eventCounters[eventName]) {
+        this.eventCounters[eventName][eventDirection]++
+        return
+      }
+    } else {
+      this.eventCounters[eventName] = {}
+    }
+    this.eventCounters[eventName][eventDirection] = 1
   }
 
   /**
@@ -70,6 +100,13 @@ class ClientComms {
    */
   setup_event_handlers_cb (socket) {
     this.socket = socket
+    this.eventCounters = {
+      timestamp_ms: 0,
+      sent: 0,
+      received: 0,
+      string: 0,
+      object: 0
+    }
     console.log(`Client connection: ${this.socket.id}, from ${this.socket.handshake.address} at ${this.socket.handshake.time}`)
     this.socket.on(
       'disconnect',
@@ -88,7 +125,7 @@ class ClientComms {
    * Send an eventName with payload, only if there's a client connected.
    *
    * @param {string} eventName - The name of the event.
-   * @param {Array) payload - The payload of the event.
+   * @param {Array} payload - The payload of the event.
    *
    * @returns {boolean} - True if the payload was sent.
    */
@@ -98,10 +135,22 @@ class ClientComms {
         eventName,
         payload)
 
+      this.increment_event_counter(eventName, 'sent', typeof payload)
+
       return true
     }
 
     return false
+  }
+
+  /**
+   * Send the event counters to the browser UI.
+   */
+  send_event_counters () {
+    this.eventCounters.timestamp_ms = Date.now()
+    const eventCountersStr = JSON.stringify(this.eventCounters)
+    console.log(`eventCounters: ${eventCountersStr}`)
+    this.send_event('_counters', eventCountersStr)
   }
 }
 

@@ -1,3 +1,2 @@
-The /public/persist directory is used as a mount point for a
-persistent filesystem, when the application is run as a docker
-container.
+Initially populated by the NodeJS server application. New configuration
+files must be placed in public/config, not in this directory.
