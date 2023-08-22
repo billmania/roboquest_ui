@@ -1,0 +1,121 @@
+{
+    "widgets":[
+        {
+            "id":10,
+            "type":"joystick",
+            "label":"Joystick",
+            "position":{
+                "my":"left top",
+                "at":"left top"
+            },
+            "format":{
+                "trueText": "Charger has power",
+                "trueColor": "#75ff75",
+                "falseText": "No charger power",
+                "falseColor": "#ff6666"
+            },
+            "data":{
+                "topic": "telemetry",
+                "topicAttribute": "charger_has_power",
+                "topicType": "rq_msgs/msg/Telemetry",
+                "topicDirection": "subscribe"
+            }
+        },{
+            "id":0,
+            "type":"indicator",
+            "label":"STATE",
+            "position":{
+                "my":"left top",
+                "at":"left top"
+            },
+            "format":{
+                "trueText": "Charger has power",
+                "trueColor": "#75ff75",
+                "falseText": "No charger power",
+                "falseColor": "#ff6666"
+            },
+            "data":{
+                "topic": "telemetry",
+                "topicAttribute": "charger_has_power",
+                "topicType": "rq_msgs/msg/Telemetry",
+                "topicDirection": "subscribe"
+            }
+        },{
+            "id":1,
+            "type":"value",
+            "label":"VALUE",
+            "position":{
+                "my":"right bottom",
+                "at":"right bottom"
+            },
+            "format":{
+                "textColor": "#fff",
+                "prefix": "Battery V ",
+                "suffix": ""
+            },
+            "data":{
+                "topic": "telemetry",
+                "topicType": "rq_msgs/msg/Telemetry",
+                "topicDirection": "subscribe",
+                "topicAttribute": "battery_v"
+            }
+        },{
+            "id":2,
+            "type":"button",
+            "label":"BUTTON",
+            "position":{
+                "my":"left top",
+                "at":"left top"
+            },
+            "format":{
+                "text": "Set charger ON"
+            },
+            "data":{
+                "service": "control_hat",
+                "serviceAttribute": "set_charger",
+                "serviceType": "rq_msgs/srv/Control",
+                "clickValue": "ON"
+            }
+        },{
+            "id":3,
+            "type":"button",
+            "label":"",
+            "position":{
+                "my":"left top",
+                "at":"left top"
+            },
+            "format":{
+                "text": "Set charger OFF"
+            },
+            "data":{
+                "service": "control_hat",
+                "serviceAttribute": "set_charger",
+                "serviceType": "rq_msgs/srv/Control",
+                "clickValue": "OFF"
+            }
+        },{
+            "id":4,
+            "type":"slider",
+            "label":"SLIDER",
+            "position":{
+                "my":"left top",
+                "at":"left top"
+            },
+            "format":{
+                "text":"slider description",
+                "min": 0,
+                "max": 180,
+                "step": 1,
+                "default": 90,
+                "orientation": "horizontal",
+                "animate": "true"
+            },
+            "data":{
+                "topic": "servos",
+                "topicDirection": "publish",
+                "topicAttribute": "name",
+                "topicType": "rq_msgs/msg/ServoAngles"
+            }
+        }
+    ]
+}

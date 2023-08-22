@@ -46,6 +46,10 @@ class ClientComms {
     this.io = new Server(
       expressServer,
       {
+        cors: {
+          origin: '*',
+          methods: ['GET', 'POST']
+        },
         pingInterval: PING_INTERVAL_MS,
         pingTimeout: PING_TIMEOUT_MS
       }
