@@ -1,6 +1,22 @@
 {
     "widgets":[
         {
+            "id":5,
+            "type":"debug",
+            "label":"DEBUG",
+            "position":{
+                "my":"left top",
+                "at":"left top"
+            },
+            "format":{
+                "format": "json"
+            },
+            "data":{
+                "topic": "telemetry",
+                "topicType": "rq_msgs/msg/Telemetry",
+                "topicDirection": "subscribe"
+            }
+        },{
             "id":10,
             "type":"joystick",
             "label":"Joystick",

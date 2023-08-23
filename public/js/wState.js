@@ -13,6 +13,7 @@ $.widget('custom.INDICATOR', {
         const objMsg = JSON.parse(strMsg)
         let strText = this.options.format.falseText
         let strColor = this.options.format.falseColor
+        // console.log(this.options.data.topicAttribute, objMsg[this.options.data.topicAttribute])
         if (objMsg[this.options.data.topicAttribute]) {
           strText = this.options.format.trueText
           strColor = this.options.format.trueColor
