@@ -15,10 +15,12 @@
                 "falseColor": "#ff6666"
             },
             "data":{
-                "topic": "telemetry",
-                "topicAttribute": "charger_has_power",
+                "scale":1,
+                "topic": "cmd_vel",
+                "topicAttribute": ["twist.angular.z","twist.linear.x"],
                 "topicType": "rq_msgs/msg/Telemetry",
-                "topicDirection": "subscribe"
+                "topicDirection": "subscribe",
+                "topicPeriodS": 1.0
             }
         },{
             "id":0,
@@ -96,7 +98,7 @@
         },{
             "id":4,
             "type":"slider",
-            "label":"SLIDER",
+            "label":"camera_pan",
             "position":{
                 "my":"left top",
                 "at":"left top"
@@ -113,8 +115,9 @@
             "data":{
                 "topic": "servos",
                 "topicDirection": "publish",
-                "topicAttribute": "name",
-                "topicType": "rq_msgs/msg/ServoAngles"
+                "topicAttribute": ["angle","name"],
+                "topicType": "rq_msgs/msg/ServoAngles",
+                "topicPeriodS": 1.0
             }
         }
     ]
