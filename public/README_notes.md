@@ -14,6 +14,7 @@ widget components are defined modularly in their own component files.
 
 the entire config is loaded from a json file requested from the server.
 
+
 ===================
 
 start from a persistent definition of the layout of widgets on the browser page
