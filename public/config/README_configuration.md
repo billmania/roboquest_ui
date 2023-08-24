@@ -80,7 +80,6 @@ the widget properties have the following sections:
 * data.topicDirection: (value, state, joystick) ROS topic direction (pub/sub)
 * data.topicAttribute: (value, state) ROS message attribute to display
 * data.topicAttribute: (slider) ["angle","name"] position based properties for value,name
-* data.topicAttribute: (joystick) [x,y] 
 * data.topicPeriodS: (joystick, slider) Only when data.topicDirection is "publish",
                                         the browser UI will continually publish the
                                         current value with a period of
