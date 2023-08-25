@@ -166,6 +166,7 @@ $(function () {
     $('.widget').each((i, element) => {
       objSaveConfig.widgets.push($(element).data('widget'))
     })
+    console.log('saving config', objSaveConfig)
     $.post('/config', objSaveConfig, function (objResponse) {
       console.log('Save Config Response', objResponse)
     })

@@ -31,6 +31,6 @@ $.widget('custom.JOYSTICK', {
     objPayload[this.options.data.topicAttribute[0]] = ui.x * this.options.data.scale[0]
     objPayload[this.options.data.topicAttribute[1]] = ui.y * this.options.data.scale[1]
     console.log(`Joystick Emitting ${this.options.data.topic}`, objPayload)
-    this.options.socket.emit(this.options.data.topic, objPayload)
+    this.options.socket.emit(this.options.data.topic, JSON.stringify(objPayload))
   }
 })
