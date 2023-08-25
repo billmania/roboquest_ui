@@ -23,7 +23,8 @@
                 "topicDirection": "publish",
                 "topicPeriodS": 1
             }
-        },{
+        },
+        {
             "id": 0,
             "type": "indicator",
             "label": "wallPow",
@@ -91,7 +92,7 @@
             "type": "indicator",
             "label": "servos",
             "position": {
-                "at": "left+335 top+1",
+                "at": "left+335 top+63",
                 "my": "left top"
             },
             "format": {
@@ -346,7 +347,7 @@
             "label": "servosOn",
             "position": {
                 "my": "left top",
-                "at": "left+335 top+62"
+                "at": "left+335 top0"
             },
             "format": {
                 "text": "Set motors ON"
@@ -376,7 +377,6 @@
                 "clickValue": "OFF"
             }
         },
-        
         {
             "id": 19,
             "type": "slider",
