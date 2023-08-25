@@ -10,7 +10,7 @@ $.widget('custom.JOYSTICK', {
   _create: function () {
     const objWidget = this
     //set a default  data.scale
-    if (!this.options.data.scale) { this.options.data.scale = 1 }
+    if (!this.options.data.scale) { this.options.data.scale = [1, 1] }
     const objContent = $('<div id="joystick" style="width:200px; height:200px"></div>')
     this.element.children('.widget-content').html(objContent).ready(() => {
       const objJoystick = new JoyStick('joystick', {}, (objData) => {
@@ -28,8 +28,8 @@ $.widget('custom.JOYSTICK', {
   },
   _triggerSocketEvent: function (event, ui) {
     objPayload = {}
-    objPayload[this.options.data.topicAttribute[0]] = ui.x * this.options.data.scale
-    objPayload[this.options.data.topicAttribute[1]] = ui.y * this.options.data.scale
+    objPayload[this.options.data.topicAttribute[0]] = ui.x * this.options.data.scale[0]
+    objPayload[this.options.data.topicAttribute[1]] = ui.y * this.options.data.scale[1]
     this.options.socket.emit(this.options.data.topic, objPayload)
   }
 })

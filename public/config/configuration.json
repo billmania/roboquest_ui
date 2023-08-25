@@ -15,7 +15,7 @@
                 "falseColor": "#ff6666"
             },
             "data":{
-                "scale":1,
+                "scale":[1.0, 1.0],
                 "topic": "cmd_vel",
                 "topicAttribute": ["twist.angular.z","twist.linear.x"],
                 "topicType": "rq_msgs/msg/Telemetry",
