@@ -123,7 +123,8 @@ $(function () {
       }
     })
     // these are one off logic to string concat the values, not a nice 1-1 mapping
-    objNewWidget.position.my = `${$('#widgetPositionMyX').val()} ${$('#widgetPositionMyY').val()}`
+    //objNewWidget.position.my = `${$('#widgetPositionMyX').val()} ${$('#widgetPositionMyY').val()}`
+    objNewWidget.position.my = 'left top'
     objNewWidget.position.at = `${$('#parentPositionAtX').val()} ${$('#parentPositionAtY').val()}`
     objNewWidget.id = getNextId()
     console.log(objNewWidget)
