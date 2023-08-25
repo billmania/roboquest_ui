@@ -54,8 +54,11 @@ const convertPosition = function(topLeftPosition, strPosition){
   } else if (strX === "center") {
     intOffsetX = window.innerWidth / 2 - left;
   }
-  const strOffsetX = intOffsetX > 0 ? `+${intOffsetX}` : intOffsetX
-  const strOffsetY = intOffsetY > 0 ? `+${intOffsetY}` : intOffsetY
+  intOffsetX = Math.round(intOffsetX)
+  intOffsetY = Math.round(intOffsetY)
+  // greater than 0.5 is so that 0 will get a + in front of it
+  const strOffsetX = intOffsetX > 0.5 ? `+${intOffsetX}` : intOffsetX
+  const strOffsetY = intOffsetY > 0.5 ? `+${intOffsetY}` : intOffsetY
   return `${strX}${strOffsetX} ${strY}${strOffsetY}`
 }
 
@@ -72,14 +75,15 @@ const createWidget = function (objWidget, objSocket) {
   $(widgetContainer)[objWidget.type.toUpperCase()]({ ...objWidget, socket: objSocket }).appendTo('#widgets').position({
     ...objWidget.position,
     of: '#widgets',
-    collision: 'none'
+    collision: 'none none'
   }).draggable({
     handle: '.widget-header',
     snap: true,
     stop: function (event, ui) {
       const objWidget = $(this)
       const objWidgetData = objWidget.data('widget')
-      strPosition = convertPosition(ui.offset, objWidgetData.position.at)
+      console.log("drag stop position", objWidget.position())
+      strPosition = convertPosition(objWidget.position(), objWidgetData.position.at)
       objWidgetData.position.at = strPosition
       objWidget.data('widget', objWidgetData)
     }
