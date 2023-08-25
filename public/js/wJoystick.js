@@ -26,11 +26,10 @@ $.widget('custom.JOYSTICK', {
       }, this.options.data.topicPeriodS * 1000)
     }
   },
-  _triggerSocketEvent: function (e, ui) {
+  _triggerSocketEvent: function (event, ui) {
     objPayload = {}
     objPayload[this.options.data.topicAttribute[0]] = ui.x * this.options.data.scale
     objPayload[this.options.data.topicAttribute[1]] = ui.y * this.options.data.scale
-    //console.log(objPayload)
     this.options.socket.emit(this.options.data.topic, objPayload)
   }
 })

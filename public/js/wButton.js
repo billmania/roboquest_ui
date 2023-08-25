@@ -18,7 +18,7 @@ $.widget('custom.BUTTON', {
       // console.log(`Emitting ${this.options.data.service} with {${this.options.data.serviceAttribute}:${this.options.data.clickValue}}`)
       this.options.socket.emit(this.options.data.service, `{"${this.options.data.serviceAttribute}":"${this.options.data.clickValue}"}`)
     } else {
-      console.error('Socket is not defined.')
+      console.error('The socket object is not usable in the widget. Check that the socket is configured and working.')
     }
   }
 })

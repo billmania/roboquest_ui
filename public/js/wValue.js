@@ -22,7 +22,7 @@ $.widget('custom.VALUE', {
         this.element.children('.widget-content').html(objContent)
       })
     } else {
-      console.error('Socket is not defined.')
+      console.error('The socket object is not usable in the widget. Check that the socket is configured and working.')
     }
   }
 })
