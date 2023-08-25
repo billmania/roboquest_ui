@@ -34,10 +34,10 @@ $.widget('custom.SLIDER', {
     if (this.options.socket) {
       objPayload = {}
       if (!this.options.data.topicAttribute[0]) {
-        this.options.data.topicAttribute = ['angle']
+        this.options.data.topicAttribute[0] = ['angle']
       }
       if (!this.options.data.topicAttribute[1]) {
-        this.options.data.topicAttribute = ['name']
+        this.options.data.topicAttribute[1] = ['name']
       }
       objPayload[this.options.data.topicAttribute[0]] = ui.value
       // reusing the label for the widget as the "name" of the servo
