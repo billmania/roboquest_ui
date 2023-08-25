@@ -72,7 +72,7 @@ const createWidget = function (objWidget, objSocket) {
   $(widgetContainer)[objWidget.type.toUpperCase()]({ ...objWidget, socket: objSocket }).appendTo('#widgets').position({
     ...objWidget.position,
     of: '#widgets',
-    collision: 'fit'
+    collision: 'none'
   }).draggable({
     handle: '.widget-header',
     snap: true,

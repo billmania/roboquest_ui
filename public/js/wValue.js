@@ -2,13 +2,13 @@ $.widget('custom.VALUE', {
   // set all defaults here, they will be overridden by anything defined
   options: {
     socket: null,
-    data: {
-      format: {
-        textColor: 'black',
-        prefix: '',
-        suffix: ''
-      }
-    }
+    format: {
+      textColor: 'black',
+      prefix: '',
+      suffix: '',
+      precision: 6
+    },
+    data: {}
   },
   _create: function () {
     this._setupSocketListener()
@@ -17,7 +17,7 @@ $.widget('custom.VALUE', {
     if (this.options.socket) {
       this.options.socket.on(this.options.data.topic, (strMsg) => {
         const objMsg = JSON.parse(strMsg)
-        const fltValue = objMsg[this.options.data.topicAttribute].toFixed(6)
+        const fltValue = objMsg[this.options.data.topicAttribute].toFixed(this.options.format.precision)
         const objContent = $(`<span style='color:${this.options.format.textColor}'> ${this.options.format.prefix} ${fltValue} ${this.options.format.suffix}</span>`)
         this.element.children('.widget-content').html(objContent)
       })
