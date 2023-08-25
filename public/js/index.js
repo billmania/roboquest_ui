@@ -9,6 +9,56 @@ const getNextId = function () {
   return intId + 1
 }
 
+const getPositionKeyword = function(strPosition){
+  // expecting something like "left" or "left+25" or "left-25"
+  // needs to return just :"left" or "right" or "top" or "bottom", or center
+  if(strPosition.indexOf('left') > -1){
+    return 'left'
+  }
+  if(strPosition.indexOf('right') > -1){
+    return 'right'
+  }
+  if(strPosition.indexOf('top') > -1){
+    return 'top'
+  }
+  if(strPosition.indexOf('bottom') > -1){
+    return 'bottom'
+  }
+  if(strPosition.indexOf('center') > -1){
+    return 'center'
+  }
+  return null
+}
+
+const convertPosition = function(topLeftPosition, strPosition){
+  // converting from jquery-ui widget draggable position to jquery-ui widget position() string
+  // https://api.jqueryui.com/draggable/#event-stop https://api.jqueryui.com/position/
+  // console.log('draggable position:',topLeftPosition)
+  const {top, left} = topLeftPosition
+  let [strX, strY] = strPosition.split(' ')
+  let intOffsetX = 0
+  let intOffsetY = 0
+  strX = getPositionKeyword(strX)
+  strY = getPositionKeyword(strY)
+  if (strY === "top") {
+    intOffsetY = top;
+  } else if (vertPos === "bottom") {
+    intOffsetY = window.innerHeight - top;
+  } else if (vertPos === "center") {
+    intOffsetY = window.innerHeight / 2 - top;
+  }
+  if (strX === "left") {
+    intOffsetX = left;
+  } else if (strX === "right") {
+    intOffsetX = window.innerWidth - left;
+  } else if (strX === "center") {
+    intOffsetX = window.innerWidth / 2 - left;
+  }
+  const strOffsetX = intOffsetX > 0 ? `+${intOffsetX}` : intOffsetX
+  const strOffsetY = intOffsetY > 0 ? `+${intOffsetY}` : intOffsetY
+  return `${strX}${strOffsetX} ${strY}${strOffsetY}`
+}
+
 const createWidget = function (objWidget, objSocket) {
   const widgetContainer = $(`<div class="widget ${objWidget.type.toUpperCase()}" data-widget-id="' + widget.id + '"></div>`)
   const widgetHeader = '<div class="widget-header">' + objWidget.label + '</div>'
@@ -27,11 +77,11 @@ const createWidget = function (objWidget, objSocket) {
     handle: '.widget-header',
     snap: true,
     stop: function (event, ui) {
-      /*
-      const widgetId = $(this).data('widget-id')
-      const widgetPosition = $(this).position()
-      console.log(widgetId, widgetPosition)
-      */
+      const objWidget = $(this)
+      const objWidgetData = objWidget.data('widget')
+      strPosition = convertPosition(ui.offset, objWidgetData.position.at)
+      objWidgetData.position.at = strPosition
+      objWidget.data('widget', objWidgetData)
     }
   })
 }

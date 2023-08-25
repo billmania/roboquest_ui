@@ -43,6 +43,7 @@ $.widget('custom.SLIDER', {
       // reusing the label for the widget as the "name" of the servo
       objPayload[this.options.data.topicAttribute[1]] = this.options.label
       this.currentValue = ui.value
+      console.log(`Slider Emitting ${this.options.data.topic}`, objPayload)
       this.options.socket.emit(this.options.data.topic, objPayload)
     } else {
       console.error('The socket object is not usable in the widget. Check that the socket is configured and working.')
