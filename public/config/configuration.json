@@ -13,7 +13,7 @@
                 "scale":[1.0, 1.0],
                 "topic": "cmd_vel",
                 "topicAttribute": ["twist.angular.z","twist.linear.x"],
-                "topicType": "rq_msgs/msg/Telemetry",
+                "topicType": "geometry_msgs/msg/TwistStamped",
                 "topicDirection": "publish",
                 "topicPeriodS": 1.0
             }
