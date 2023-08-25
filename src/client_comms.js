@@ -66,11 +66,16 @@ class ClientComms {
       eventName,
       payload => {
         this.increment_event_counter(eventName, 'received', typeof payload)
-        console.log(`incomingEventCb: ${eventName} ${typeof payload}: ${payload}`)
+        if (typeof payload === 'string') {
+          console.log(`incomingEventCb: ${eventName}: ${payload}`)
+        } else {
+          console.log(
+            `incomingEventCb: ${eventName}: ${typeof payload}|${JSON.stringify(payload)}`)
+        }
         try {
           this.incomingEventCb(eventName, JSON.parse(payload))
         } catch {
-          console.log(`incomingEventCb: failed to parse ${payload}`)
+          console.error('incomingEventCb: failed to parse')
         }
       }
     )
