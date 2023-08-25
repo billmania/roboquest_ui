@@ -8,18 +8,13 @@
                 "my":"left top",
                 "at":"left top"
             },
-            "format":{
-                "trueText": "Charger has power",
-                "trueColor": "#75ff75",
-                "falseText": "No charger power",
-                "falseColor": "#ff6666"
-            },
+            "format":{},
             "data":{
                 "scale":[1.0, 1.0],
                 "topic": "cmd_vel",
                 "topicAttribute": ["twist.angular.z","twist.linear.x"],
                 "topicType": "rq_msgs/msg/Telemetry",
-                "topicDirection": "subscribe",
+                "topicDirection": "publish",
                 "topicPeriodS": 1.0
             }
         },{
@@ -31,14 +26,14 @@
                 "at":"left top"
             },
             "format":{
-                "trueText": "Charger has power",
+                "trueText": "Charger is ON",
                 "trueColor": "#75ff75",
-                "falseText": "No charger power",
+                "falseText": "Charger is OFF",
                 "falseColor": "#ff6666"
             },
             "data":{
                 "topic": "telemetry",
-                "topicAttribute": "charger_has_power",
+                "topicAttribute": "battery_charging",
                 "topicType": "rq_msgs/msg/Telemetry",
                 "topicDirection": "subscribe"
             }
