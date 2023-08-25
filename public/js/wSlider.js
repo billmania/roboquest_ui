@@ -21,6 +21,9 @@ $.widget('custom.SLIDER', {
       orientation: this.options.format.orientation,
       stop: this._triggerSocketEvent.bind(this)
     })
+    if (Array.isArray(this.options.data.topicAttribute) === false) {
+      console.log('Slider data.topicAttribute config is not correct for Widget ID:', this.options.id)
+    }
     this.currentValue = this.options.format.default
     this.element.children('.widget-content').html(sliderElement)
     this._triggerSocketEvent(null, { value: this.options.format.default })
@@ -33,9 +36,6 @@ $.widget('custom.SLIDER', {
   _triggerSocketEvent: function (event, ui) {
     if (this.options.socket) {
       objPayload = {}
-      if (!this.options.data.topicAttribute[0]) {
-        this.options.data.topicAttribute = ['angle','name']
-      }
       objPayload[this.options.data.topicAttribute[0]] = ui.value
       // reusing the label for the widget as the "name" of the servo
       objPayload[this.options.data.topicAttribute[1]] = this.options.label

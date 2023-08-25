@@ -79,9 +79,7 @@ the widget properties have the following sections:
 * data.topicType: (value, state, joystick) ROS message type of the topic
 * data.topicDirection: (value, state, joystick) ROS topic direction (pub/sub)
 * data.topicAttribute: (value, indicator) ROS message attribute to display
-* data.topicAttribute: (slider) ["angle","name"] position based properties for value,name more context: For a slider, the first attribute in data.topicAttribute will get the value of the slider. When the slider is associated with a servo, the value will be interpreted as an angle. When the slider is associated with a lamp, the value could be interpreted as a brightness, for example.
-When a slider data.topicAttribute has a second attribute, it will always be assigned the label of the slider widget.
-When data.topicAttribute belongs to a joystick, there are always exactly two attributes. The first attribute is assigned the joystick's x value and the second is assigned the joystick's y value, after the scaling is applied to each value.
+* data.topicAttribute: (slider) must be an array for a slider. First element is for the key used for the slider value, second element is for the key used for the slider label == servo name on ros2
 * data.topicPeriodS: (joystick, slider) Only when data.topicDirection is "publish",
                                         the browser UI will continually publish the
                                         current value with a period of
