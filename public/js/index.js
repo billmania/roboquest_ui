@@ -42,9 +42,9 @@ const convertPosition = function(topLeftPosition, strPosition){
   strY = getPositionKeyword(strY)
   if (strY === "top") {
     intOffsetY = top;
-  } else if (vertPos === "bottom") {
+  } else if (strY === "bottom") {
     intOffsetY = window.innerHeight - top;
-  } else if (vertPos === "center") {
+  } else if (strY === "center") {
     intOffsetY = window.innerHeight / 2 - top;
   }
   if (strX === "left") {
