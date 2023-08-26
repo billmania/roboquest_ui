@@ -72,7 +72,10 @@ class WebServer {
   /**
    * Setup the mechanism for sending data to the robot.
    *
-   * @param {Function} send_function - a function taking two string arguments
+   * @param {Function} send_function - a function taking two arguments.
+   *                                   the first is a string and interpreted as
+   *                                   the event name. the second is an object and
+   *                                   interpreted as the event payload.
    */
   setup_send_to_robot (sendFunction) {
     this.send_to_robot = sendFunction
@@ -106,8 +109,9 @@ class WebServer {
    * incomingEvents to their appropriate event handler.
    *
    * @param {string} eventName - the name of the event, from
-   *                              this.incoming_events
-   * @param {JSON} payload - the payload for the event
+   *                             this.incoming_events
+   * @param {object} payload - the payload for the event, as an
+   *                           object
    */
   event_cb (eventName, payload) {
     if (!this.incomingEvents.includes(eventName)) {
@@ -123,7 +127,11 @@ class WebServer {
         break
 
       default:
-        this.send_to_robot(eventName, payload)
+        try {
+          this.send_to_robot(eventName, payload)
+        } catch (error) {
+          console.log(`event_cb: ${error}`)
+        }
         break
     }
   }

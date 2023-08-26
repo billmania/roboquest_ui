@@ -5,6 +5,8 @@
  */
 
 const rclnodejs = require('rclnodejs')
+const set = require('lodash.set')
+
 /*
  * It's possible to get these ROS message objects via rclnodejs.createMessageObject(),
  * but it is not obivous how to initialize them to 0 and ''.
@@ -17,7 +19,7 @@ const Control = {
   set_motors: '',
   set_servos: ''
 }
-const TwistStamped = {
+const twistStamped = {
   header: {
     stamp: {
       sec: 0,
@@ -38,7 +40,7 @@ const TwistStamped = {
     }
   }
 }
-const ServoAngles = {
+const servoAngles = {
   header: {
     stamp: {
       sec: 0,
@@ -48,7 +50,7 @@ const ServoAngles = {
   },
   servos: []
 }
-const ServoAngle = {
+const servoAngle = {
   name: '',
   angle: 0
 }
@@ -129,21 +131,26 @@ class RobotComms {
   }
 
   /**
-   * Handle a message incoming from the UI. It's either a message
-   * to be published onto a topic or a service to be called, determined
-   * by the name.
+   * Handle a payload incoming from the UI. It's either for a message
+   * to be published onto a topic or for a service to be called, determined
+   * by the name. The name is either a topic name or a service name. The name
+   * always corresponds one-to-one with an event name.
    *
    * @param {string} name - the name of the topic or the service
-   * @param {string|object} message - string data for the
-   *                                  widgetConfig.data.topicAttribute(s)
-   *                                  or object for serviceAttribute(s)
+   * @param {object} payload - data for the widgetConfig.data.topicAttribute(s)
+   *                           or widgetConfig.data.serviceAttribute(s)
    */
-  handle_message (name, message) {
+  handle_payload (name, payload) {
     if (this.publishedTopics.includes(name)) {
-      const rosMessage = this.buildPublishMessage(name, message)
-      this.publishers[name].publish(rosMessage)
+      const rosMessage = this.buildPublishMessage(name, payload)
+      try {
+        this.publishers[name].publish(rosMessage)
+      } catch (error) {
+        console.log(
+          `handle_payload: ${error}, name:${name}, payload:${JSON.stringify(rosMessage)}`)
+      }
     } else if (this.services.includes(name)) {
-      const serviceRequest = this.buildServiceMessage(name, message)
+      const serviceRequest = this.buildServiceMessage(name, payload)
       this.serviceClients[name].sendRequest(
         serviceRequest,
         (response) => {
@@ -154,7 +161,7 @@ class RobotComms {
         }
       )
     } else {
-      this.logger.warn(`handle_message(): ${name} not recognized as publish or service`)
+      this.logger.warn(`handle_payload(): ${name} not recognized as publish or service`)
     }
   }
 
@@ -189,7 +196,6 @@ class RobotComms {
      * for the Control message.
      */
     for (const attribute in requestAttributes) {
-      console.log(`${serviceName}: ${attribute}=${requestAttributes[attribute]}`)
       requestMessage[attribute] = requestAttributes[attribute]
     }
 
@@ -203,10 +209,14 @@ class RobotComms {
    *
    * It is the responsibility of the UI to:
    *
-   * 1. know the ROS service message request properties
-   * 2. map the widget's value(s) to the appropriate property
+   * 1. know the ROS topic message attributes
+   * 2. map the widget's value(s) to the appropriate attribute
    *
    * Return the populated ROS message.
+   *
+   * This method uses the lodash Object.set() utility function
+   * to assign a value to a property of the twistStamped identified
+   * by a string.
    *
    * @param {string} topicName
    * @param {object} message - contains key-value pairs, where the key is a
@@ -216,35 +226,27 @@ class RobotComms {
    * @returns {ROS message object}
    */
   buildPublishMessage (topicName, message) {
-    let publishMessage = null
-    const publishAttributes = message
-
     switch (topicName) {
       case ('cmd_vel'): {
-        publishMessage = TwistStamped
-        publishMessage.header.stamp = getRosTimestamp()
+        twistStamped.header.stamp = getRosTimestamp()
 
-        for (const attribute in publishAttributes) {
-          console.log(`${topicName}: ${attribute}=${publishAttributes[attribute]}`)
-          publishMessage[attribute] = publishAttributes[attribute]
+        for (const attribute in message) {
+          set(twistStamped, attribute, message[attribute])
         }
 
-        break
+        return twistStamped
       }
 
       case ('servos'): {
-        publishMessage = ServoAngles
-        publishMessage.header.stamp = getRosTimestamp()
-        publishMessage.servos = []
-        const servoAngle = ServoAngle
+        servoAngles.header.stamp = getRosTimestamp()
+        servoAngles.servos = []
 
-        for (const attribute in publishAttributes) {
-          console.log(`${topicName}: ${attribute}=${publishAttributes[attribute]}`)
-          servoAngle[attribute] = publishAttributes[attribute]
-          publishMessage.servos.push(servoAngle)
+        for (const attribute in message) {
+          set(servoAngle, attribute, message[attribute])
         }
+        servoAngles.servos.push(servoAngle)
 
-        break
+        return servoAngles
       }
 
       default: {
@@ -252,8 +254,6 @@ class RobotComms {
         return null
       }
     }
-
-    return publishMessage
   }
 
   /**
