@@ -53,7 +53,11 @@ class WebServer {
     })
 
     this.express_app.post('/config', (request, response) => {
-      if (request.body.widgets && request.body.config) {
+      /*
+       * Perform a crude check for a valid configuration file by
+       * ensuring it contains a "widgets" property.
+       */
+      if (request.body.widgets) {
         if (this.configFile.save_config(request.body)) {
           response.status(200).json({ success: true })
           console.log('process_config_post() success')
