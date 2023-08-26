@@ -22,17 +22,17 @@ class ClientComms {
    * browser connection.
    *
    * @param {Object} expressServer -
-   * @param {Array} incoming_events - the list of events to catch
-   * @param {Function} eventCb - A function which expects two arguments:
-   *                              the name of the event and the event's
-   *                              payload as an object.
+   * @param {Array} incomingEvents - the list of events to catch
+   * @param {Function} incomingEventCb - A function which expects two arguments:
+   *                                     the name of the event and the event's
+   *                                     payload as an object.
    */
   constructor (
     expressServer,
     incomingEvents,
-    eventCb) {
+    incomingEventCb) {
     this.incomingEvents = incomingEvents
-    this.eventCb = eventCb
+    this.incomingEventCb = incomingEventCb
     this.eventCounters = {
       timestamp_ms: 0,
       sent: 0,
@@ -54,16 +54,24 @@ class ClientComms {
   }
 
   /**
-   * Add event_name to the collection of events expected
+   * Add event_name to the collection of incoming events expected.
+   * Every incoming event is handled by the same this.incomingEventCb.
+   * The data payload accompanying each event is expected to be a
+   * parseable JSON string.
    *
-   * @param {string} event_name - the name of the event
+   * @param {string} eventName - the name of the event
    */
   add_event_handler (eventName) {
     this.socket.on(
       eventName,
       payload => {
         this.increment_event_counter(eventName, 'received', typeof payload)
-        this.eventCb(eventName, JSON.parse(payload))
+        try {
+          this.incomingEventCb(eventName, JSON.parse(payload))
+        } catch (error) {
+          console.log(
+            `incomingEventCb: ${eventName}:${payload}, ${error}`)
+        }
       }
     )
   }
@@ -94,9 +102,9 @@ class ClientComms {
    * Called each time a client connects to the socket. Sets the
    * handlers for events received from the browser-side.
    *
-   * disconnect events are always handled. this.incoming_events
+   * disconnect events are always handled. this.incomingEvents
    * is interpreted as a list of events to also handle, by passing
-   * their name and payload to this.eventCb.
+   * their name and payload to this.incomingEventCb.
    */
   setup_event_handlers_cb (socket) {
     this.socket = socket
@@ -149,7 +157,6 @@ class ClientComms {
   send_event_counters () {
     this.eventCounters.timestamp_ms = Date.now()
     const eventCountersStr = JSON.stringify(this.eventCounters)
-    console.log(`eventCounters: ${eventCountersStr}`)
     this.send_event('_counters', eventCountersStr)
   }
 }
