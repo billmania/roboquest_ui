@@ -127,7 +127,11 @@ class WebServer {
         break
 
       default:
-        this.send_to_robot(eventName, payload)
+        try {
+          this.send_to_robot(eventName, payload)
+        } catch (error) {
+          console.log(`event_cb: ${error}`)
+        }
         break
     }
   }

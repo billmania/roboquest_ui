@@ -66,16 +66,11 @@ class ClientComms {
       eventName,
       payload => {
         this.increment_event_counter(eventName, 'received', typeof payload)
-        if (typeof payload === 'string') {
-          console.log(`incomingEventCb: ${eventName}: ${payload}`)
-        } else {
-          console.log(
-            `incomingEventCb: ${eventName}: ${typeof payload}|${JSON.stringify(payload)}`)
-        }
         try {
           this.incomingEventCb(eventName, JSON.parse(payload))
-        } catch {
-          console.error('incomingEventCb: failed to parse')
+        } catch (error) {
+          console.log(
+            `incomingEventCb: ${eventName}:${payload}, ${error}`)
         }
       }
     )
@@ -162,7 +157,6 @@ class ClientComms {
   send_event_counters () {
     this.eventCounters.timestamp_ms = Date.now()
     const eventCountersStr = JSON.stringify(this.eventCounters)
-    console.log(`eventCounters: ${eventCountersStr}`)
     this.send_event('_counters', eventCountersStr)
   }
 }
