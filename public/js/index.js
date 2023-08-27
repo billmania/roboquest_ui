@@ -134,9 +134,10 @@ $(function () {
   $('#updateSoftware').on('click', function () {
     if (objSocket.connected) {
       objSocket.emit('control_hat', '{“set_charger”: “ON”}')
-      objSocket.emit('update', `{"timestamp":"${Date.now()}", "version":"${RQ_PARAMS.UPDATE_VERSION}", "action":"UPDATE", "args":"UI"}`)
+      const intTimeS = Math.round(Date.now()/1000)
+      objSocket.emit('update', `{"timestamp":"${intTimeS}", "version":"${RQ_PARAMS.UPDATE_FORMAT_VERSION}", "action":"UPDATE", "args":"UI"}`)
     }else{
-      console.error('Socket is not connected to do the software update requested.')
+      console.error('Not connected to the robot so an UPDATE is not possible. Check the robot.')
     }
 
   })
