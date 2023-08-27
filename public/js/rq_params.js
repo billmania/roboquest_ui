@@ -14,3 +14,5 @@ const RQ_PARAMS = {}
 
 RQ_PARAMS.CONFIG_FILE = 'persist/configuration.json'
 RQ_PARAMS.MESSAGE_DURATION_S = 15
+
+RQ_PARAMS.UPDATE_VERSION = 1

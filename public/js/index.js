@@ -116,9 +116,28 @@ $(function () {
     $('.widget').each((i, element) => {
       objSaveConfig.widgets.push($(element).data('widget'))
     })
-    $.post('/config', objSaveConfig, function (objResponse) {
-      console.log('Save Config Response', objResponse)
-    })
+    $.ajax({
+      type: "POST",
+      url: '/config',
+      contentType: "application/json",
+      data: JSON.stringify(objSaveConfig),
+      success: function (objResponse) {
+        console.log('Save Config Response', objResponse)
+      },
+      error: function(objRequest, strStatus, strError) {
+        console.error("Error saving config:", strError);
+      }
+    });
+  })
+
+  $('#updateSoftware').on('click', function () {
+    //verify the socket is connected before sending the message, send error if not
+    if (objSocket.connected) {
+      objSocket.emit('control_hat', '{“set_charger”: “ON”}')
+      objSocket.emit('update', `{"timestamp":"${Date.now()}", "version":"${RQ_PARAMS.UPDATE_VERSION}", "action":"UPDATE", "args":"UI"}`)
+    }else{
+      console.error('Socket is not connected to do the software update requested.')
+    }
   })
 
   // edit corner can add a new widget by clicking or tapping, or edit a widget that is dropped into it
