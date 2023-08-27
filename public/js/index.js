@@ -128,6 +128,7 @@ $(function () {
         console.error("Error saving config:", strError);
       }
     });
+
   })
 
   $('#updateSoftware').on('click', function () {
@@ -137,6 +138,7 @@ $(function () {
     }else{
       console.error('Socket is not connected to do the software update requested.')
     }
+
   })
 
   // edit corner can add a new widget by clicking or tapping, or edit a widget that is dropped into it
