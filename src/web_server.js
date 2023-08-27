@@ -53,22 +53,26 @@ class WebServer {
     })
 
     this.express_app.post('/config', (request, response) => {
+      const configObject = request.body
+
       /*
        * Perform a crude check for a valid configuration file by
-       * ensuring it contains a "widgets" property.
+       * ensuring it contains a "widgets" property. The response.body
+       * is expected to have already been parsed into an object by Express.
        */
-      if (request.body.widgets) {
-        if (this.configFile.save_config(request.body)) {
-          response.status(200).json({ success: true })
-          console.log('process_config_post() success')
-        } else {
-          response.status(400).json(
-            { success: false, error: 'Failed to save the config' })
-          console.log('POST failure, config not saved')
-        }
+      if (!configObject.widgets) {
+        response.status(400).json({ success: false, error: 'config missing widgets property' })
+        console.log(
+          `save_config: no widgets property in the config file ${JSON.stringify(request.body)}`)
+        return
+      }
+
+      if (this.configFile.save_config(configObject)) {
+        response.status(200).json({ success: true })
       } else {
-        response.status(400).json({ success: false, error: 'Missing configuration file' })
-        console.log('POST failure, missing config file')
+        response.status(400).json(
+          { success: false, error: 'Failed to save the config' })
+        console.log('save_config: config not saved')
       }
     })
   }
