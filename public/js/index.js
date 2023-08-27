@@ -123,6 +123,9 @@ $(function () {
       data: JSON.stringify(objSaveConfig),
       success: function (objResponse) {
         console.log('Save Config Response', objResponse)
+      },
+      error: function(objRequest, strStatus, strError) {
+        console.error("Error saving config:", strError);
       }
     });
   })
