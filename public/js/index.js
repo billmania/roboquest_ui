@@ -131,7 +131,6 @@ $(function () {
   })
 
   $('#updateSoftware').on('click', function () {
-    //verify the socket is connected before sending the message, send error if not
     if (objSocket.connected) {
       objSocket.emit('control_hat', '{“set_charger”: “ON”}')
       objSocket.emit('update', `{"timestamp":"${Date.now()}", "version":"${RQ_PARAMS.UPDATE_VERSION}", "action":"UPDATE", "args":"UI"}`)
