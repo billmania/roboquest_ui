@@ -116,9 +116,18 @@ $(function () {
     $('.widget').each((i, element) => {
       objSaveConfig.widgets.push($(element).data('widget'))
     })
-    $.post('/config', objSaveConfig, function (objResponse) {
-      console.log('Save Config Response', objResponse)
-    })
+    $.ajax({
+      type: "POST",
+      url: '/config',
+      contentType: "application/json",
+      data: JSON.stringify(objSaveConfig),
+      success: function (objResponse) {
+        console.log('Save Config Response', objResponse)
+      },
+      error: function(objRequest, strStatus, strError) {
+        console.error("Error saving config:", strError);
+      }
+    });
   })
 
   // edit corner can add a new widget by clicking or tapping, or edit a widget that is dropped into it
