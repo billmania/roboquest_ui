@@ -19,5 +19,6 @@ RQ_PARAMS.CONFIG_FILE = path.join(
   __dirname, '../public/persist/configuration.json')
 RQ_PARAMS.SERVER_PORT_NUMBER = 3456
 RQ_PARAMS.SERVER_HEARTBEAT_PERIOD_S = 10
+RQ_PARAMS.UPDATE_FIFO = '/tmp/update_fifo'
 
 module.exports = RQ_PARAMS
