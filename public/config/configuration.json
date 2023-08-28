@@ -350,7 +350,7 @@
                 "at": "left+335 top0"
             },
             "format": {
-                "text": "Set motors ON"
+                "text": "Set servos ON"
             },
             "data": {
                 "service": "control_hat",
@@ -368,7 +368,7 @@
                 "at": "left+335 top+125"
             },
             "format": {
-                "text": "Set motors OFF"
+                "text": "Set servos OFF"
             },
             "data": {
                 "service": "control_hat",
