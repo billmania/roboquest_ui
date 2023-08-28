@@ -129,7 +129,7 @@ class WebServer {
 
     switch (eventName) {
       case 'update':
-        this.update_software(payload)
+        this.update_software(JSON.stringify(payload))
         break
 
       default:
