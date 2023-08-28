@@ -129,9 +129,7 @@ class WebServer {
 
     switch (eventName) {
       case 'update':
-        this.update_software(
-          '{"timestamp": 0, "version": 1, "action": "UPDATE", "args": "UI"}'
-        )
+        this.update_software(JSON.stringify(payload))
         break
 
       default:
@@ -168,9 +166,8 @@ class WebServer {
    * it expects updater.py to terminate the container in which this
    * method is executing.
    *
-   * The value of the constant updateFifo must match the constant
-   * UPDATE_FIFO in updater.py. If the FIFO exists, the command is written
-   * and then this process exits. Otherwise, this method returns false.
+   * If the FIFO exists, the command is written and then this process
+   * exits. Otherwise, this method returns false.
    *
    * @param {JSON string} command - the update command with a timestamp
    *                                and optional arguments
@@ -180,14 +177,12 @@ class WebServer {
   update_software (command) {
     console.log(`update_software: ${command}`)
 
-    const updateFifo = '/tmp/update_fifo'
-
-    if (!fs.existsSync(updateFifo)) {
+    if (!fs.existsSync(RQ_PARAMS.UPDATE_FIFO)) {
       return false
     }
 
     fs.appendFileSync(
-      updateFifo,
+      RQ_PARAMS.UPDATE_FIFO,
       command
     )
 
