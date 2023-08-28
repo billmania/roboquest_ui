@@ -133,7 +133,7 @@ $(function () {
 
   $('#updateSoftware').on('click', function () {
     if (objSocket.connected) {
-      objSocket.emit('control_hat', '{“set_charger”: “ON”}')
+      objSocket.emit('control_hat', '{"set_charger": "ON"}')
       const intTimeS = Math.round(Date.now()/1000)
       objSocket.emit('update', `{"timestamp":"${intTimeS}", "version":"${RQ_PARAMS.UPDATE_FORMAT_VERSION}", "action":"UPDATE", "args":"UI"}`)
     }else{
