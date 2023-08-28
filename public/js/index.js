@@ -128,6 +128,18 @@ $(function () {
         console.error("Error saving config:", strError);
       }
     });
+
+  })
+
+  $('#updateSoftware').on('click', function () {
+    if (objSocket.connected) {
+      objSocket.emit('control_hat', '{"set_charger": "ON"}')
+      const intTimeS = Math.round(Date.now()/1000)
+      objSocket.emit('update', `{"timestamp":"${intTimeS}", "version":"${RQ_PARAMS.UPDATE_FORMAT_VERSION}", "action":"UPDATE", "args":"UI"}`)
+    }else{
+      console.error('Not connected to the robot so an UPDATE is not possible. Check the robot.')
+    }
+
   })
 
   // edit corner can add a new widget by clicking or tapping, or edit a widget that is dropped into it
