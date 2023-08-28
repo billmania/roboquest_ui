@@ -1,108 +1,392 @@
 {
     "widgets":[
         {
-            "id":10,
-            "type":"joystick",
-            "label":"Joystick",
-            "position":{
-                "my":"left top",
-                "at":"left top"
+            "id": 18,
+            "type": "joystick",
+            "label": "Joystick",
+            "position": {
+                "my": "left top",
+                "at": "left+1489 top+128"
             },
-            "format":{
-                "trueText": "Charger has power",
+            "format": {},
+            "data": {
+                "scale": [
+                    1,
+                    1
+                ],
+                "topic": "cmd_vel",
+                "topicAttribute": [
+                    "twist.angular.z",
+                    "twist.linear.x"
+                ],
+                "topicType": "geometry_msgs/msg/TwistStamped",
+                "topicDirection": "publish",
+                "topicPeriodS": 1
+            }
+        },
+        {
+            "id": 0,
+            "type": "indicator",
+            "label": "wallPow",
+            "position": {
+                "at": "left+919 top",
+                "my": "left top"
+            },
+            "format": {
+                "trueText": "Charger Power is ON",
                 "trueColor": "#75ff75",
-                "falseText": "No charger power",
+                "falseText": "Charger Power is OFF",
                 "falseColor": "#ff6666"
             },
-            "data":{
+            "data": {
                 "topic": "telemetry",
                 "topicAttribute": "charger_has_power",
                 "topicType": "rq_msgs/msg/Telemetry",
                 "topicDirection": "subscribe"
             }
-        },{
-            "id":0,
-            "type":"indicator",
-            "label":"STATE",
-            "position":{
-                "my":"left top",
-                "at":"left top"
+        },
+        {
+            "id": 1,
+            "type": "indicator",
+            "label": "charge",
+            "position": {
+                "at": "left+547 top+63",
+                "my": "left top"
             },
-            "format":{
-                "trueText": "Charger has power",
+            "format": {
+                "trueText": "Battery Charging is ON",
                 "trueColor": "#75ff75",
-                "falseText": "No charger power",
+                "falseText": "Battery Charging is OFF",
                 "falseColor": "#ff6666"
             },
-            "data":{
+            "data": {
                 "topic": "telemetry",
-                "topicAttribute": "charger_has_power",
+                "topicAttribute": "battery_charging",
                 "topicType": "rq_msgs/msg/Telemetry",
                 "topicDirection": "subscribe"
             }
-        },{
-            "id":1,
-            "type":"value",
-            "label":"VALUE",
-            "position":{
-                "my":"right bottom",
-                "at":"right bottom"
+        },
+        {
+            "id": 2,
+            "type": "indicator",
+            "label": "motors",
+            "position": {
+                "at": "left+123 top+62.7656",
+                "my": "left top"
             },
-            "format":{
+            "format": {
+                "trueText": "Motors are ON",
+                "trueColor": "#75ff75",
+                "falseText": "Motors are OFF",
+                "falseColor": "#ff6666"
+            },
+            "data": {
+                "topic": "telemetry",
+                "topicAttribute": "motors_on",
+                "topicType": "rq_msgs/msg/Telemetry",
+                "topicDirection": "subscribe"
+            }
+        },
+        {
+            "id": 3,
+            "type": "indicator",
+            "label": "servos",
+            "position": {
+                "at": "left+335 top+63",
+                "my": "left top"
+            },
+            "format": {
+                "trueText": "Servos are ON",
+                "trueColor": "#75ff75",
+                "falseText": "Servos are OFF",
+                "falseColor": "#ff6666"
+            },
+            "data": {
+                "topic": "telemetry",
+                "topicAttribute": "servos_on",
+                "topicType": "rq_msgs/msg/Telemetry",
+                "topicDirection": "subscribe"
+            }
+        },
+        {
+            "id": 4,
+            "type": "value",
+            "label": "batteryVoltage",
+            "position": {
+                "at": "left+1131 top",
+                "my": "left top"
+            },
+            "format": {
                 "textColor": "#fff",
                 "prefix": "Battery V ",
-                "suffix": ""
+                "suffix": "",
+                "precision": 4
             },
-            "data":{
+            "data": {
                 "topic": "telemetry",
                 "topicType": "rq_msgs/msg/Telemetry",
                 "topicDirection": "subscribe",
                 "topicAttribute": "battery_v"
             }
-        },{
-            "id":2,
-            "type":"button",
-            "label":"BUTTON",
-            "position":{
-                "my":"left top",
-                "at":"left top"
+        },
+        {
+            "id": 5,
+            "type": "value",
+            "label": "batteryMa",
+            "position": {
+                "at": "left+1131 top+62",
+                "my": "left top"
             },
-            "format":{
+            "format": {
+                "textColor": "#fff",
+                "prefix": "Battery mA ",
+                "suffix": ""
+            },
+            "data": {
+                "topic": "telemetry",
+                "topicType": "rq_msgs/msg/Telemetry",
+                "topicDirection": "subscribe",
+                "topicAttribute": "battery_ma"
+            }
+        },
+        {
+            "id": 6,
+            "type": "value",
+            "label": "systemMa",
+            "position": {
+                "at": "left+919 top+62",
+                "my": "left top"
+            },
+            "format": {
+                "textColor": "#fff",
+                "prefix": "System mA ",
+                "suffix": ""
+            },
+            "data": {
+                "topic": "telemetry",
+                "topicType": "rq_msgs/msg/Telemetry",
+                "topicDirection": "subscribe",
+                "topicAttribute": "system_ma"
+            }
+        },
+        {
+            "id": 7,
+            "type": "value",
+            "label": "adc0V",
+            "position": {
+                "at": "left+1050 top+820",
+                "my": "left top"
+            },
+            "format": {
+                "textColor": "#fff",
+                "prefix": "ADC0 V ",
+                "suffix": ""
+            },
+            "data": {
+                "topic": "telemetry",
+                "topicType": "rq_msgs/msg/Telemetry",
+                "topicDirection": "subscribe",
+                "topicAttribute": "adc0_v"
+            }
+        },
+        {
+            "id": 8,
+            "type": "value",
+            "label": "adc1V",
+            "position": {
+                "at": "left+1262 top+758",
+                "my": "left top"
+            },
+            "format": {
+                "textColor": "#fff",
+                "prefix": "ADC1 V ",
+                "suffix": ""
+            },
+            "data": {
+                "topic": "telemetry",
+                "topicType": "rq_msgs/msg/Telemetry",
+                "topicDirection": "subscribe",
+                "topicAttribute": "adc1_v"
+            }
+        },
+        {
+            "id": 9,
+            "type": "value",
+            "label": "adc2V",
+            "position": {
+                "at": "left+1474 top+758",
+                "my": "left top"
+            },
+            "format": {
+                "textColor": "#fff",
+                "prefix": "ADC2 V ",
+                "suffix": ""
+            },
+            "data": {
+                "topic": "telemetry",
+                "topicType": "rq_msgs/msg/Telemetry",
+                "topicDirection": "subscribe",
+                "topicAttribute": "adc2_v"
+            }
+        },
+        {
+            "id": 10,
+            "type": "value",
+            "label": "adc3V",
+            "position": {
+                "at": "left+1262 top+820",
+                "my": "left top"
+            },
+            "format": {
+                "textColor": "#fff",
+                "prefix": "ADC3 V ",
+                "suffix": ""
+            },
+            "data": {
+                "topic": "telemetry",
+                "topicType": "rq_msgs/msg/Telemetry",
+                "topicDirection": "subscribe",
+                "topicAttribute": "adc3_v"
+            }
+        },
+        {
+            "id": 11,
+            "type": "value",
+            "label": "adc4V",
+            "position": {
+                "at": "left+1474 top+820",
+                "my": "left top"
+            },
+            "format": {
+                "textColor": "#fff",
+                "prefix": "ADC4 V ",
+                "suffix": ""
+            },
+            "data": {
+                "topic": "telemetry",
+                "topicType": "rq_msgs/msg/Telemetry",
+                "topicDirection": "subscribe",
+                "topicAttribute": "adc4_v"
+            }
+        },
+        {
+            "id": 12,
+            "type": "button",
+            "label": "chargerOn",
+            "position": {
+                "my": "left top",
+                "at": "left+547 top0"
+            },
+            "format": {
                 "text": "Set charger ON"
             },
-            "data":{
+            "data": {
                 "service": "control_hat",
                 "serviceAttribute": "set_charger",
                 "serviceType": "rq_msgs/srv/Control",
                 "clickValue": "ON"
             }
-        },{
-            "id":3,
-            "type":"button",
-            "label":"",
-            "position":{
-                "my":"left top",
-                "at":"left top"
+        },
+        {
+            "id": 13,
+            "type": "button",
+            "label": "chargerOff",
+            "position": {
+                "my": "left top",
+                "at": "left+547 top+125"
             },
-            "format":{
+            "format": {
                 "text": "Set charger OFF"
             },
-            "data":{
+            "data": {
                 "service": "control_hat",
                 "serviceAttribute": "set_charger",
                 "serviceType": "rq_msgs/srv/Control",
                 "clickValue": "OFF"
             }
-        },{
-            "id":4,
-            "type":"slider",
-            "label":"SLIDER",
-            "position":{
-                "my":"left top",
-                "at":"left top"
+        },
+        {
+            "id": 14,
+            "type": "button",
+            "label": "motorsOn",
+            "position": {
+                "my": "left top",
+                "at": "left+123 top0"
             },
-            "format":{
-                "text":"slider description",
+            "format": {
+                "text": "Set motors ON"
+            },
+            "data": {
+                "service": "control_hat",
+                "serviceAttribute": "set_motors",
+                "serviceType": "rq_msgs/srv/Control",
+                "clickValue": "ON"
+            }
+        },
+        {
+            "id": 15,
+            "type": "button",
+            "label": "motorsOff",
+            "position": {
+                "my": "left top",
+                "at": "left+123 top+124.75"
+            },
+            "format": {
+                "text": "Set motors OFF"
+            },
+            "data": {
+                "service": "control_hat",
+                "serviceAttribute": "set_motors",
+                "serviceType": "rq_msgs/srv/Control",
+                "clickValue": "OFF"
+            }
+        },
+        {
+            "id": 16,
+            "type": "button",
+            "label": "servosOn",
+            "position": {
+                "my": "left top",
+                "at": "left+335 top0"
+            },
+            "format": {
+                "text": "Set servos ON"
+            },
+            "data": {
+                "service": "control_hat",
+                "serviceAttribute": "set_servos",
+                "serviceType": "rq_msgs/srv/Control",
+                "clickValue": "ON"
+            }
+        },
+        {
+            "id": 17,
+            "type": "button",
+            "label": "servosOff",
+            "position": {
+                "my": "left top",
+                "at": "left+335 top+125"
+            },
+            "format": {
+                "text": "Set servos OFF"
+            },
+            "data": {
+                "service": "control_hat",
+                "serviceAttribute": "set_servos",
+                "serviceType": "rq_msgs/srv/Control",
+                "clickValue": "OFF"
+            }
+        },
+        {
+            "id": 19,
+            "type": "slider",
+            "label": "camera_pan",
+            "position": {
+                "my": "left top",
+                "at": "left top+324"
+            },
+            "format": {
+                "text": "slider description",
                 "min": 0,
                 "max": 180,
                 "step": 1,
@@ -110,11 +394,43 @@
                 "orientation": "horizontal",
                 "animate": "true"
             },
-            "data":{
+            "data": {
                 "topic": "servos",
                 "topicDirection": "publish",
-                "topicAttribute": "name",
-                "topicType": "rq_msgs/msg/ServoAngles"
+                "topicAttribute": [
+                    "angle",
+                    "name"
+                ],
+                "topicType": "rq_msgs/msg/ServoAngles",
+                "topicPeriodS": 1
+            }
+        },
+        {
+            "id": 20,
+            "type": "slider",
+            "label": "camera_tilt",
+            "position": {
+                "my": "left top",
+                "at": "left top+386"
+            },
+            "format": {
+                "text": "slider description",
+                "min": 0,
+                "max": 180,
+                "step": 1,
+                "default": 90,
+                "orientation": "horizontal",
+                "animate": "true"
+            },
+            "data": {
+                "topic": "servos",
+                "topicDirection": "publish",
+                "topicAttribute": [
+                    "angle",
+                    "name"
+                ],
+                "topicType": "rq_msgs/msg/ServoAngles",
+                "topicPeriodS": 1
             }
         }
     ]
