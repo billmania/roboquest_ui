@@ -90,7 +90,7 @@ $(function () {
     }
   })
 
-  // setup the menu
+  // setup the configuration menu
   $('#menuDialog').dialog({
     width: 500,
     autoOpen: false,
@@ -99,7 +99,7 @@ $(function () {
       $('#socketUri').val(objSocket.io.uri)
     }
   })
-  $('#menu').on('click', function () {
+  $('#configure').on('click', function () {
     $('#menuDialog').dialog('open')
   })
   $('#setSocket').on('click', function () {
