@@ -9,6 +9,12 @@ const getNextId = function () {
   return intId + 1
 }
 
+/*
+  call the jquery position() with options for each widget.
+  the widgets are from the loaded config file widgets:[] array. must already exist in the DOM
+  necessary to be called again on things that might change the positions
+  such as resize and adding / removing widgets
+*/
 const positionWidgets = function () {
   $('.widget').each((i, element) => {
     const objWidget = $(element).data('widget')
@@ -20,9 +26,9 @@ const positionWidgets = function () {
   })
 }
 
-$( window ).on( "resize", function() {
+$(window).on("resize", function() {
   positionWidgets()
-} )
+})
 
 const createWidget = function (objWidget, objSocket) {
   const widgetContainer = $(`<div class="widget ${objWidget.type.toUpperCase()}" data-widget-id="' + widget.id + '"></div>`)
@@ -64,7 +70,6 @@ $(function () {
     document.getElementById('mainImage').src = `data:image/jpeg;base64,${strImage}`
   })
 
-  // form to widget creation actions
   const addWidget = function () {
     const objNewWidget = {
       position: {},
@@ -87,11 +92,9 @@ $(function () {
     objNewWidget.position.my = `${$('#widgetPositionMyX').val()} ${$('#widgetPositionMyY').val()}`
     objNewWidget.position.at = `${$('#parentPositionAtX').val()} ${$('#parentPositionAtY').val()}`
     objNewWidget.id = getNextId()
-    //console.log(objNewWidget)
     createWidget(objNewWidget, objSocket)
     positionWidgets()
   }
-  // setup the new widget dialog
   $('#newWidget').dialog({
     width: 500,
     autoOpen: false,
@@ -155,7 +158,6 @@ $(function () {
     }else{
       console.error('Not connected to the robot so an UPDATE is not possible. Check the robot.')
     }
-
   })
 
   // edit corner can add a new widget by clicking or tapping, or edit a widget that is dropped into it
@@ -194,7 +196,6 @@ $(function () {
     success: function (data) {
       $.each(data.widgets, function (i, widget) {
         createWidget(widget, objSocket)
-        
       })
       positionWidgets()
     }
