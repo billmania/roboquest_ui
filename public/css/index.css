@@ -111,7 +111,7 @@ input, select{
     height: 100%;
 }
 /* centered */
-#menu{
+#configure{
     cursor: pointer;
     position: absolute;
     top: 5px;
