@@ -101,6 +101,26 @@ input, select{
     overflow-x: hidden;
     overflow-y: hidden;
 }
+.SLIDER .sliderValues{
+    display:flex;
+}
+.SLIDER .sliderMin{
+    display: inline-block;
+    text-align: left;
+    flex-grow: 1;
+}
+.SLIDER .sliderCurrent{
+    display: inline-block;
+    text-align: center;
+    flex-grow: 1;
+    font-weight: bold;
+    color: #fff;
+}
+.SLIDER .sliderMax{
+    display: inline-block;
+    text-align: right;
+    flex-grow: 1;
+}
 
 #mainImage{
     position: absolute;

@@ -21,10 +21,14 @@ $.widget('custom.SLIDER', {
       change: this._triggerSocketEvent.bind(this),
       slide: this._triggerSocketEvent.bind(this)
     })
-    this.element.children('.widget-content').html(sliderElement)
+    const sliderValues = $(`<div class="sliderValues"><div class="sliderMin">${this.options.format.min}</div><div class="sliderCurrent">${this.options.format.default}</div><div class="sliderMax">${this.options.format.max}</div></div>`)
+    // jquery append sliderValues to sliderElement
+    this.element.children('.widget-content').append(sliderValues)
+    this.element.children('.widget-content').append(sliderElement)
   },
   _triggerSocketEvent: function (e, ui) {
     if (this.options.socket) {
+      this.element.find('.sliderCurrent').text(ui.value)
       const objPayload = {}
       objPayload[this.options.data.topicAttribute[0]] = ui.value
       objPayload[this.options.data.topicAttribute[1]] = this.options.label
