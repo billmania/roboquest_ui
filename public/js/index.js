@@ -9,6 +9,21 @@ const getNextId = function () {
   return intId + 1
 }
 
+const positionWidgets = function () {
+  $('.widget').each((i, element) => {
+    const objWidget = $(element).data('widget')
+    $(element).position({
+      ...objWidget.position,
+      of: '#widgets',
+      collision: 'none none'
+    })
+  })
+}
+
+$( window ).on( "resize", function() {
+  positionWidgets()
+} )
+
 const createWidget = function (objWidget, objSocket) {
   const widgetContainer = $(`<div class="widget ${objWidget.type.toUpperCase()}" data-widget-id="' + widget.id + '"></div>`)
   const widgetHeader = '<div class="widget-header">' + objWidget.label + '</div>'
@@ -17,22 +32,22 @@ const createWidget = function (objWidget, objSocket) {
   $(widgetContent).appendTo(widgetContainer)
   // store the data for the widget WITH the widget
   $(widgetContainer).data('widget', objWidget)
-  // add the widgets to the page widget container
   // widget types are uppercase to avoid conflicts with jquery ui widget names
-  $(widgetContainer)[objWidget.type.toUpperCase()]({ ...objWidget, socket: objSocket }).appendTo('#widgets').position({
-    ...objWidget.position,
-    of: '#widgets',
-    collision: 'fit'
-  }).draggable({
-    handle: '.widget-header',
-    snap: true,
-    stop: function (event, ui) {
-      /*
-      const widgetId = $(this).data('widget-id')
-      const widgetPosition = $(this).position()
-      console.log(widgetId, widgetPosition)
-      */
-    }
+  $(widgetContainer)[objWidget.type.toUpperCase()](
+      { ...objWidget, socket: objSocket }
+    ).appendTo(
+      '#widgets'
+    ).draggable(
+      {
+      handle: '.widget-header',
+      snap: true,
+      stop: function (event, ui) {
+        /*
+        const widgetId = $(this).data('widget-id')
+        const widgetPosition = $(this).position()
+        console.log(widgetId, widgetPosition)
+        */
+      }
   })
 }
 
@@ -72,8 +87,9 @@ $(function () {
     objNewWidget.position.my = `${$('#widgetPositionMyX').val()} ${$('#widgetPositionMyY').val()}`
     objNewWidget.position.at = `${$('#parentPositionAtX').val()} ${$('#parentPositionAtY').val()}`
     objNewWidget.id = getNextId()
-    console.log(objNewWidget)
+    //console.log(objNewWidget)
     createWidget(objNewWidget, objSocket)
+    positionWidgets()
   }
   // setup the new widget dialog
   $('#newWidget').dialog({
@@ -167,6 +183,7 @@ $(function () {
     drop: function (event, ui) {
       console.log('dropped', ui.draggable.data('widget-id'))
       ui.draggable.remove()
+      positionWidgets()
     }
   })
 
@@ -177,7 +194,9 @@ $(function () {
     success: function (data) {
       $.each(data.widgets, function (i, widget) {
         createWidget(widget, objSocket)
+        
       })
+      positionWidgets()
     }
   })
 })
