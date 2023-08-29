@@ -1,30 +1,6 @@
 {
     "widgets":[
         {
-            "id": 18,
-            "type": "joystick",
-            "label": "Joystick",
-            "position": {
-                "my": "left top",
-                "at": "left+1489 top+128"
-            },
-            "format": {},
-            "data": {
-                "scale": [
-                    1,
-                    1
-                ],
-                "topic": "cmd_vel",
-                "topicAttribute": [
-                    "twist.angular.z",
-                    "twist.linear.x"
-                ],
-                "topicType": "geometry_msgs/msg/TwistStamped",
-                "topicDirection": "publish",
-                "topicPeriodS": 1
-            }
-        },
-        {
             "id": 0,
             "type": "indicator",
             "label": "wallPow",
@@ -376,6 +352,29 @@
                 "serviceType": "rq_msgs/srv/Control",
                 "clickValue": "OFF"
             }
+        },{
+            "id": 18,
+            "type": "joystick",
+            "label": "Joystick",
+            "position": {
+                "my": "left top",
+                "at": "left+1489 top+128"
+            },
+            "format": {},
+            "data": {
+                "scale": [
+                    1,
+                    1
+                ],
+                "topic": "cmd_vel",
+                "topicAttribute": [
+                    "twist.angular.z",
+                    "twist.linear.x"
+                ],
+                "topicType": "geometry_msgs/msg/TwistStamped",
+                "topicDirection": "publish",
+                "topicPeriodS": 1
+            }
         },
         {
             "id": 19,
@@ -411,7 +410,7 @@
             "label": "camera_tilt",
             "position": {
                 "my": "left top",
-                "at": "left top+386"
+                "at": "left top+400"
             },
             "format": {
                 "text": "slider description",
