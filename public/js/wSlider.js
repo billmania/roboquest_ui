@@ -24,10 +24,12 @@ $.widget('custom.SLIDER', {
   },
   _triggerSocketEvent: function (e, ui) {
     if (this.options.socket) {
+      const objPayload = {}
+      objPayload[this.options.data.topicAttribute[0]] = ui.value
+      objPayload[this.options.data.topicAttribute[1]] = this.options.label
       this.options.socket.emit(
         this.options.data.topic,
-        `{ "${this.options.data.topicAttribute[0]}": "${ui.value}"` +
-        `, "${this.options.data.topicAttribute[1]}": "${this.options.label}" }`
+        JSON.stringify(objPayload)
       )
     } else {
       console.error('Socket is not defined.')
