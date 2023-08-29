@@ -18,7 +18,8 @@ $.widget('custom.SLIDER', {
       value: this.options.format.default,
       animate: this.options.format.animate,
       orientation: this.options.format.orientation,
-      stop: this._triggerSocketEvent.bind(this)
+      change: this._triggerSocketEvent.bind(this),
+      slide: this._triggerSocketEvent.bind(this)
     })
     this.element.children('.widget-content').html(sliderElement)
   },
