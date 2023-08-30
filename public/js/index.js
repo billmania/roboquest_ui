@@ -61,7 +61,13 @@ $(function () {
   // const objSocket = io ('192.168.1.150:3456') // for development
   const objSocket = io(`${window.location.hostname}:${window.location.port}`)
   objSocket.on('connect', () => {
-    console.log('socketIO', objSocket)
+    console.log('Connection to the robot established.')
+  })
+  objSocket.on('connect_error', (objError) => {
+    console.log('Error connecting to robot. ', objError)
+  })
+  objSocket.on('disconnect', (strReason) => {
+    console.log('Connection to the robot has been lost. ', strReason)
   })
 
   // convert the image buffer to a base64 string and set the image source for main video
@@ -179,7 +185,6 @@ $(function () {
     }
   })
 
-  // create the trashcan
   $('#trash').droppable({
     accept: '.widget',
     drop: function (event, ui) {
