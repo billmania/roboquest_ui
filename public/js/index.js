@@ -66,8 +66,14 @@ $(function () {
   objSocket.on('connect_error', (objError) => {
     console.log('Error connecting to robot. ', objError)
   })
+
+  // need to have the image loaded before disconnect or else we cant request it when disconnected
+  const imgDisconnected = new Image()
+  imgDisconnected.src = RQ_PARAMS.DISCONNECTED_IMAGE
+
   objSocket.on('disconnect', (strReason) => {
     console.log('Connection to the robot has been lost. ', strReason)
+    $('#mainImage').attr("src", imgDisconnected.src)
   })
 
   // convert the image buffer to a base64 string and set the image source for main video
