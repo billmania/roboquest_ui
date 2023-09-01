@@ -7,8 +7,8 @@
 
 const { Server } = require('socket.io')
 
-const PING_INTERVAL_MS = 25000
-const PING_TIMEOUT_MS = 20000
+const PING_INTERVAL_MS = 2000
+const PING_TIMEOUT_MS = 2000
 
 class ClientComms {
   /**

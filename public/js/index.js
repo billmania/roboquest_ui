@@ -59,7 +59,15 @@ const createWidget = function (objWidget, objSocket) {
 
 $(function () {
   // const objSocket = io ('192.168.1.150:3456') // for development
-  const objSocket = io(`${window.location.hostname}:${window.location.port}`)
+  const objSocket = io(`${window.location.hostname}:${window.location.port}`,
+    {
+      transports: ['websocket'], 
+      upgrade: false, 
+      pingTimeout: 1000, 
+      pingInterval: 1000,
+      timeout: 1000
+    }
+  )
   objSocket.on('connect', () => {
     console.log('Connection to the robot established.')
   })
