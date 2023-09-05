@@ -59,9 +59,29 @@ const createWidget = function (objWidget, objSocket) {
 
 $(function () {
   // const objSocket = io ('192.168.1.150:3456') // for development
-  const objSocket = io(`${window.location.hostname}:${window.location.port}`)
+  const objSocket = io(`${window.location.hostname}:${window.location.port}`,
+    {
+      transports: ['websocket'], 
+      upgrade: false, 
+      pingTimeout: 1000, 
+      pingInterval: 1000,
+      timeout: 1000
+    }
+  )
   objSocket.on('connect', () => {
-    console.log('socketIO', objSocket)
+    console.log('Connection to the robot established.')
+  })
+  objSocket.on('connect_error', (objError) => {
+    console.log('Error connecting to robot. ', objError)
+  })
+
+  // need to have the image loaded before disconnect or else we cant request it when disconnected
+  const imgDisconnected = new Image()
+  imgDisconnected.src = RQ_PARAMS.DISCONNECTED_IMAGE
+
+  objSocket.on('disconnect', (strReason) => {
+    console.log('Connection to the robot has been lost. ', strReason)
+    $('#mainImage').attr("src", imgDisconnected.src)
   })
 
   // convert the image buffer to a base64 string and set the image source for main video
@@ -179,7 +199,6 @@ $(function () {
     }
   })
 
-  // create the trashcan
   $('#trash').droppable({
     accept: '.widget',
     drop: function (event, ui) {
