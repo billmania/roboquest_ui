@@ -6,9 +6,7 @@
 'use strict'
 
 const { Server } = require('socket.io')
-
-const PING_INTERVAL_MS = 2000
-const PING_TIMEOUT_MS = 2000
+const RQ_PARAMS = require('./params.js')
 
 class ClientComms {
   /**
@@ -46,8 +44,8 @@ class ClientComms {
     this.io = new Server(
       expressServer,
       {
-        pingInterval: PING_INTERVAL_MS,
-        pingTimeout: PING_TIMEOUT_MS
+        pingInterval: RQ_PARAMS.PING_INTERVAL_MS,
+        pingTimeout: RQ_PARAMS.PING_TIMEOUT_MS
       }
     )
     this.io.on('connection', this.setup_event_handlers_cb.bind(this))
