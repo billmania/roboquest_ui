@@ -7,14 +7,39 @@
  * Code copied from https://github.com/bobboteck/JoyStick
  */
 $.widget('custom.JOYSTICK', {
+  /*
+   * The "options" property is preserved after the widget is created.
+   */
   options: {
     socket: null,
     data: {
       format: {}
     },
-  },
 
-  currentAxes: { x: 0, y: 0 },
+    /*
+     * Hold the most recent x and y position so they can be passed
+     * to _triggerSocketEvent() by the interval.
+     */
+    currentAxes: { x: 0, y: 0 },
+
+    /**
+     * Called when x and y axis values have changed. Used by the Joystick
+     * object as a callback and as a utility function by the key event
+     * handler.
+     *
+     * @param {object) axisData - an object with two properties, x and y.
+     */
+    valuesHandler: function (axesData) {
+      console.debug(`valuesHandler: ${JSON.stringify(axesData)}`)
+
+      this.options.currentAxes = axesData
+      if (typeof this.options.data.topicPeriodS === 'undefined'
+          || this.options.data.topicPeriodS === 0
+          || (axesData.x === 0 && axesData.y === 0)) {
+        this._triggerSocketEvent(null, axesData)
+      }
+    }
+  },
 
   _create: function () {
     const objWidget = this
@@ -23,25 +48,27 @@ $.widget('custom.JOYSTICK', {
     }
     const objContent = $('<div id="joystick" style="width:200px; height:200px"></div>')
 
-    this.element.children('.widget-content').html(objContent).ready(() => {
-      const objJoystick = new JoyStick('joystick', {}, (objData) => {
-        objWidget.currentAxes = objData
-        if (typeof this.options.data.topicPeriodS === 'undefined'
-            || this.options.data.topicPeriodS === 0
-            || (objData.x === 0 && objData.y === 0)) {
-          this._triggerSocketEvent(null, objData)
-        }
-      })
-    })
+    this.element.children('.widget-content').html(objContent).ready(
+      () => {
+        const objJoystick = new JoyStick(
+          'joystick',
+          {},
+          this.options.valuesHandler.bind(this)
+        )
+      }
+    )
 
     /**
      * When topicPeriodS is a positive integer, periodically emit the axes values,
      * in case the previous emission was lost.
      */
     if (this.options.data.topicPeriodS) {
-      this._repeater = setInterval(() => {  
-        this._triggerSocketEvent(null, objWidget.currentAxes )
-      }, this.options.data.topicPeriodS * 1000)
+      this._repeater = setInterval(
+        () => {  
+          this._triggerSocketEvent(null, objWidget.options.currentAxes )
+        },
+        this.options.data.topicPeriodS * 1000
+      )
     }
   },
 
