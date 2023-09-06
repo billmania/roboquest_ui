@@ -1,3 +1,5 @@
+'use strict'
+
 console.clear()
 console.info('Version 2 starting')
 
