@@ -4,11 +4,16 @@
  * assigned to the first topicAttribute and the y-axis value is assigned to
  * the second attribute.
  *
- * Code copied from https://github.com/bobboteck/JoyStick
+ * $.widget() uses the jQuery widget factory to to add a plugin in the
+ * "custom" namespace.
+ *
+ * Initial idea from https://github.com/bobboteck/JoyStick
  */
 $.widget('custom.JOYSTICK', {
   /*
-   * The "options" property is preserved after the widget is created.
+   * The "options" property is preserved after the widget is created. The
+   * properties defined here are populated outside of this source file.
+   * Other properties are added by logic outside of this source file.
    */
   options: {
     socket: null,
@@ -27,11 +32,9 @@ $.widget('custom.JOYSTICK', {
      * object as a callback and as a utility function by the key event
      * handler.
      *
-     * @param {object) axisData - an object with two properties, x and y.
+     * @param {object} axisData - an object with two properties, x and y.
      */
     valuesHandler: function (axesData) {
-      console.debug(`valuesHandler: ${JSON.stringify(axesData)}`)
-
       this.options.currentAxes = axesData
       if (typeof this.options.data.topicPeriodS === 'undefined'
           || this.options.data.topicPeriodS === 0
@@ -42,7 +45,6 @@ $.widget('custom.JOYSTICK', {
   },
 
   _create: function () {
-    const objWidget = this
     if (!this.options.data.scale) {
       this.options.data.scale = [1, 1]
     }
@@ -65,11 +67,17 @@ $.widget('custom.JOYSTICK', {
     if (this.options.data.topicPeriodS) {
       this._repeater = setInterval(
         () => {  
-          this._triggerSocketEvent(null, objWidget.options.currentAxes )
+          this._triggerSocketEvent(null, this.options.currentAxes )
         },
         this.options.data.topicPeriodS * 1000
       )
     }
+
+    /*
+     * An ugly way to share access to the function which emits joystick
+     * axis values, so the key event drive mode can use it.
+     */
+    joystickValuesHandler = this.options.valuesHandler.bind(this)
   },
 
   _triggerSocketEvent: function (event, axisValues) {

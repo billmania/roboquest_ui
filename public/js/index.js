@@ -4,6 +4,20 @@ console.clear()
 console.info('Version 2 starting')
 
 let keyDriveEnabled = false
+/*
+ * An ugly mechanism, using a global variable, to gain access to the same
+ * function used by the joystick to emit values. The_create() function in
+ * wJoystick.js sets joystickValuesHandler to the callback function used
+ * by the joystick when the axis values change.
+ */
+let joystickValuesHandler = null
+const keyboardActions = {
+  38: { name: 'Forward', axisValues: { x: 0, y: 40 }},
+  40: { name: 'Reverse', axisValues: { x: 0, y: -40 }},
+  37: { name: 'Left', axisValues: { x: 40, y: 0 }},
+  39: { name: 'Right', axisValues: { x: -40, y: 0 }},
+  32: { name: 'Stop', axisValues: { x: 0, y: 0 }}
+}
 
 /**
  * Respond to a click on the KEY DRIVE "button". Update the text of the button,
@@ -17,7 +31,7 @@ let keyDriveEnabled = false
 const keyDriveControl = function (eventData) {
   if (!keyDriveEnabled) {
     $(window).on("keydown", (eventData) => {
-      console.debug(`keyHandler: key ${eventData.which}`)
+      keyDriveHandler(eventData.which)
     })
     $('#keyDrive').text('DRIVE OFF')
     keyDriveEnabled = true
@@ -28,6 +42,21 @@ const keyDriveControl = function (eventData) {
     keyDriveEnabled = false
     console.info('KeyDrive mode disabled')
   }
+}
+
+/**
+ * Based on the key specified in which Key, command some drive motor
+ * motion using the same mechanism as the joystick.
+ *
+ * @param {number} whichKey - a number specifiying which key was pressed
+ */
+const keyDriveHandler = function (whichKey) {
+  if (!Object.hasOwn(keyboardActions, whichKey)) {
+    console.warn(`keyDriveHandler: ${whichKey} not in the list`)
+    return
+  }
+  
+  joystickValuesHandler(keyboardActions[whichKey].axisValues)
 }
 
 const getNextId = function () {
@@ -67,9 +96,13 @@ $(window).on("resize", function() {
  * via the configuration menu.
  */
 const createWidget = function (objWidget, objSocket) {
+
+  // widget types are uppercase to avoid conflicts with jquery ui widget names
   const widgetTypeUpper = objWidget.type.toUpperCase()
 
-  const widgetContainer = $(`<div class="widget ${widgetTypeUpper}" data-widget-id="' + widget.id + '"></div>`)
+  const widgetContainer = $(
+    `<div class="widget ${widgetTypeUpper}" data-widget-id="' + widget.id + '"></div>`
+  )
   const widgetHeader = '<div class="widget-header">' + objWidget.label + '</div>'
   const widgetContent = '<div class="widget-content"></div>'
   $(widgetHeader).appendTo(widgetContainer)
@@ -78,7 +111,10 @@ const createWidget = function (objWidget, objSocket) {
   // store the data for the widget WITH the widget
   $(widgetContainer).data('widget', objWidget)
 
-  // widget types are uppercase to avoid conflicts with jquery ui widget names
+
+  console.group('createWidget')
+  console.debug(`${JSON.stringify(objWidget)}`)
+  console.groupEnd('createWidget')
   $(widgetContainer)[widgetTypeUpper](
       { ...objWidget, socket: objSocket }
     ).appendTo(
@@ -87,12 +123,13 @@ const createWidget = function (objWidget, objSocket) {
       {
       handle: '.widget-header',
       snap: true,
+
+      /*
+       * This function may be called once when the dragging of a widget
+       * stops.
+       */
       stop: function (event, ui) {
-        /*
-        const widgetId = $(this).data('widget-id')
-        const widgetPosition = $(this).position()
-        console.log(widgetId, widgetPosition)
-        */
+        console.debug('Empty stop function called')
       }
   })
 }
