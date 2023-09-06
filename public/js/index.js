@@ -1,3 +1,64 @@
+'use strict'
+
+console.clear()
+console.info('Version 2 starting')
+
+let keyDriveEnabled = false
+/*
+ * An ugly mechanism, using a global variable, to gain access to the same
+ * function used by the joystick to emit values. The_create() function in
+ * wJoystick.js sets joystickValuesHandler to the callback function used
+ * by the joystick when the axis values change.
+ */
+let joystickValuesHandler = null
+const keyboardActions = {
+  38: { name: 'Forward', axisValues: { x: 0, y: 40 }},
+  40: { name: 'Reverse', axisValues: { x: 0, y: -40 }},
+  37: { name: 'Left', axisValues: { x: 40, y: 0 }},
+  39: { name: 'Right', axisValues: { x: -40, y: 0 }},
+  32: { name: 'Stop', axisValues: { x: 0, y: 0 }}
+}
+
+/**
+ * Respond to a click on the KEY DRIVE "button". Update the text of the button,
+ * set the handling of keyboard events appropriate for the new state, and update
+ * keyDriveState.
+ * When keyboard driving is enabled, the keystrokes will be captured anywhere on
+ * the browser page.
+ *
+ * @param {object} eventData - data associated with the click event
+ */
+const keyDriveControl = function (eventData) {
+  if (!keyDriveEnabled) {
+    $(window).on("keydown", (eventData) => {
+      keyDriveHandler(eventData.which)
+    })
+    $('#keyDrive').text('DRIVE OFF')
+    keyDriveEnabled = true
+    console.info('KeyDrive mode enabled')
+  } else{
+    $(window).off("keydown")
+    $('#keyDrive').text('KEY DRIVE')
+    keyDriveEnabled = false
+    console.info('KeyDrive mode disabled')
+  }
+}
+
+/**
+ * Based on the key specified in which Key, command some drive motor
+ * motion using the same mechanism as the joystick.
+ *
+ * @param {number} whichKey - a number specifiying which key was pressed
+ */
+const keyDriveHandler = function (whichKey) {
+  if (!Object.hasOwn(keyboardActions, whichKey)) {
+    console.warn(`keyDriveHandler: ${whichKey} not in the list`)
+    return
+  }
+  
+  joystickValuesHandler(keyboardActions[whichKey].axisValues)
+}
+
 const getNextId = function () {
   let intId = 0
   $('.widget').each((i, element) => {
@@ -30,16 +91,31 @@ $(window).on("resize", function() {
   positionWidgets()
 })
 
+/**
+ * Instantiate a widget defined in the configuration file or
+ * via the configuration menu.
+ */
 const createWidget = function (objWidget, objSocket) {
-  const widgetContainer = $(`<div class="widget ${objWidget.type.toUpperCase()}" data-widget-id="' + widget.id + '"></div>`)
+
+  // widget types are uppercase to avoid conflicts with jquery ui widget names
+  const widgetTypeUpper = objWidget.type.toUpperCase()
+
+  const widgetContainer = $(
+    `<div class="widget ${widgetTypeUpper}" data-widget-id="' + widget.id + '"></div>`
+  )
   const widgetHeader = '<div class="widget-header">' + objWidget.label + '</div>'
   const widgetContent = '<div class="widget-content"></div>'
   $(widgetHeader).appendTo(widgetContainer)
   $(widgetContent).appendTo(widgetContainer)
+
   // store the data for the widget WITH the widget
   $(widgetContainer).data('widget', objWidget)
-  // widget types are uppercase to avoid conflicts with jquery ui widget names
-  $(widgetContainer)[objWidget.type.toUpperCase()](
+
+
+  console.group('createWidget')
+  console.debug(`${JSON.stringify(objWidget)}`)
+  console.groupEnd('createWidget')
+  $(widgetContainer)[widgetTypeUpper](
       { ...objWidget, socket: objSocket }
     ).appendTo(
       '#widgets'
@@ -47,25 +123,25 @@ const createWidget = function (objWidget, objSocket) {
       {
       handle: '.widget-header',
       snap: true,
+
+      /*
+       * This function may be called once when the dragging of a widget
+       * stops.
+       */
       stop: function (event, ui) {
-        /*
-        const widgetId = $(this).data('widget-id')
-        const widgetPosition = $(this).position()
-        console.log(widgetId, widgetPosition)
-        */
+        console.debug('Empty stop function called')
       }
   })
 }
 
 $(function () {
-  // const objSocket = io ('192.168.1.150:3456') // for development
   const objSocket = io(`${window.location.hostname}:${window.location.port}`,
     {
       transports: ['websocket'], 
       upgrade: false, 
-      pingTimeout: 1000, 
-      pingInterval: 1000,
-      timeout: 1000
+      pingTimeout: RQ_PARAMS.PING_TIMEOUT_MS, 
+      pingInterval: RQ_PARAMS.PING_INTERVAL_MS,
+      timeout: RQ_PARAMS.SOCKET_TIMEOUT_MS
     }
   )
   objSocket.on('connect', () => {
@@ -84,12 +160,15 @@ $(function () {
     $('#mainImage').attr("src", imgDisconnected.src)
   })
 
-  // convert the image buffer to a base64 string and set the image source for main video
   objSocket.on('mainImage', (bufImage) => {
     const strImage = btoa(String.fromCharCode(...new Uint8Array(bufImage)))
     document.getElementById('mainImage').src = `data:image/jpeg;base64,${strImage}`
   })
 
+  /**
+   * Use the details of a new widget, collected via the configuration menu, to
+   * instantiate and position a new widget.
+   */
   const addWidget = function () {
     const objNewWidget = {
       position: {},
@@ -115,6 +194,7 @@ $(function () {
     createWidget(objNewWidget, objSocket)
     positionWidgets()
   }
+
   $('#newWidget').dialog({
     width: 500,
     autoOpen: false,
@@ -129,7 +209,6 @@ $(function () {
     }
   })
 
-  // setup the configuration menu
   $('#menuDialog').dialog({
     width: 500,
     autoOpen: false,
@@ -140,6 +219,9 @@ $(function () {
   })
   $('#configure').on('click', function () {
     $('#menuDialog').dialog('open')
+  })
+  $('#keyDrive').on('click', (eventData) => {
+    keyDriveControl(eventData)
   })
   $('#setSocket').on('click', function () {
     objSocket.io.uri = $('#socketUri').val()
@@ -208,7 +290,6 @@ $(function () {
     }
   })
 
-  // read the default config
   $.ajax({
     url: RQ_PARAMS.CONFIG_FILE,
     dataType: 'json',
