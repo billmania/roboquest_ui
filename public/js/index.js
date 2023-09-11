@@ -1,7 +1,7 @@
 'use strict'
-
 console.clear()
-console.info('Version 2 starting')
+console.info(`rq_ui version ${RQ_PARAMS.VERSION} starting`)
+console.info(`rq_ui config format version ${RQ_PARAMS.CONFIG_FORMAT_VERSION}`)
 
 let keyDriveEnabled = false
 /*

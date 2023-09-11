@@ -1,4 +1,5 @@
 {
+    "version": 3,
     "widgets":[
         {
             "id": 0,
@@ -374,7 +375,8 @@
                 "topicType": "geometry_msgs/msg/TwistStamped",
                 "topicDirection": "publish",
                 "topicPeriodS": 1
-            }
+            },
+            "keys": [ 38, 40, 37, 39 ]
         },
         {
             "id": 19,
