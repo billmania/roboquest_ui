@@ -96,25 +96,27 @@ $(window).on("resize", function() {
  * via the configuration menu.
  */
 const createWidget = function (objWidget, objSocket) {
-
-  // widget types are uppercase to avoid conflicts with jquery ui widget names
+  // TODO: Instead of using upper case widget names for unique-ness, use the
+  // TODO: rq widget namespace.
   const widgetTypeUpper = objWidget.type.toUpperCase()
 
   const widgetContainer = $(
-    `<div class="widget ${widgetTypeUpper}" data-widget-id="' + widget.id + '"></div>`
+    `<div class="widget ${widgetTypeUpper}" id="` + widget.id + `"></div>`
   )
   const widgetHeader = '<div class="widget-header">' + objWidget.label + '</div>'
   const widgetContent = '<div class="widget-content"></div>'
   $(widgetHeader).appendTo(widgetContainer)
   $(widgetContent).appendTo(widgetContainer)
 
+  // TODO: Extract any keyboard configuration from the widget configuration
+
   // store the data for the widget WITH the widget
   $(widgetContainer).data('widget', objWidget)
-
 
   console.group('createWidget')
   console.debug(`${JSON.stringify(objWidget)}`)
   console.groupEnd('createWidget')
+
   $(widgetContainer)[widgetTypeUpper](
       { ...objWidget, socket: objSocket }
     ).appendTo(
