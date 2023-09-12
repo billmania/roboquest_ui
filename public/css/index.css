@@ -154,7 +154,7 @@ input, select{
     )
 }
 
-#keyDrive {
+#keyControl {
     cursor: pointer;
     position: absolute;
     top: 5px;

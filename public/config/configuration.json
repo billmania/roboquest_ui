@@ -167,86 +167,6 @@
             }
         },
         {
-            "id": 8,
-            "type": "value",
-            "label": "adc1V",
-            "position": {
-                "at": "left+1262 top+758",
-                "my": "left top"
-            },
-            "format": {
-                "textColor": "#fff",
-                "prefix": "ADC1 V ",
-                "suffix": ""
-            },
-            "data": {
-                "topic": "telemetry",
-                "topicType": "rq_msgs/msg/Telemetry",
-                "topicDirection": "subscribe",
-                "topicAttribute": "adc1_v"
-            }
-        },
-        {
-            "id": 9,
-            "type": "value",
-            "label": "adc2V",
-            "position": {
-                "at": "left+1474 top+758",
-                "my": "left top"
-            },
-            "format": {
-                "textColor": "#fff",
-                "prefix": "ADC2 V ",
-                "suffix": ""
-            },
-            "data": {
-                "topic": "telemetry",
-                "topicType": "rq_msgs/msg/Telemetry",
-                "topicDirection": "subscribe",
-                "topicAttribute": "adc2_v"
-            }
-        },
-        {
-            "id": 10,
-            "type": "value",
-            "label": "adc3V",
-            "position": {
-                "at": "left+1262 top+820",
-                "my": "left top"
-            },
-            "format": {
-                "textColor": "#fff",
-                "prefix": "ADC3 V ",
-                "suffix": ""
-            },
-            "data": {
-                "topic": "telemetry",
-                "topicType": "rq_msgs/msg/Telemetry",
-                "topicDirection": "subscribe",
-                "topicAttribute": "adc3_v"
-            }
-        },
-        {
-            "id": 11,
-            "type": "value",
-            "label": "adc4V",
-            "position": {
-                "at": "left+1474 top+820",
-                "my": "left top"
-            },
-            "format": {
-                "textColor": "#fff",
-                "prefix": "ADC4 V ",
-                "suffix": ""
-            },
-            "data": {
-                "topic": "telemetry",
-                "topicType": "rq_msgs/msg/Telemetry",
-                "topicDirection": "subscribe",
-                "topicAttribute": "adc4_v"
-            }
-        },
-        {
             "id": 12,
             "type": "button",
             "label": "chargerOn",
@@ -376,7 +296,28 @@
                 "topicDirection": "publish",
                 "topicPeriodS": 1
             },
-            "keys": [ 38, 40, 37, 39 ]
+            "keys": {
+              "38": {
+                "name": "forward",
+                "downValues": { "x": 0, "y": 50 },
+                "upValues": { "x": 0, "y": 0 }
+              },
+              "40": {
+                "name": "reverse",
+                "downValues": { "x": 0, "y": -50 },
+                "upValues": { "x": 0, "y": 0 }
+              },
+              "37": {
+                "name": "left",
+                "downValues": { "x": 50, "y": 0 },
+                "upValues": { "x": 0, "y": 0 }
+              },
+              "39": {
+                "name": "right",
+                "downValues": { "x": -50, "y": 0 },
+                "upValues": { "x": 0, "y": 0 }
+              }
+            }
         },
         {
             "id": 19,
@@ -404,6 +345,16 @@
                 ],
                 "topicType": "rq_msgs/msg/ServoAngles",
                 "topicPeriodS": 1
+            },
+            "keys": {
+              "81": {
+                "name": "left",
+                "downValues": { "name": "Left", "value": -10 }
+              },
+              "87": {
+                "name": "right",
+                "upValues": { "name": "Right", "value": 10 }
+              }
             }
         },
         {

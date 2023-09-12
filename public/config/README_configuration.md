@@ -138,12 +138,44 @@ the widget properties have the following sections:
 
 * data.scale : (joystick) floating point values array [x, y]
 
-* keys: (joystick) the keycodes in the order forward, reverse, left, right,
-                   for example [ 38, 40, 37, 39 ]. keydown starts
-                   the action, keyup stops the action
-        (slider) the keycodes in the order left|up, right|down, for example
-                 [ 81, 87 ] keydown causes one instance of the
-                 action, keyup has no effect
-        (button) the keycode equivalent to clicking the button.
-        keydown causes one instance of the action, keyup has no
-        effect
+* keys: how keycodes map to widget actions. individual keycodes may only appear once
+        in the configuration file. the quantity of keycodes per widget is limited
+        only by the quantity of available keycodes. the format of the downValues and
+        upValues object is fixed for each widget type. either downValues or upvalues
+        may be absent from the keycode object.
+
+    (joystick)
+            "keys": {
+              "38": {
+                "name": "forward",
+                "downValues": { "x": 0, "y": 50 },
+                "upValues": { "x": 0, "y": 0 }
+              },
+              "40": {
+                "name": "reverse",
+                "downValues": { "x": 0, "y": -50 },
+                "upValues": { "x": 0, "y": 0 }
+              },
+              "37": {
+                "name": "left",
+                "downValues": { "x": 50, "y": 0 },
+                "upValues": { "x": 0, "y": 0 }
+              },
+              "39": {
+                "name": "right",
+                "downValues": { "x": -50, "y": 0 },
+                "upValues": { "x": 0, "y": 0 }
+              }
+            }
+
+    (slider)
+            "keys": { 
+              "81": { 
+                "name": "left", 
+                "downValues": { "name": "Left", "value": -10 } 
+              }, 
+              "87": { 
+                "name": "right", 
+                "upValues": { "name": "Right", "value": 10 } 
+              } 
+            }
