@@ -1,12 +1,25 @@
-$.widget('custom.BUTTON', {
+'use strict'
+/* global jQuery, RQ_PARAMS */
+
+jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.BUTTON', {
   options: {
     format: {},
     data: {},
     socket: null
   },
 
+  /**
+   * Called by the key event handler and in turn calls the _triggerSocketEvent
+   * method. In the case of this widgetType, valuesHandler merely calls
+   * _triggerSocketEvent() because a button produces no more data than its
+   * click event.
+   */
+  valuesHandler: function () {
+    this._triggerSocketEvent()
+  },
+
   _create: function () {
-    const buttonElement = $('<div class="widgetButton">').text(this.options.format.text).button().appendTo(this.element)
+    const buttonElement = jQuery('<div class="widgetButton">').text(this.options.format.text).button().appendTo(this.element)
     this.element.children('.widget-content').html(buttonElement)
     buttonElement.on('click', () => {
       this._triggerSocketEvent()
@@ -15,8 +28,10 @@ $.widget('custom.BUTTON', {
 
   _triggerSocketEvent: function () {
     if (this.options.socket) {
-      // console.log(`Emitting ${this.options.data.service} with {${this.options.data.serviceAttribute}:${this.options.data.clickValue}}`)
-      this.options.socket.emit(this.options.data.service, `{"${this.options.data.serviceAttribute}":"${this.options.data.clickValue}"}`)
+      this.options.socket.emit(
+        this.options.data.service,
+        `{"${this.options.data.serviceAttribute}":"${this.options.data.clickValue}"}`
+      )
     } else {
       console.error('Socket is not defined.')
     }
