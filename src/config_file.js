@@ -19,19 +19,27 @@ class ConfigFile {
 
   /**
    * If the configuration file does not exist in the persistence
-   * directory, copy the image version of the file to the persistence
-   * directory.
+   * directory or if it is not the latest version, copy the image
+   * version of the file to the persistence directory.
    */
   _setup_config () {
     if (fs.existsSync(RQ_PARAMS.CONFIG_FILE)) {
-      return true
+      const configuration = this.get_config()
+
+      if (configuration.version === RQ_PARAMS.CONFIG_FORMAT_VERSION) {
+        return true
+      } else {
+        console.warn(`replacing config file v${configuration.version}`)
+      }
     } else {
-      fs.copyFileSync(
-        RQ_PARAMS.DEFAULT_CONFIG_FILE,
-        RQ_PARAMS.CONFIG_FILE
-      )
-      console.log(`config file setup ${RQ_PARAMS.CONFIG_FILE}`)
+      console.warn('config file did not exist')
     }
+
+    fs.copyFileSync(
+      RQ_PARAMS.DEFAULT_CONFIG_FILE,
+      RQ_PARAMS.CONFIG_FILE
+    )
+    console.info(`config file v${RQ_PARAMS.CONFIG_FORMAT_VERSION} setup`)
   }
 
   /**
@@ -54,7 +62,7 @@ class ConfigFile {
       }
       fs.renameSync(RQ_PARAMS.CONFIG_FILE, oldConfigFile)
     } catch (error) {
-      console.log('save_config: Error saving old config file')
+      console.warn('save_config: Error saving old config file')
       return false
     }
 
@@ -62,7 +70,7 @@ class ConfigFile {
       try {
         configuration = JSON.parse(configuration)
       } catch (error) {
-        console.log('save_config: Exception parsing')
+        console.warn('save_config: Exception parsing')
         return false
       }
     }
@@ -85,7 +93,6 @@ class ConfigFile {
    */
   get_config () {
     const configuration = fs.readFileSync(RQ_PARAMS.CONFIG_FILE)
-    console.log(`get_config: from ${RQ_PARAMS.CONFIG_FILE}`)
 
     return JSON.parse(configuration)
   }

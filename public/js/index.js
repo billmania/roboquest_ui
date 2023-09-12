@@ -1,63 +1,9 @@
 'use strict'
 
-console.clear()
-console.info('Version 2 starting')
+console.info(`rq_ui version ${RQ_PARAMS.VERSION} starting`)
+console.info(`rq_ui config format version ${RQ_PARAMS.CONFIG_FORMAT_VERSION}`)
 
-let keyDriveEnabled = false
-/*
- * An ugly mechanism, using a global variable, to gain access to the same
- * function used by the joystick to emit values. The_create() function in
- * wJoystick.js sets joystickValuesHandler to the callback function used
- * by the joystick when the axis values change.
- */
-let joystickValuesHandler = null
-const keyboardActions = {
-  38: { name: 'Forward', axisValues: { x: 0, y: 40 }},
-  40: { name: 'Reverse', axisValues: { x: 0, y: -40 }},
-  37: { name: 'Left', axisValues: { x: 40, y: 0 }},
-  39: { name: 'Right', axisValues: { x: -40, y: 0 }},
-  32: { name: 'Stop', axisValues: { x: 0, y: 0 }}
-}
-
-/**
- * Respond to a click on the KEY DRIVE "button". Update the text of the button,
- * set the handling of keyboard events appropriate for the new state, and update
- * keyDriveState.
- * When keyboard driving is enabled, the keystrokes will be captured anywhere on
- * the browser page.
- *
- * @param {object} eventData - data associated with the click event
- */
-const keyDriveControl = function (eventData) {
-  if (!keyDriveEnabled) {
-    $(window).on("keydown", (eventData) => {
-      keyDriveHandler(eventData.which)
-    })
-    $('#keyDrive').text('DRIVE OFF')
-    keyDriveEnabled = true
-    console.info('KeyDrive mode enabled')
-  } else{
-    $(window).off("keydown")
-    $('#keyDrive').text('KEY DRIVE')
-    keyDriveEnabled = false
-    console.info('KeyDrive mode disabled')
-  }
-}
-
-/**
- * Based on the key specified in which Key, command some drive motor
- * motion using the same mechanism as the joystick.
- *
- * @param {number} whichKey - a number specifiying which key was pressed
- */
-const keyDriveHandler = function (whichKey) {
-  if (!Object.hasOwn(keyboardActions, whichKey)) {
-    console.warn(`keyDriveHandler: ${whichKey} not in the list`)
-    return
-  }
-  
-  joystickValuesHandler(keyboardActions[whichKey].axisValues)
-}
+const keyControl = new KeyControl('#keyControl')
 
 const getNextId = function () {
   let intId = 0
@@ -96,25 +42,30 @@ $(window).on("resize", function() {
  * via the configuration menu.
  */
 const createWidget = function (objWidget, objSocket) {
-
-  // widget types are uppercase to avoid conflicts with jquery ui widget names
+  // TODO: Instead of using upper case widget names for unique-ness, use the
+  // TODO: rq widget namespace.
   const widgetTypeUpper = objWidget.type.toUpperCase()
 
   const widgetContainer = $(
-    `<div class="widget ${widgetTypeUpper}" data-widget-id="' + widget.id + '"></div>`
+    `<div class="widget ${widgetTypeUpper}" id="${objWidget.label}"></div>`
   )
   const widgetHeader = '<div class="widget-header">' + objWidget.label + '</div>'
   const widgetContent = '<div class="widget-content"></div>'
   $(widgetHeader).appendTo(widgetContainer)
   $(widgetContent).appendTo(widgetContainer)
 
+  // TODO: Extract any keyboard configuration from the widget configuration
+  if (Object.hasOwn(objWidget, 'keys')) {
+    keyControl.addKeysForWidget(objWidget)
+  }
+
   // store the data for the widget WITH the widget
   $(widgetContainer).data('widget', objWidget)
-
 
   console.group('createWidget')
   console.debug(`${JSON.stringify(objWidget)}`)
   console.groupEnd('createWidget')
+
   $(widgetContainer)[widgetTypeUpper](
       { ...objWidget, socket: objSocket }
     ).appendTo(

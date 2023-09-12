@@ -2,39 +2,72 @@
 
 ## Description
 
-The file configuration.json is used by both the backend and frontend of the RoboQuest
-application software. The backend uses it to determine how to connect to the ROS
-graph for topic subscriptions, topic publishing, and service calls. The frontend
-uses it to setup the widgets on the browser pages and associate two-way ROS-based 
-data flow with them.
+The file configuration.json is used by both the backend and
+frontend of the RoboQuest application software. The backend uses
+it to support the UI widgets by determining where to connect to
+the ROS graph for consuming from topics, producing to topics and
+calling services. The frontend uses it to setup the widgets on the
+browser page and associate two-way ROS-based data flow with
+them.
 
-There are two locations for the configuration file: /public/config and
-/public/persist. When the server receives a GET request for the configuration, if
-the file exists in /public/persist, that file is returned and /public/config is ignored.
-Otherwise, the file from /public/config is returned.
+There are two locations for the configuration file:
+/public/config and /public/persist. The config directory is the
+default version and the persist directory contains the current
+configuration. At startup, the server checks for a
+configuration.json file in /public/persist. If none exists, the
+file from /public/config is copied to /public/persist. If a file
+does exist in the persist directory the value of its version
+property is compared with the same property in the config
+directory. If they're the same, the persist copy is not modified.
+If they're different, the file in persist is replaced with the
+file from config. This may necessitate a reconfiguration of the
+UI.
 
-When the server receives a POST request to save a modified version of the
-configuration, it's always written to /public/persist. On a new, never-before-used
-installation, the configuration file exists only in the /public/config directory.
-/public/persist is a reference to a docker volume on the host OS filesystem and is
-the means for making a modified configuration available for both new container instances
-and new images.
+
+/public/persist is a reference to a directory on the host OS
+filesystem and is the means for making a modified configuration
+available for both new container instances and new images. It
+also makes the UI configuration file contents available outside
+of the RoboQuest application
 
 ## Sections
 
-The configuration file has four main sections and then several key-value pairs.
+The configuration file has two sections, identified with the
+properties "widgets" and "version"
+
+### version
+
+This document describes version 3 of the configuration file.
 
 ### widgets
 
-The definition of the widgets placed on the page. The "widgets" property is
-an array of objects uniquely identified with the properties "type" and "id".
+The definition of the widgets placed on the page. The "widgets"
+property is an array of objects uniquely identified with the two
+properties "type" and "id" and separately by the one property
+"label".
 
-widget types:
-        value: displayed float value
-        button: emit a value when clicked
-        indicator: display boolean state
-        slider: emit value in a range
-        joystick: emit x,y values in a range
+The are five widget types. New widgets can't be added at
+run-time. Each widget has specific functionality and capability
+which can't be modified at run-time. What is configured and
+modified at run-time, via the browser UI, is how those widgets
+interact with and control the application software.
+
+The five widget types are:
+
+        value: displays a numerical value by subscribing to a
+               ROS topic numerical attribute
+
+        button: the means for calling a ROS service with a
+                configurable set of values
+
+        indicator: displays one of two possible values based on
+                   subscribing to a ROS topic boolean attribute
+
+        slider: the means for publishing single numerical values onto a
+                ROS topic
+
+        joystick: the means for publishing pairs of numerical
+                  values continuously onto a ROS topic
 
 #### widget properties
 
@@ -43,6 +76,7 @@ widget types:
 [position lib](https://jqueryui.com/position/)
 [button lib](https://jqueryui.com/button/)
 [slider lib](https://jqueryui.com/slider/)
+[joystick source](https://github.com/bobboteck/JoyStick)
 
 the widget properties have the following sections:
         root: top level properties generic to all widgets
@@ -51,53 +85,97 @@ the widget properties have the following sections:
         data: topics and services associated with the widget
 
 * id: unique integer for each widget
-* type: string defining the widget type
-* label: string displayed on the widget header
+* type: string defining the widget type, from the set [value,
+    indicator, button, slider, joystick]
+* label: string displayed on the widget header and used to uniquely identify
+         the widget
 
-* position.my: string defining x,y of widget to position with respect to the parent
-* position.at: string defining x,y of parent to position widget
+* position.my: string defining x,y of widget's position relative to the parent
+* position.at: string defining x,y of parent's position
 
 * format.prefix: (value) string prepended to the value before displaying
 * format.suffix: (value) string appended to the value before displaying
 * format.precision: (value) number of decimal places to display for values 
 
-* format.trueText: (state) string displayed when state is true
-* format.falseText: (state) string displayed when state is false
-* format.trueColor: (state) color of text when state is true
-* format.falseColor: (state) color of text when state is false
+* format.trueText: (indicator) string displayed when state is true
+* format.falseText: (indicator) string displayed when state is false
+* format.trueColor: (indicator) color of text when state is true
+* format.falseColor: (indicator) color of text when state is false
 
 * format.min: (slider) minimum value of slider
 * format.max: (slider) maximum value of slider
-* format.step: (slider) increment value of slider
+* format.step: (slider) increment value of dragging slider. when dragging
+                        the slider a new value isn't emitted until it's at
+                        least this amount different from the previous value
 * format.orientation: (slider) horizontal or vertical
 * format.default: (slider) default value of slider
 * format.animate: (slider) true | false animate the slider when clicking to jump values
  
 * format.text: (button) string displayed on the button
 
-* data.topic: (value, state, joystick) ROS topic to subscribe to
-* data.topicType: (value, state, joystick) ROS message type of the topic
-* data.topicDirection: (value, state, joystick) ROS topic direction (pub/sub)
-* data.topicAttribute: (value, state) ROS message attribute to display
-* data.topicPeriodS: (joystick, slider) Only when data.topicDirection is "publish",
-                                        the browser UI will continually publish the
-                                        current value with a period of
-                                        data.topicPeriodS seconds
+* data.topic: (value, indicator) ROS topic to subscribe
+              (slider, joystick) ROS topic to publish
+
+* data.topicType: (value, indicator, slider, joystick) ROS message type of
+                                                       the topic
+* data.topicDirection: (value, indicator, slider,  joystick)
+                                            publish or subscribe
+* data.topicAttribute: (value, indicator) single ROS message attribute to
+                                          display
+                       (joystick) ["x string path to attribute",
+                                   "y string path to attribute"]
+                       (slider) ["string path numeric value",
+                                 "string path name associated"]
+* data.topicPeriodS: (joystick) Only when data.topicDirection is "publish",
+                                the browser UI will continually publish the
+                                current value with a period of
+                                data.topicPeriodS seconds
   
 * data.service: (button) ROS service to call
 * data.serviceType: (button) ROS service type of the service
-* data.serviceAttribute: (button) ROS message attribute to display
-* data.clickValue: (button) value to emit when button is clicked
-
+* data.serviceAttribute: (button) ROS service attribute to set
+* data.clickValue: (button) value when button is clicked
 
 * data.scale : (joystick) floating point values array [x, y]
-* data.topicAttribute: (joystick) ["x string path to attribute", "y string path to attribute"]
-### config
 
-Configuration details for cameras and macros.
+* keys: how keycodes map to widget actions. individual keycodes may only appear once
+        in the configuration file. the quantity of keycodes per widget is limited
+        only by the quantity of available keycodes. the format of the downValues and
+        upValues object is fixed for each widget type. either downValues or upvalues
+        may be absent from the keycode object.
 
-#### cams
+    (joystick)
+            "keys": {
+              "38": {
+                "name": "forward",
+                "downValues": { "x": 0, "y": 50 },
+                "upValues": { "x": 0, "y": 0 }
+              },
+              "40": {
+                "name": "reverse",
+                "downValues": { "x": 0, "y": -50 },
+                "upValues": { "x": 0, "y": 0 }
+              },
+              "37": {
+                "name": "left",
+                "downValues": { "x": 50, "y": 0 },
+                "upValues": { "x": 0, "y": 0 }
+              },
+              "39": {
+                "name": "right",
+                "downValues": { "x": -50, "y": 0 },
+                "upValues": { "x": 0, "y": 0 }
+              }
+            }
 
-#### macros
-
-#### other stuff
+    (slider)
+            "keys": { 
+              "81": { 
+                "name": "left", 
+                "downValues": { "name": "Left", "value": -10 } 
+              }, 
+              "87": { 
+                "name": "right", 
+                "upValues": { "name": "Right", "value": 10 } 
+              } 
+            }
