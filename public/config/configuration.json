@@ -218,6 +218,12 @@
                 "serviceAttribute": "set_motors",
                 "serviceType": "rq_msgs/srv/Control",
                 "clickValue": "ON"
+            },
+            "keys": {
+              "190": {
+                "name": "period",
+                "downValues": {}
+              }
             }
         },
         {
@@ -236,6 +242,12 @@
                 "serviceAttribute": "set_motors",
                 "serviceType": "rq_msgs/srv/Control",
                 "clickValue": "OFF"
+            },
+            "keys": {
+              "188": {
+                "name": "comma",
+                "downValues": {}
+              }
             }
         },
         {
@@ -254,6 +266,12 @@
                 "serviceAttribute": "set_servos",
                 "serviceType": "rq_msgs/srv/Control",
                 "clickValue": "ON"
+            },
+            "keys": {
+              "83": {
+                "name": "s",
+                "downValues": {}
+              }
             }
         },
         {
@@ -272,8 +290,15 @@
                 "serviceAttribute": "set_servos",
                 "serviceType": "rq_msgs/srv/Control",
                 "clickValue": "OFF"
+            },
+            "keys": {
+              "65": {
+                "name": "a",
+                "downValues": {}
+              }
             }
-        },{
+        },
+        {
             "id": 18,
             "type": "joystick",
             "label": "Joystick",

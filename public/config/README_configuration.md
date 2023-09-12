@@ -179,3 +179,11 @@ the widget properties have the following sections:
                 "upValues": { "name": "Right", "value": 10 } 
               } 
             }
+    (button)
+            "keys": {
+              "190": {
+                "name": "period",
+                "downValues": {}
+              }
+            }
+
