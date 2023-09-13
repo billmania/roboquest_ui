@@ -165,7 +165,6 @@ $(function () {
     autoOpen: false,
     open: function (event, ui) {
       $('#newWidget').dialog('close')
-      $('#socketUri').val(objSocket.io.uri)
     }
   })
   $('#configure').on('click', function () {
@@ -173,10 +172,6 @@ $(function () {
   })
   $('#keyDrive').on('click', (eventData) => {
     keyDriveControl(eventData)
-  })
-  $('#setSocket').on('click', function () {
-    objSocket.io.uri = $('#socketUri').val()
-    objSocket.connect()
   })
   $('#addWidget').on('click', function () {
     $('#newWidget').dialog('open')
@@ -213,16 +208,6 @@ $(function () {
     }
   })
 
-  // edit corner can add a new widget by clicking or tapping, or edit a widget that is dropped into it
-  $('#edit').on('click', function () {
-    $('#newWidget').dialog('open')
-  }).droppable({
-    accept: '.widget',
-    drop: function (event, ui) {
-      console.log('dropped', ui.draggable.data('widget-id'))
-      ui.draggable.remove()
-    }
-  })
   $('#newWidget #newWidgetType').selectmenu({
     change: function (event, ui) {
       const widgetType = ui.item.value
