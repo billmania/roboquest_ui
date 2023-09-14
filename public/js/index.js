@@ -119,29 +119,38 @@ $(function () {
   /**
    * Use the details of a new widget, collected via the configuration menu, to
    * instantiate and position a new widget.
+   * It's called by clicking the "Create" button in the "Configure a New Widget"
+   * form which implies this function needs a better name.
    */
+  // TODO: Give this function a more intuitive name based on its use and effect
   const addWidget = function () {
     const objNewWidget = {
       position: {},
       format: {},
       data: {}
     }
-    $(this).find('#newWidgetForm input:visible, #newWidgetForm select:visible, #newWidgetType').each((i, element) => {
-      if (element.value) {
-        const strPropSection = $(element).data('section')
-        console.log(strPropSection, element.name, element.value)
-        if (strPropSection === 'root') {
-          objNewWidget[element.name] = element.value
+    // TODO: Replace the id newWidgetForm with configureNewWidget
+    $(this)
+      .find(
+        '#newWidgetForm input:visible, #newWidgetForm select:visible, #newWidgetType'
+      )
+      .each((i, element) => {
+        if (element.value) {
+          const strPropSection = $(element).data('section')
+          console.log(strPropSection, element.name, element.value)
+          if (strPropSection === 'root') {
+            objNewWidget[element.name] = element.value
+          }
+          if (['format', 'data'].indexOf(strPropSection) > -1) {
+            objNewWidget[strPropSection][element.name] = element.value
+          }
         }
-        if (['format', 'data'].indexOf(strPropSection) > -1) {
-          objNewWidget[strPropSection][element.name] = element.value
-        }
-      }
-    })
+      })
     // these are one off logic to string concat the values, not a nice 1-1 mapping
     objNewWidget.position.my = `${$('#widgetPositionMyX').val()} ${$('#widgetPositionMyY').val()}`
     objNewWidget.position.at = `${$('#parentPositionAtX').val()} ${$('#parentPositionAtY').val()}`
     objNewWidget.id = getNextId()
+
     createWidget(objNewWidget, objSocket)
     positionWidgets()
   }
@@ -213,7 +222,6 @@ $(function () {
       const widgetType = ui.item.value
       $('#newWidget .newWidgetType').hide()
       $(`#newWidget #${widgetType}`).show()
-      console.log('change', widgetType)
     }
   })
 
