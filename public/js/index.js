@@ -53,6 +53,19 @@ jQuery(window).on('resize', function () {
 })
 
 /**
+ * Update the recorded position of the widget with newPosition.
+ *
+ * @param {object} oldPosition - the old, complete position
+ * @param {object} newPosition - the new top and left offset
+ *
+ * @returns {object} - a complete position object
+ */
+const updateWidgetPosition = function (oldPosition, newPosition) {
+  oldPosition.at = `left+${newPosition.left} top+${newPosition.top}`
+  return oldPosition
+}
+
+/**
  * Instantiate a widget defined in the configuration file or
  * via the configuration menu.
  *
@@ -115,11 +128,20 @@ const createWidget = function (objWidget, objSocket) {
     },
     stop: function (event, ui) {
       const widgetId = event.target.id
+      const widgetPosition = jQuery('#' + widgetId).data('widget').position
       console.debug(
         `drag stopped on ${widgetId}` +
         ` at offset ${JSON.stringify(jQuery('#' + widgetId).offset())}` +
         ` and position ${JSON.stringify(jQuery('#' + widgetId).position())}` +
-        ` original ${JSON.stringify(jQuery('#' + widgetId).data('widget').position)}`
+        ` original ${JSON.stringify(widgetPosition)}`
+      )
+
+      jQuery('#' + widgetId).data('widget').position = updateWidgetPosition(
+        widgetPosition,
+        jQuery('#' + widgetId).position()
+      )
+      console.debug(
+        ` updated position to: ${JSON.stringify(jQuery('#' + widgetId).data('widget').position)}`
       )
     }
   })
