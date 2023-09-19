@@ -17,7 +17,7 @@ RQ_PARAMS.DEFAULT_CONFIG_FILE = path.join(
   __dirname, '../public/config/configuration.json')
 RQ_PARAMS.CONFIG_FILE = path.join(
   __dirname, '../public/persist/configuration.json')
-RQ_PARAMS.SERVER_PORT_NUMBER = 3456
+RQ_PARAMS.SERVER_PORT_NUMBER = 80
 
 /*
  * The interval for emitting the _counters statistics.
