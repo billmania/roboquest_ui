@@ -118,7 +118,7 @@ class ClientComms {
       'disconnect',
       (reason) => {
         this.client_connected = false
-        console.log('Socket disconnected: ' + this.socket.id + ', Reason: ' + reason)
+        console.log('Disconnected from robot: ' + reason)
         this.socket = null
       })
 

@@ -1,3 +1,6 @@
+public/persist/configuration.json
+public/persist/configuration.json.old
+
 # colcon
 build/
 install/
@@ -107,4 +110,3 @@ dist
 
 # TernJS port file
 .tern-port
-public/persist/configuration.json
