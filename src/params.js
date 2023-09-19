@@ -10,14 +10,14 @@ const path = require('path')
 const RQ_PARAMS = {}
 RQ_PARAMS.VERSION = '14rc3'
 
-RQ_PARAMS.CONFIG_FORMAT_VERSION = '3'
+RQ_PARAMS.CONFIG_FORMAT_VERSION = '4'
 RQ_PARAMS.SERVER_STATIC_DIR = path.join(
   __dirname, '../public')
 RQ_PARAMS.DEFAULT_CONFIG_FILE = path.join(
   __dirname, '../public/config/configuration.json')
 RQ_PARAMS.CONFIG_FILE = path.join(
   __dirname, '../public/persist/configuration.json')
-RQ_PARAMS.SERVER_PORT_NUMBER = 3456
+RQ_PARAMS.SERVER_PORT_NUMBER = 80
 
 /*
  * The interval for emitting the _counters statistics.

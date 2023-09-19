@@ -52,6 +52,11 @@ class WebServer {
       )
     })
 
+    this.express_app.get('/', (request, response) => {
+      const indexHtmlFile = RQ_PARAMS.SERVER_STATIC_DIR + '/index.htm'
+      response.status(200).sendFile(indexHtmlFile)
+    })
+
     this.express_app.post('/config', (request, response) => {
       const configObject = request.body
 
