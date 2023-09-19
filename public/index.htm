@@ -76,8 +76,12 @@
             </div>
 
             <div class="newWidgetType" id="slider">
-                <label>slider min:</label> <input type="text" value="" name="min" data-section="format"><br/>
-                <label>slider max:</label> <input type="text" value="" name="max" data-section="format"><br/>
+                <label>min:</label> <input type="number" value="0" name="min" data-section="format"><br/>
+                <label>max:</label> <input type="number" value="180" name="max" data-section="format"><br/>
+                <label>step:</label> <input type="number" value="10" name="step" data-section="format"><br/>
+                <label>default:</label> <input type="number" value="90" name="default" data-section="format"><br/>
+                <label>orientation:</label> <input type="text" value="horizontal" name="orientation" data-section="format"><br/>
+                <label>animate:</label> <input type="text" value="true" name="animate" data-section="format"><br/>
                 <h3>Robot Communications</h3>
                 <label>topic direction:</label> <input type="text" data-section="data" class="socket" value="publish" name="topicDirection"><br/>
                 <label>topic:</label> <input type="text" data-section="data" class="socket" value="" name="topic"><br/>

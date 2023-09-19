@@ -197,14 +197,37 @@ jQuery(function () {
         '#newWidgetForm input:visible, #newWidgetForm select:visible, #newWidgetType'
       )
       .each((i, element) => {
+        // TODO: Provide a reasonable default value for element.value
         if (element.value) {
           const strPropSection = jQuery(element).data('section')
           console.debug(strPropSection, element.name, element.value)
           if (strPropSection === 'root') {
             objNewWidget[element.name] = element.value
           }
-          if (['format', 'data'].indexOf(strPropSection) > -1) {
-            objNewWidget[strPropSection][element.name] = element.value
+          if (strPropSection === 'format') {
+            /*
+             * Some format values are integers.
+             */
+            const value = parseInt(element.value)
+            if (isNaN(value)) {
+              objNewWidget[strPropSection][element.name] = element.value
+            } else {
+              objNewWidget[strPropSection][element.name] = value
+            }
+          }
+          if (strPropSection === 'data') {
+            /*
+             * The topicAttribute element may contain multiple attributes.
+             * When found, assemble them into an Array of strings.
+             */
+            if (element.value.indexOf(RQ_PARAMS.ATTR_DELIMIT) > -1) {
+              const attributes = element.value
+                .replaceAll(' ', '')
+                .split(RQ_PARAMS.ATTR_DELIMIT)
+              objNewWidget[strPropSection][element.name] = attributes
+            } else {
+              objNewWidget[strPropSection][element.name] = element.value
+            }
           }
         }
       })

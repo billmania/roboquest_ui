@@ -21,6 +21,9 @@ RQ_PARAMS.MESSAGE_DURATION_S = 15
 RQ_PARAMS.UPDATE_FORMAT_VERSION = 1
 RQ_PARAMS.DISCONNECTED_IMAGE = 'img/background.jpg'
 
+// multiple topic attributes are delimited with this character
+RQ_PARAMS.ATTR_DELIMIT = ';'
+
 RQ_PARAMS.WIDGET_NAMESPACE = 'rq'
 RQ_PARAMS.WIDGET_CLASS = 'widget'
 RQ_PARAMS.PING_TIMEOUT_MS = 1500
