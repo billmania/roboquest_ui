@@ -69,8 +69,6 @@ const updateWidgetPosition = function (oldPosition, newPosition) {
  * Instantiate a widget defined in the configuration file or
  * via the configuration menu.
  *
- * The class RQ_PARAMS.WIDGET_CLASS is used exclusively by all RQ UI widgets, as
- * a means to retrieve the collection.
  * The widget's configuration label attribute is used to find a specific
  * widget.
  *
@@ -89,6 +87,7 @@ const createWidget = function (objWidget, objSocket) {
   // TODO: rq widget namespace.
   const widgetTypeUpper = objWidget.type.toUpperCase()
 
+  // TODO: Figure out how to replace the string 'widget' with a constant
   const widgetContainer = jQuery(
     `<div class="widget ${widgetTypeUpper}" id="${objWidget.label}"></div>`
   )

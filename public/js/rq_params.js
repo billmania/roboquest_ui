@@ -12,9 +12,9 @@
 
 const RQ_PARAMS = {}
 
-RQ_PARAMS.VERSION = '14rc3'
+RQ_PARAMS.VERSION = '15'
 
-RQ_PARAMS.CONFIG_FORMAT_VERSION = '4'
+RQ_PARAMS.CONFIG_FORMAT_VERSION = '5'
 RQ_PARAMS.CONFIG_FILE = 'persist/configuration.json'
 RQ_PARAMS.MESSAGE_DURATION_S = 15
 
@@ -24,8 +24,9 @@ RQ_PARAMS.DISCONNECTED_IMAGE = 'img/background.jpg'
 // multiple topic attributes are delimited with this character
 RQ_PARAMS.ATTR_DELIMIT = ';'
 
+// TODO: Implement use of this in public/js/index.js
 RQ_PARAMS.WIDGET_NAMESPACE = 'rq'
-RQ_PARAMS.WIDGET_CLASS = 'widget'
+
 RQ_PARAMS.PING_TIMEOUT_MS = 1500
 RQ_PARAMS.PING_INTERVAL_MS = 1500
 RQ_PARAMS.SOCKET_TIMEOUT_MS = 1000

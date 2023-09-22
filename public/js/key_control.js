@@ -11,6 +11,10 @@ class KeyControl { // eslint-disable-line no-unused-vars
    * Setup to manage key events. Requires an HTML element in the page with
    * the HTML ID set to the CSS string in keyButtonId.
    *
+   * If key events will be the primary way to command the robot, set the relevant
+   * topicPeriodS attribute to a value about twice the period of the key event repeat
+   * frequency.
+   *
    * @param {string} keyButtonId - the CSS string identifying the UI KEY button
    */
   constructor (keyButtonId) {
