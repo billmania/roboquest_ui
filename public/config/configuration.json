@@ -298,7 +298,7 @@
         ],
         "topicType": "geometry_msgs/msg/TwistStamped",
         "topicDirection": "publish",
-        "topicPeriodS": 1
+        "topicPeriodS": 3
       },
       "keys": {
         "37": {
@@ -372,7 +372,7 @@
           "name"
         ],
         "topicType": "rq_msgs/msg/ServoAngles",
-        "topicPeriodS": 1
+        "topicPeriodS": 3
       },
       "keys": {
         "81": {
@@ -416,9 +416,9 @@
           "name"
         ],
         "topicType": "rq_msgs/msg/ServoAngles",
-        "topicPeriodS": 1
+        "topicPeriodS": 3
       }
     }
   ],
-  "version": "4"
+  "version": "5"
 }

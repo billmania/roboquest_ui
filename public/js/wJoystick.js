@@ -7,9 +7,6 @@
  * assigned to the first topicAttribute and the y-axis value is assigned to
  * the second attribute.
  *
- * jQuery.widget() uses the jQuery widget factory to add a plugin in the
- * "rq" namespace.
- *
  * Initial idea from https://github.com/bobboteck/JoyStick
  */
 jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.JOYSTICK', {
@@ -23,21 +20,33 @@ jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.JOYSTICK', {
      * Hold the most recent x and y position so they can be passed
      * to _triggerSocketEvent() by the interval.
      */
-    currentAxes: { x: 0, y: 0 }
+    currentAxes: { x: 0, y: 0 },
+    skipAnInterval: false
   },
 
   /**
-   * Called when x and y axis values have changed. Used by the Joystick
-   * object as a callback and as a utility function by the key event
-   * handler.
+   * Accepts axesData (x and y value) and passes them along to _triggerSocketEvent().
+   * Used by both the Joystick widget and the KeyControl class.
+   *
+   * There is a bit of complexity due to the different way the Joystick and KeyControl
+   * send their axesData. The Joystick only calls valuesHandler() when the position of
+   * the joystick knob moves. KeyControl calls valuesHandler repeatedly as long as the
+   * key is depressed, because the OS/browser repeat the keycode for a depressed key.
+   * Further complicating matters is the setInterval() based on topicPeriodS from the
+   * configuration.
+   *
+   * If topicPeriodS is a positive number, KeyControl events could cause twice as many
+   * calls to _triggerSocketEvent - once for each repeated key event and once for every
+   * topicPeriodS interval. The skipAnInterval option is provided to deal with this.
    *
    * @param {object} axisData - an object with two properties, x and y.
    */
   valuesHandler: function (axesData) {
-    this.options.currentAxes = axesData
-    if (typeof this.options.data.topicPeriodS === 'undefined' ||
-      this.options.data.topicPeriodS === 0 ||
-      (axesData.x === 0 && axesData.y === 0)) {
+    if (this.options.currentAxes.x !== axesData.x ||
+        this.options.currentAxes.y !== axesData.y) {
+      this.options.currentAxes.x = axesData.x
+      this.options.currentAxes.y = axesData.y
+      this.options.skipAnInterval = true
       this._triggerSocketEvent(null, axesData)
     }
   },
@@ -65,6 +74,10 @@ jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.JOYSTICK', {
     if (this.options.data.topicPeriodS) {
       this._repeater = setInterval(
         () => {
+          if (this.options.skipAnInterval) {
+            this.options.skipAnInterval = false
+            return
+          }
           this._triggerSocketEvent(null, this.options.currentAxes)
         },
         this.options.data.topicPeriodS * 1000
@@ -78,6 +91,7 @@ jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.JOYSTICK', {
       console.warn('axisValues were not defined')
       return
     }
+
     objPayload[this.options.data.topicAttribute[0]] = axisValues.x * this.options.data.scale[0]
     objPayload[this.options.data.topicAttribute[1]] = axisValues.y * this.options.data.scale[1]
     this.options.socket.emit(this.options.data.topic, JSON.stringify(objPayload))
