@@ -13,6 +13,7 @@ printf "Starting %s on %s\n" "$IMAGE" $DOCKER_HOST
 docker run -it --rm \
         --network host \
         --ipc host \
+        --env "ROS_DOMAIN_ID=72" \
         -v /dev/shm:/dev/shm \
         -v /tmp/update_fifo:/tmp/update_fifo \
         -v /opt/persist:${PERSIST_DIR} \

@@ -1,6 +1,7 @@
 'use strict'
 /* global jQuery, RQ_PARAMS */
 
+// TODO: disable arrow key control of the slider when it has focus
 jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.SLIDER', {
   options: {
     socket: null,
@@ -67,8 +68,16 @@ jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.SLIDER', {
     if (this.options.socket) {
       this.element.find('.sliderCurrent').text(ui.value)
       const objPayload = {}
-      objPayload[this.options.data.topicAttribute[0]] = ui.value
-      objPayload[this.options.data.topicAttribute[1]] = this.options.label
+      /*
+       * A slider may use one or two topicAttributes. When only one, it's
+       * a string. When two, it's an Array of two strings.
+       */
+      if (this.options.data.topicAttribute instanceof Array) {
+        objPayload[this.options.data.topicAttribute[0]] = ui.value
+        objPayload[this.options.data.topicAttribute[1]] = this.options.label
+      } else {
+        objPayload[this.options.data.topicAttribute] = ui.value
+      }
       this.options.socket.emit(
         this.options.data.topic,
         JSON.stringify(objPayload)

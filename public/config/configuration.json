@@ -418,6 +418,29 @@
         "topicType": "rq_msgs/msg/ServoAngles",
         "topicPeriodS": 3
       }
+    },
+    {
+      "position": {
+        "my": "left top",
+        "at": "left+354 top+242.5833282470703"
+      },
+      "format": {
+        "min": 0,
+        "max": 100,
+        "step": 5,
+        "default": 100,
+        "orientation": "horizontal",
+        "animate": "true"
+      },
+      "data": {
+        "topicDirection": "publish",
+        "topic": "motor_speed",
+        "topicType": "rq_msgs/msg/MotorSpeed",
+        "topicAttribute": "max_speed"
+      },
+      "type": "slider",
+      "label": "MotorSpeed",
+      "id": 21
     }
   ],
   "version": "5"
