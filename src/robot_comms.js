@@ -250,8 +250,17 @@ class RobotComms {
       }
 
       default: {
-        this.logger.warn(`messages for topic ${topicName} not yet implemented`)
-        return null
+        const publishMessage = {
+          header: {
+            stamp: getRosTimestamp(),
+            frame_id: ''
+          }
+        }
+        for (const attribute in message) {
+          set(publishMessage, attribute, message[attribute])
+        }
+
+        return publishMessage
       }
     }
   }
