@@ -8,7 +8,7 @@
 const path = require('path')
 
 const RQ_PARAMS = {}
-RQ_PARAMS.VERSION = '15'
+RQ_PARAMS.VERSION = '16'
 
 RQ_PARAMS.CONFIG_FORMAT_VERSION = '5'
 RQ_PARAMS.SERVER_STATIC_DIR = path.join(
