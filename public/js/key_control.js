@@ -58,6 +58,7 @@ class KeyControl { // eslint-disable-line no-unused-vars
    *
    * @param {object} objWidget - the object describing the widget configuration
    */
+  // TODO: Change the argument to expect the keys sub-object directly so keyConfig can use it
   addKeysForWidget (objWidget) {
     for (const key in objWidget.keys) {
       this._mapKeyToWidget(

@@ -239,6 +239,31 @@ jQuery(function () {
     positionWidgets()
   }
 
+  /**
+   * Save the configuration object. Called by clicking the "save config" button
+   * and by KeyControl.
+   */
+  const saveConfig = function () {
+    const objSaveConfig = {
+      widgets: []
+    }
+    jQuery('.widget').each((i, element) => {
+      objSaveConfig.widgets.push(jQuery(element).data('widget'))
+    })
+    jQuery.ajax({
+      type: 'POST',
+      url: '/config',
+      contentType: 'application/json',
+      data: JSON.stringify(objSaveConfig),
+      success: function (objResponse) {
+        console.debug('Save Config Response', objResponse)
+      },
+      error: function (objRequest, strStatus, strError) {
+        console.error('Error saving config:', strError)
+      }
+    })
+  }
+
   jQuery('#newWidget').dialog({
     width: 500,
     autoOpen: false,
@@ -266,26 +291,10 @@ jQuery(function () {
   jQuery('#addWidget').on('click', function () {
     jQuery('#newWidget').dialog('open')
   })
-  jQuery('#saveConfig').on('click', function () {
-    const objSaveConfig = {
-      widgets: []
-    }
-    jQuery('.widget').each((i, element) => {
-      objSaveConfig.widgets.push(jQuery(element).data('widget'))
-    })
-    jQuery.ajax({
-      type: 'POST',
-      url: '/config',
-      contentType: 'application/json',
-      data: JSON.stringify(objSaveConfig),
-      success: function (objResponse) {
-        console.debug('Save Config Response', objResponse)
-      },
-      error: function (objRequest, strStatus, strError) {
-        console.error('Error saving config:', strError)
-      }
-    })
+  jQuery('#configKeys').on('click', function () {
+    console.debug('config keys clicked')
   })
+  jQuery('#saveConfig').on('click', saveConfig)
 
   jQuery('#updateSoftware').on('click', function () {
     if (objSocket.connected) {

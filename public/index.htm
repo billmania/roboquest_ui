@@ -9,8 +9,8 @@
 <link rel="stylesheet" href="./css/index.css">
 </head>
 <body>
-    <div id="configure"> CONFIGURE </div>
-    <div id="keyControl"> ENABLE KEYS </div>
+    <div id="configure">CONFIGURE</div>
+    <div id="keyControl">ENABLE KEYS</div>
     <div id="trash"></div>
     <div id="widgets"></div>
     <img id='mainImage'
@@ -22,6 +22,17 @@
             <div class="menuButton" id="updateSoftware">update robot software</div>
             <div class="menuButton" id="saveConfig">save config</div>
             <div class="menuButton" id="addWidget">add widget</div>
+            <div class="menuButton" id="configKeys">config keys</div>
+        </form>
+    </div>
+    <div id="configKeysDialog" title="Configure widget keys">
+        <form id="configKeysForm">
+            <label>action:</label>
+            <select id="configKeysAction" name="action" data-section="root">
+                <option value="change">Change</option>
+                <option value="add">Add</option>
+                <option value="delete">Delete</option>
+            </select>
         </form>
     </div>
     <div id="newWidget" title="Configure a New Widget">
