@@ -269,10 +269,11 @@ jQuery(function () {
    * assigned to widgets.
    */
   const configKeys = function () {
-    const allWidgets = keyControl.getKeyedWidgets()
+    keyControl.getKeyedWidgets()
 
     jQuery('#configKeysDialog').dialog('open')
     jQuery('#configKeysDefined').text('Defined keys: ' + keyControl.getKeysSet())
+    jQuery('#configKeysWidgetTable').html(keyControl.showWidgets())
   }
 
   jQuery('#configKeysDialog').dialog({

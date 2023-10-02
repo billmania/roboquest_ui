@@ -30,20 +30,37 @@ class KeyControl { // eslint-disable-line no-unused-vars
   }
 
   /**
-   * getKeyedWidgets returns an Array of those widgets where the
-   * type is in [ Joystick, Button, Slider ] and keys are assigned.
+   * Sort the collection of widgets by their labels.
    *
-   * @returns {Array} - list of widgets with assigned keys
+   * @param {object} first - the first widget
+   * @param {object} second - the second widget
+   */
+  _sortKeyableWidgets (first, second) {
+    const firstWidgetLabel = jQuery(first).data('widget').label
+    const secondWidgetLabel = jQuery(second).data('widget').label
+
+    if (firstWidgetLabel === secondWidgetLabel) {
+      return 0
+    } else if (firstWidgetLabel < secondWidgetLabel) {
+      return -1
+    } else {
+      return 1
+    }
+  }
+
+  /**
+   * getKeyedWidgets creates an Array of those widgets where the
+   * type is in [ Joystick, Button, Slider ]. It doesn't care if
+   * keys are assigned.
+   * This method must be called before getKeysSet().
    */
   getKeyedWidgets () {
     this._keyableWidgets = []
     const keyControl = this
     jQuery('.BUTTON, .JOYSTICK, .SLIDER').each(function (index) {
-      // TODO: Further check for defined keys
       keyControl._keyableWidgets.push(this)
     })
-
-    return this._keyableWidgets
+    keyControl._keyableWidgets.sort(this._sortKeyableWidgets)
   }
 
   /**
@@ -60,7 +77,8 @@ class KeyControl { // eslint-disable-line no-unused-vars
   }
 
   /**
-   * Return the set of assigned keys as a string.
+   * Return the set of assigned keys as a string. getKeyedWidgets()
+   * must have been called prior to calling this method.
    *
    * @returns {string} - the set of assigned keys
    */
@@ -68,7 +86,41 @@ class KeyControl { // eslint-disable-line no-unused-vars
     this._keysSet = []
     this._keyableWidgets.forEach(this._extractAssignedKeys.bind(this))
 
-    return String(this._keysSet)
+    return String(this._keysSet.sort())
+  }
+
+  /**
+   * Add an HTML table row to this._widgetsTable for the widget.
+   *
+   * @param {object} widget - the object defining the widget
+   */
+  _addWidgetRow (widget) {
+    const widgetObj = jQuery(widget).data('widget')
+    let hasKeys = 'None'
+    if (Object.hasOwn(widgetObj, 'keys')) {
+      hasKeys = 'Remove'
+    }
+    this._widgetsTable += ('<tr>' +
+      `<td>${widgetObj.label}</td>` +
+      `<td>${widgetObj.type}</td>` +
+      '<td><button id="edit">Edit</button></td>' +
+      `<td>${hasKeys}</td>` +
+      '</tr>'
+    )
+  }
+
+  /**
+   * Return an HTML table with each key-able widget on a separate row. All
+   * widgets are included, whether they have assigned keys or not.
+   *
+   * @returns {string} - HTML to define a table of widgets
+   */
+  showWidgets () {
+    this._widgetsTable = '<table><tr><th>Label</th><th>Type</th><th>Edit</th><th>Remove all</th></tr>'
+    this._keyableWidgets.forEach(this._addWidgetRow.bind(this))
+    this._widgetsTable += '</table>'
+
+    return this._widgetsTable
   }
 
   /**
