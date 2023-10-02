@@ -20,11 +20,55 @@ class KeyControl { // eslint-disable-line no-unused-vars
   constructor (keyButtonId) {
     this._keyButtonId = keyButtonId
     this._keyToWidget = {}
+    this._keyableWidgets = []
+    this._keysSet = []
     this._keyboardIsEnabled = false
 
     jQuery(this._keyButtonId).on('click', (eventData) => {
       this._handleKeysButton(eventData)
     })
+  }
+
+  /**
+   * getKeyedWidgets returns an Array of those widgets where the
+   * type is in [ Joystick, Button, Slider ] and keys are assigned.
+   *
+   * @returns {Array} - list of widgets with assigned keys
+   */
+  getKeyedWidgets () {
+    this._keyableWidgets = []
+    const keyControl = this
+    jQuery('.BUTTON, .JOYSTICK, .SLIDER').each(function (index) {
+      // TODO: Further check for defined keys
+      keyControl._keyableWidgets.push(this)
+    })
+
+    return this._keyableWidgets
+  }
+
+  /**
+   * Given a widget object as an input, extract the keys assigned to the widget
+   * and add them to this._keysSet.
+   *
+   * @param {object} widget - the widget configuration object
+   */
+  _extractAssignedKeys (widget) {
+    const widgetObj = jQuery(widget).data('widget')
+    if (Object.hasOwn(widgetObj, 'keys')) {
+      this._keysSet = this._keysSet.concat(Object.keys(widgetObj.keys))
+    }
+  }
+
+  /**
+   * Return the set of assigned keys as a string.
+   *
+   * @returns {string} - the set of assigned keys
+   */
+  getKeysSet () {
+    this._keysSet = []
+    this._keyableWidgets.forEach(this._extractAssignedKeys.bind(this))
+
+    return String(this._keysSet)
   }
 
   /**

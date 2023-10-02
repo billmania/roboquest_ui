@@ -264,6 +264,30 @@ jQuery(function () {
     })
   }
 
+  /**
+   * Execute the process for re-configuring the collection of keys
+   * assigned to widgets.
+   */
+  const configKeys = function () {
+    const allWidgets = keyControl.getKeyedWidgets()
+
+    jQuery('#configKeysDialog').dialog('open')
+    jQuery('#configKeysDefined').text('Defined keys: ' + keyControl.getKeysSet())
+  }
+
+  jQuery('#configKeysDialog').dialog({
+    width: 500,
+    autoOpen: false,
+    buttons: {
+      Cancel: function () {
+        jQuery(this).dialog('close')
+      }
+    },
+    open: function (event, ui) {
+      jQuery('#menuDialog').dialog('close')
+    }
+  })
+
   jQuery('#newWidget').dialog({
     width: 500,
     autoOpen: false,
@@ -291,9 +315,7 @@ jQuery(function () {
   jQuery('#addWidget').on('click', function () {
     jQuery('#newWidget').dialog('open')
   })
-  jQuery('#configKeys').on('click', function () {
-    console.debug('config keys clicked')
-  })
+  jQuery('#configKeys').on('click', configKeys)
   jQuery('#saveConfig').on('click', saveConfig)
 
   jQuery('#updateSoftware').on('click', function () {
