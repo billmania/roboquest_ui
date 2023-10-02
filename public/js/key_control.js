@@ -103,10 +103,22 @@ class KeyControl { // eslint-disable-line no-unused-vars
     this._widgetsTable += ('<tr>' +
       `<td>${widgetObj.label}</td>` +
       `<td>${widgetObj.type}</td>` +
-      '<td><button id="edit">Edit</button></td>' +
+      `<td><button onclick="keyControl.configureWidget(${widgetObj.id})">Edit</button></td>` +
       `<td>${hasKeys}</td>` +
       '</tr>'
     )
+  }
+
+  /**
+   * Record the ID of the widget having its key assignments configured and then
+   * open the widgetKeysDialog. This is how the widget ID is made available to
+   * this.showKeycodes.
+   *
+   * @param {number} widgetId - the unique ID of the widget having its keys configured
+   */
+  configureWidget (widgetId) {
+    this._configureWidgetId = widgetId
+    jQuery('#widgetKeysDialog').dialog('open')
   }
 
   /**
@@ -121,6 +133,16 @@ class KeyControl { // eslint-disable-line no-unused-vars
     this._widgetsTable += '</table>'
 
     return this._widgetsTable
+  }
+
+  /**
+   * Return an HTML form element with the keycodes.
+   *
+   * @returns {string} - HTML to define a form of keycode configurations
+   */
+  showKeycodes () {
+    // TODO: Implement
+    return `Widget ID: ${this._configureWidgetId}`
   }
 
   /**

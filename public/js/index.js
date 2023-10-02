@@ -272,8 +272,6 @@ jQuery(function () {
     keyControl.getKeyedWidgets()
 
     jQuery('#configKeysDialog').dialog('open')
-    jQuery('#configKeysDefined').text('Defined keys: ' + keyControl.getKeysSet())
-    jQuery('#configKeysWidgetTable').html(keyControl.showWidgets())
   }
 
   jQuery('#configKeysDialog').dialog({
@@ -286,6 +284,23 @@ jQuery(function () {
     },
     open: function (event, ui) {
       jQuery('#menuDialog').dialog('close')
+      jQuery('#configKeysDefined').text('Defined keys: ' + keyControl.getKeysSet())
+      jQuery('#configKeysWidgetTable').html(keyControl.showWidgets())
+    }
+  })
+
+  jQuery('#widgetKeysDialog').dialog({
+    width: 500,
+    autoOpen: false,
+    buttons: {
+      Cancel: function () {
+        jQuery(this).dialog('close')
+        jQuery('#configKeysDialog').dialog('open')
+      }
+    },
+    open: function (event, ui) {
+      jQuery('#configKeysDialog').dialog('close')
+      jQuery('#widgetKeysForm').html(keyControl.showKeycodes())
     }
   })
 
