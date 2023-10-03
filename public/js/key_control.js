@@ -114,11 +114,16 @@ class KeyControl { // eslint-disable-line no-unused-vars
    * open the widgetKeysDialog. This is how the widget is made available to
    * this.showKeycodes.
    *
+   * There's an inefficiency in this method, since it always must examine
+   * every member of this._keyableWidgets, even when it has already located
+   * the matching widget.
+   *
    * @param {number} widgetId - the unique ID of the widget having its keys configured
    */
   configureWidget (widgetId) {
     this._configureWidgetObj = null
     const keyControl = this
+    // TODO: Replace the forEach with a simple iteration loop
     this._keyableWidgets.forEach(function (widget) {
       const widgetObj = jQuery(widget).data('widget')
       if (widgetObj.id === widgetId) {
@@ -152,36 +157,42 @@ class KeyControl { // eslint-disable-line no-unused-vars
   }
 
   /**
-   * Return an HTML form element with the keycodes.
-   *
-   * @returns {string} - HTML to define a form of keycode configurations
+   * Add a row to the HTML element ID widgetKeysTable for each assigned keycode.
+   * KeyControl.configureWidget() must have been called before calling
+   * showKeycodes(), so that this._configureWidgetObj is up to date.
    */
   showKeycodes () {
-    let keycodesTable = '<table><tr><th>Keycode</th><th>Name</th><th>Press</th><th>Release</th></tr>'
-    if (!this._configureWidgetObj.keys) {
-      return 'None assigned'
-    }
+    jQuery('#widgetKeysTable').children('tr').remove()
 
-    for (const keyCode of Object.keys(this._configureWidgetObj.keys)) {
-      const keyConfig = this._configureWidgetObj.keys[keyCode]
-      keycodesTable += '<tr>'
-      keycodesTable += `<td>${keyCode}</td>`
-      keycodesTable += `<td>${keyConfig.name}</td>`
-      if (keyConfig.downValues) {
-        keycodesTable += `<td>${JSON.stringify(keyConfig.downValues)}</td>`
-      } else {
-        keycodesTable += '<td></td>'
-      }
-      if (keyConfig.upValues) {
-        keycodesTable += `<td>${JSON.stringify(keyConfig.upValues)}</td>`
-      } else {
-        keycodesTable += '<td></td>'
-      }
-      keycodesTable += '</tr>'
-    }
-    keycodesTable += '</table>'
+    jQuery('#widgetKeysTable')
+      .append(
+        '<tr><th>Keycode</th><th>Key Name</th><th>On Press</th><th>On Release</th></tr>'
+      )
 
-    return keycodesTable
+    let keycodesRow = ''
+    if (this._configureWidgetObj.keys) {
+      for (const keyCode of Object.keys(this._configureWidgetObj.keys)) {
+        const keyConfig = this._configureWidgetObj.keys[keyCode]
+        keycodesRow = '<tr>'
+        keycodesRow += `<td><input type="text" size="4" value="${keyCode}" data-section="keycodes" name="keycode"></td>`
+        keycodesRow += `<td><input type="text" size="10" value="${keyConfig.name}" data-section="keycodes" name="name"></td>`
+        if (keyConfig.downValues) {
+          const downValuesStr = JSON.stringify(keyConfig.downValues).replace(/"/g, '').replace(/{/g, '').replace(/}/g, '')
+          keycodesRow += `<td><input type="text" size=20 value="${downValuesStr}" data-section="keycodes" name="downValues"></td>`
+        } else {
+          keycodesRow += '<td></td>'
+        }
+        if (keyConfig.upValues) {
+          const upValuesStr = JSON.stringify(keyConfig.upValues).replace(/"/g, '').replace(/{/g, '').replace(/}/g, '')
+          keycodesRow += `<td><input type="text" size=20 value="${upValuesStr}" data-section="keycodes" name="upValues"></td>`
+        } else {
+          keycodesRow += '<td></td>'
+        }
+        keycodesRow += '</tr>'
+
+        jQuery('#widgetKeysTable').append(keycodesRow)
+      }
+    }
   }
 
   /**
