@@ -110,14 +110,21 @@ class KeyControl { // eslint-disable-line no-unused-vars
   }
 
   /**
-   * Record the ID of the widget having its key assignments configured and then
-   * open the widgetKeysDialog. This is how the widget ID is made available to
+   * Record the widget having its key assignments configured and then
+   * open the widgetKeysDialog. This is how the widget is made available to
    * this.showKeycodes.
    *
    * @param {number} widgetId - the unique ID of the widget having its keys configured
    */
   configureWidget (widgetId) {
-    this._configureWidgetId = widgetId
+    this._configureWidgetObj = null
+    const keyControl = this
+    this._keyableWidgets.forEach(function (widget) {
+      const widgetObj = jQuery(widget).data('widget')
+      if (widgetObj.id === widgetId) {
+        keyControl._configureWidgetObj = widgetObj
+      }
+    })
     jQuery('#widgetKeysDialog').dialog('open')
   }
 
@@ -136,13 +143,45 @@ class KeyControl { // eslint-disable-line no-unused-vars
   }
 
   /**
+   * Return the label for the widget being configured.
+   *
+   * @returns {string} - the widget's label
+   */
+  configureWidgetLabel () {
+    return this._configureWidgetObj.label
+  }
+
+  /**
    * Return an HTML form element with the keycodes.
    *
    * @returns {string} - HTML to define a form of keycode configurations
    */
   showKeycodes () {
-    // TODO: Implement
-    return `Widget ID: ${this._configureWidgetId}`
+    let keycodesTable = '<table><tr><th>Keycode</th><th>Name</th><th>Press</th><th>Release</th></tr>'
+    if (!this._configureWidgetObj.keys) {
+      return 'None assigned'
+    }
+
+    for (const keyCode of Object.keys(this._configureWidgetObj.keys)) {
+      const keyConfig = this._configureWidgetObj.keys[keyCode]
+      keycodesTable += '<tr>'
+      keycodesTable += `<td>${keyCode}</td>`
+      keycodesTable += `<td>${keyConfig.name}</td>`
+      if (keyConfig.downValues) {
+        keycodesTable += `<td>${JSON.stringify(keyConfig.downValues)}</td>`
+      } else {
+        keycodesTable += '<td></td>'
+      }
+      if (keyConfig.upValues) {
+        keycodesTable += `<td>${JSON.stringify(keyConfig.upValues)}</td>`
+      } else {
+        keycodesTable += '<td></td>'
+      }
+      keycodesTable += '</tr>'
+    }
+    keycodesTable += '</table>'
+
+    return keycodesTable
   }
 
   /**

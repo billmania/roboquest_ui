@@ -300,6 +300,7 @@ jQuery(function () {
     },
     open: function (event, ui) {
       jQuery('#configKeysDialog').dialog('close')
+      jQuery('#widgetKeysLabel').text(keyControl.configureWidgetLabel())
       jQuery('#widgetKeysForm').html(keyControl.showKeycodes())
     }
   })
