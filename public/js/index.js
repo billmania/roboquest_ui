@@ -310,7 +310,7 @@ jQuery(function () {
       Help: function () {
         jQuery('#keysHelpDialog').dialog('open')
       },
-      AddKey: keyControl.addKeyRow,
+      AddKey: keyControl.addKeyRow.bind(keyControl),
       Apply: keyControl.applyKeycodeConfig,
       Cancel: function () {
         jQuery(this).dialog('close')

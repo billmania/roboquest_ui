@@ -31,7 +31,28 @@ class KeyControl { // eslint-disable-line no-unused-vars
   }
 
   /**
-   * Sort the collection of widgets by their labels.
+   * Setup to capture a single keycode after a keycode button in the X table is clicked.
+   * This method is called via an "onclick" attribute for each keycode button element.
+   *
+   * When keycode capture has been enabled by changeAssignedKeycode,
+   * capture a single keycode and write it to the keycode button specified
+   * by this._clickedKeycodeId. Immediately after, disable the capture of
+   * keycodes.
+   *
+   * @param {string} keycodeId - the HTML ID of the keycoded button
+   */
+  changeAssignedKeycode (keycodeId) {
+    console.debug(`changeAssignedKeycode called on ${keycodeId}`)
+    jQuery(window).on('keydown', (eventData) => {
+      jQuery(window).off('keydown')
+      const keycodeButton = jQuery(`#${keycodeId}`)
+      console.debug(`changeAssignedKeycode: h ${keycodeButton.html()} t ${keycodeButton.text()}`)
+      jQuery(`#${keycodeId}`).html(`${eventData.which}`)
+    })
+  }
+
+  /**
+   * Sort the collection of widgets alphabetically by their labels.
    *
    * @param {object} first - the first widget
    * @param {object} second - the second widget
@@ -80,6 +101,9 @@ class KeyControl { // eslint-disable-line no-unused-vars
   /**
    * Return the set of assigned keys as a string. getKeyedWidgets()
    * must have been called prior to calling this method.
+   *
+   * TODO: The keycodes alone aren't much use. They should instead be
+   * displayed with their widget label and their name.
    *
    * @returns {string} - the set of assigned keys
    */
@@ -186,44 +210,11 @@ class KeyControl { // eslint-disable-line no-unused-vars
   }
 
   /**
-   * Add an empty row to the table of widget keys, so a new key
-   * assignment can be made.
-   */
-  addKeyRow () {
-    const keycodeInputId = `${this._widgetId}.${this._rowIndex}`
-
-    let keycodesRow = ''
-
-    keycodesRow = '<tr>'
-    keycodesRow += `<td><input id="${keycodeInputId}" type="text" size="4" value="" data-section="keycodes" name="keycode"></td>`
-    keycodesRow += '<td><input type="text" size="10" value="" data-section="keycodes" name="name"></td>'
-    keycodesRow += '<td><input type="text" size=20 value="" data-section="keycodes" name="downValues"></td>'
-    keycodesRow += '<td><input type="text" size=20 value="" data-section="keycodes" name="upValues"></td>'
-    keycodesRow += '</tr>'
-
-    jQuery('#widgetKeysTable').append(keycodesRow)
-    this._rowIndex++
-  }
-
-  /**
    * Read the #widgetKeysTable input elements to extract the configuration
    * of keycodes and use them to update this._configureWidgetObj.keys.
    */
   applyKeycodeConfig () {
     console.debug('applyKeycodeConfig: Not implemented yet')
-  }
-
-  /**
-   * Capture the keycode and write it into the input element. Intended
-   * for use as a keydown event handler by the keycode input elements in the
-   * #widgetKeysTable.
-   *
-   * @param {Anything} eventData - describes the event, from which the ID and
-   *                               keycode are extracted
-   */
-  _insertKeycode (eventData) {
-    const whichKey = eventData.which
-    const whichId = eventData.target.id
   }
 
   /**
@@ -246,29 +237,43 @@ class KeyControl { // eslint-disable-line no-unused-vars
 
       for (const keyCode of Object.keys(this._configureWidgetObj.keys)) {
         const keyConfig = this._configureWidgetObj.keys[keyCode]
-        const keycodeInputId = `${this._widgetId}.${this._rowIndex}`
         keycodesRow = '<tr>'
-        keycodesRow += `<td><input id="${keycodeInputId}" type="text" size="4" value="${keyCode}" data-section="keycodes" name="keycode"></td>`
-        keycodesRow += `<td><input type="text" size="10" value="${keyConfig.name}" data-section="keycodes" name="name"></td>`
+        keycodesRow += `<td><button id="keycode_${this._rowIndex}" style="border:2px solid;" onclick="keyControl.changeAssignedKeycode('keycode_${this._rowIndex}')">${keyCode}</button></td>`
+        keycodesRow += `<td><input id="name_${this._rowIndex}" type="text" size="10" value="${keyConfig.name}"></td>`
         let downValuesStr = ''
         if (keyConfig.downValues) {
           downValuesStr = JSON.stringify(keyConfig.downValues).replace(/"/g, '').replace(/{/g, '').replace(/}/g, '')
         }
-        keycodesRow += `<td><input type="text" size=20 value="${downValuesStr}" data-section="keycodes" name="downValues"></td>`
+        keycodesRow += `<td><input id="downValues_${this._rowIndex}" type="text" size=20 value="${downValuesStr}"></td>`
         let upValuesStr = ''
         if (keyConfig.upValues) {
           upValuesStr = JSON.stringify(keyConfig.upValues).replace(/"/g, '').replace(/{/g, '').replace(/}/g, '')
         }
-        keycodesRow += `<td><input type="text" size=20 value="${upValuesStr}" data-section="keycodes" name="upValues"></td>`
+        keycodesRow += `<td><input id="upValues_${this._rowIndex}" type="text" size=20 value="${upValuesStr}"></td>`
         keycodesRow += '</tr>'
 
         jQuery('#widgetKeysTable').append(keycodesRow)
         this._rowIndex++
-        jQuery('#' + keycodeInputId).on('keyup', (eventData) => {
-          this._insertKeycode(eventData)
-        })
       }
     }
+  }
+
+  /**
+   * Add an empty row to the table of widget keys, so a new key
+   * assignment can be made. Can't be called before showKeycodes().
+   */
+  addKeyRow () {
+    let keycodesRow = ''
+
+    keycodesRow = '<tr>'
+    keycodesRow += `<td><button id="keycode_${this._rowIndex}" onclick="keyControl.changeAssignedKeycode('${this._rowIndex}:keycode')">0</button></td>`
+    keycodesRow += `<td><input id="name_${this._rowIndex}" type="text" size="10"></td>`
+    keycodesRow += `<td><input id="downValues_${this._rowIndex}" type="text" size=20></td>`
+    keycodesRow += `<td><input id="upValues_${this._rowIndex}" type="text" size=20></td>`
+    keycodesRow += '</tr>'
+
+    jQuery('#widgetKeysTable').append(keycodesRow)
+    this._rowIndex++
   }
 
   /**
