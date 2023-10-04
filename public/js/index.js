@@ -274,6 +274,20 @@ jQuery(function () {
     jQuery('#configKeysDialog').dialog('open')
   }
 
+  jQuery('#keysHelpDialog').dialog({
+    width: 300,
+    autoOpen: false,
+    buttons: {
+      Close: function () {
+        jQuery(this).dialog('close')
+      }
+    },
+    open: function (event, ui) {
+      jQuery('#keysHelpWidgetType').text(keyControl.getWidgetType())
+      jQuery('#keysHelpText').text(keyControl.getHelpText())
+    }
+  })
+
   jQuery('#configKeysDialog').dialog({
     width: 500,
     autoOpen: false,
@@ -293,8 +307,14 @@ jQuery(function () {
     width: 500,
     autoOpen: false,
     buttons: {
+      Help: function () {
+        jQuery('#keysHelpDialog').dialog('open')
+      },
+      AddKey: keyControl.addKeyRow,
+      Apply: keyControl.applyKeycodeConfig,
       Cancel: function () {
         jQuery(this).dialog('close')
+        jQuery('#keysHelpDialog').dialog('close')
         jQuery('#configKeysDialog').dialog('open')
       }
     },
