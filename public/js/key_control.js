@@ -42,11 +42,9 @@ class KeyControl { // eslint-disable-line no-unused-vars
    * @param {string} keycodeId - the HTML ID of the keycoded button
    */
   changeAssignedKeycode (keycodeId) {
-    console.debug(`changeAssignedKeycode called on ${keycodeId}`)
     jQuery(window).on('keydown', (eventData) => {
       jQuery(window).off('keydown')
       const keycodeButton = jQuery(`#${keycodeId}`)
-      console.debug(`changeAssignedKeycode: h ${keycodeButton.html()} t ${keycodeButton.text()}`)
       jQuery(`#${keycodeId}`).html(`${eventData.which}`)
     })
   }
@@ -231,9 +229,9 @@ class KeyControl { // eslint-disable-line no-unused-vars
       )
 
     let keycodesRow = ''
+    this._rowIndex = 0
     if (this._configureWidgetObj.keys) {
       this._widgetId = this._configureWidgetObj.id
-      this._rowIndex = 0
 
       for (const keyCode of Object.keys(this._configureWidgetObj.keys)) {
         const keyConfig = this._configureWidgetObj.keys[keyCode]
@@ -266,7 +264,7 @@ class KeyControl { // eslint-disable-line no-unused-vars
     let keycodesRow = ''
 
     keycodesRow = '<tr>'
-    keycodesRow += `<td><button id="keycode_${this._rowIndex}" onclick="keyControl.changeAssignedKeycode('${this._rowIndex}:keycode')">0</button></td>`
+    keycodesRow += `<td><button id="keycode_${this._rowIndex}" onclick="keyControl.changeAssignedKeycode('keycode_${this._rowIndex}')">0</button></td>`
     keycodesRow += `<td><input id="name_${this._rowIndex}" type="text" size="10"></td>`
     keycodesRow += `<td><input id="downValues_${this._rowIndex}" type="text" size=20></td>`
     keycodesRow += `<td><input id="upValues_${this._rowIndex}" type="text" size=20></td>`
