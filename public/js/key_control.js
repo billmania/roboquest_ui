@@ -44,7 +44,6 @@ class KeyControl { // eslint-disable-line no-unused-vars
   changeAssignedKeycode (keycodeId) {
     jQuery(window).on('keydown', (eventData) => {
       jQuery(window).off('keydown')
-      const keycodeButton = jQuery(`#${keycodeId}`)
       jQuery(`#${keycodeId}`).html(`${eventData.which}`)
     })
   }
@@ -208,17 +207,63 @@ class KeyControl { // eslint-disable-line no-unused-vars
   }
 
   /**
-   * Read the #widgetKeysTable input elements to extract the configuration
-   * of keycodes and use them to update this._configureWidgetObj.keys.
+   * Read the #widgetKeysTable rows input elements to extract the
+   * configuration of keycodes and use them to update this._configureWidgetObj.keys.
+   * Each element of the table is expected to be identified with a unique HTML element
+   * ID in the format "${columnName}_${rowIndex}" where columnName is from
+   * ['keycode', 'name', 'downValues', 'upValues'].
+   *
+      "keys": {
+        "37": {
+          "name": "left",
+          "downValues": {
+            "x": 50,
+            "y": 0
+          },
+          "upValues": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        "38": {
+          "name": "forward",
+          "downValues": {
+            "x": 0,
+            "y": 50
+          },
+          "upValues": {
+            "x": 0,
+            "y": 0
+          }
+        },
    */
   applyKeycodeConfig () {
-    console.debug('applyKeycodeConfig: Not implemented yet')
+    const newKeysConfig = {}
+    console.debug(`applyKeycodeConfig: ${this._rowIndex} rows in table`)
+
+    for (let rowIndex = 0; rowIndex < this._rowIndex; rowIndex++) {
+      const newKeycode = jQuery('#' + `keycode_${rowIndex}`).text()
+      if (newKeycode && newKeycode !== '0') {
+        newKeysConfig[newKeycode] = {}
+
+        newKeysConfig[newKeycode].name = jQuery('#' + `name_${rowIndex}`).val()
+        newKeysConfig[newKeycode].downValues = jQuery('#' + `downValues_${rowIndex}`).val()
+        newKeysConfig[newKeycode].upValues = jQuery('#' + `upValues_${rowIndex}`).val()
+
+        console.debug(`${newKeycode}: ${JSON.stringify(newKeysConfig[newKeycode])}`)
+      }
+    }
+    console.debug(`All: ${JSON.stringify(newKeysConfig)}`)
+    // this._configureWidgetObj.keys = {}
   }
 
   /**
    * Add a row to the HTML element ID widgetKeysTable for each assigned keycode.
    * KeyControl.configureWidget() must have been called before calling
    * showKeycodes(), so that this._configureWidgetObj is up to date.
+   *
+   * The column HTML element IDs are formed from the strings in
+   * KEY_COLUMN_NAMES.
    */
   showKeycodes () {
     jQuery('#widgetKeysTable').children('tr').remove()
@@ -259,6 +304,9 @@ class KeyControl { // eslint-disable-line no-unused-vars
   /**
    * Add an empty row to the table of widget keys, so a new key
    * assignment can be made. Can't be called before showKeycodes().
+   *
+   * The column HTML element IDs are formed from the strings in
+   * KEY_COLUMN_NAMES.
    */
   addKeyRow () {
     let keycodesRow = ''

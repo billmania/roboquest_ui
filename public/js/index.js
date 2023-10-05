@@ -2,6 +2,10 @@
 
 /* global jQuery io RQ_PARAMS KeyControl */
 
+/**
+ * The main control for the RoboQuest front-end UI.
+ */
+
 console.info(`rq_ui version ${RQ_PARAMS.VERSION} starting`)
 console.info(`rq_ui config format version ${RQ_PARAMS.CONFIG_FORMAT_VERSION}`)
 
@@ -311,7 +315,7 @@ jQuery(function () {
         jQuery('#keysHelpDialog').dialog('open')
       },
       AddKey: keyControl.addKeyRow.bind(keyControl),
-      Apply: keyControl.applyKeycodeConfig,
+      Apply: keyControl.applyKeycodeConfig.bind(keyControl),
       Cancel: function () {
         jQuery(this).dialog('close')
         jQuery('#keysHelpDialog').dialog('close')
