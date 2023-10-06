@@ -2,6 +2,10 @@
 
 /* global jQuery io RQ_PARAMS KeyControl */
 
+/**
+ * The main control for the RoboQuest front-end UI.
+ */
+
 console.info(`rq_ui version ${RQ_PARAMS.VERSION} starting`)
 console.info(`rq_ui config format version ${RQ_PARAMS.CONFIG_FORMAT_VERSION}`)
 
@@ -239,12 +243,99 @@ jQuery(function () {
     positionWidgets()
   }
 
+  /**
+   * Save the configuration object. Called by clicking the "save config" button
+   * and by KeyControl.
+   */
+  const saveConfig = function () {
+    const objSaveConfig = {
+      widgets: []
+    }
+    jQuery('.widget').each((i, element) => {
+      objSaveConfig.widgets.push(jQuery(element).data('widget'))
+    })
+    jQuery.ajax({
+      type: 'POST',
+      url: '/config',
+      contentType: 'application/json',
+      data: JSON.stringify(objSaveConfig),
+      success: function (objResponse) {
+        console.debug('Save Config Response', objResponse)
+      },
+      error: function (objRequest, strStatus, strError) {
+        console.error('Error saving config:', strError)
+      }
+    })
+  }
+
+  /**
+   * Execute the process for re-configuring the collection of keys
+   * assigned to widgets.
+   */
+  const configKeys = function () {
+    keyControl.getKeyedWidgets()
+
+    jQuery('#configKeysDialog').dialog('open')
+  }
+
+  jQuery('#keysHelpDialog').dialog({
+    width: 300,
+    autoOpen: false,
+    buttons: {
+      Close: function () {
+        jQuery(this).dialog('close')
+      }
+    },
+    open: function (event, ui) {
+      jQuery('#keysHelpWidgetType').text(keyControl.getWidgetType())
+      jQuery('#keysHelpText').text(keyControl.getHelpText())
+    }
+  })
+
+  // TODO: Reload the (re)assigned keys on the close event
+  jQuery('#configKeysDialog').dialog({
+    width: 500,
+    autoOpen: false,
+    buttons: {
+      Done: function () {
+        jQuery(this).dialog('close')
+      }
+    },
+    open: function (event, ui) {
+      jQuery('#menuDialog').dialog('close')
+      jQuery('#configKeysDefined').text('Defined keys: ' + keyControl.getKeysSet())
+      jQuery('#configKeysWidgetTable').html(keyControl.showWidgets())
+    }
+  })
+
+  jQuery('#widgetKeysDialog').dialog({
+    width: 500,
+    autoOpen: false,
+    buttons: {
+      Help: function () {
+        jQuery('#keysHelpDialog').dialog('open')
+      },
+      AddKey: keyControl.addKeyRow.bind(keyControl),
+      Apply: keyControl.applyKeycodeConfig.bind(keyControl),
+      Done: function () {
+        jQuery(this).dialog('close')
+        jQuery('#keysHelpDialog').dialog('close')
+        jQuery('#configKeysDialog').dialog('open')
+      }
+    },
+    open: function (event, ui) {
+      jQuery('#configKeysDialog').dialog('close')
+      jQuery('#widgetKeysLabel').text(keyControl.configureWidgetLabel())
+      jQuery('#widgetKeysForm').html(keyControl.showKeycodes())
+    }
+  })
+
   jQuery('#newWidget').dialog({
     width: 500,
     autoOpen: false,
     buttons: {
       Create: addWidget,
-      Cancel: function () {
+      Done: function () {
         jQuery(this).dialog('close')
       }
     },
@@ -266,26 +357,8 @@ jQuery(function () {
   jQuery('#addWidget').on('click', function () {
     jQuery('#newWidget').dialog('open')
   })
-  jQuery('#saveConfig').on('click', function () {
-    const objSaveConfig = {
-      widgets: []
-    }
-    jQuery('.widget').each((i, element) => {
-      objSaveConfig.widgets.push(jQuery(element).data('widget'))
-    })
-    jQuery.ajax({
-      type: 'POST',
-      url: '/config',
-      contentType: 'application/json',
-      data: JSON.stringify(objSaveConfig),
-      success: function (objResponse) {
-        console.debug('Save Config Response', objResponse)
-      },
-      error: function (objRequest, strStatus, strError) {
-        console.error('Error saving config:', strError)
-      }
-    })
-  })
+  jQuery('#configKeys').on('click', configKeys)
+  jQuery('#saveConfig').on('click', saveConfig)
 
   jQuery('#updateSoftware').on('click', function () {
     if (objSocket.connected) {

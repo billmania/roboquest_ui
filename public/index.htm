@@ -9,8 +9,8 @@
 <link rel="stylesheet" href="./css/index.css">
 </head>
 <body>
-    <div id="configure"> CONFIGURE </div>
-    <div id="keyControl"> ENABLE KEYS </div>
+    <div id="configure">CONFIGURE</div>
+    <div id="keyControl">ENABLE KEYS</div>
     <div id="trash"></div>
     <div id="widgets"></div>
     <img id='mainImage'
@@ -22,7 +22,34 @@
             <div class="menuButton" id="updateSoftware">update robot software</div>
             <div class="menuButton" id="saveConfig">save config</div>
             <div class="menuButton" id="addWidget">add widget</div>
+            <div class="menuButton" id="configKeys">config keys</div>
         </form>
+    </div>
+    <div id="configKeysDialog" title="Configure keys for widgets">
+      <!-- configKeysDefined gets a comma-separated list of keycodes -->
+      <div id="configKeysDefined"></div>
+      <br>
+      <!-- configKeysWidgetTables gets a table with all the widgets -->
+      <div id="configKeysWidgetTable" title="Widgets list">
+      </div>
+    </div>
+    <div id="widgetKeysDialog" title="Configure widget keys">
+      <div id="widgetKeysLabel"></div>
+      <br>
+      <!-- widgetKeysForm gets a table of the keys for one widget -->
+      <div id="widgetKeysForm" title="Widget keys">
+        <table>
+          <tbody id="widgetKeysTable">
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div id="keysHelpDialog" title="Widget key assignment help">
+      <div id="keysHelpWidgetType"></div>
+      <br>
+      <!--  keysHelpText gets a block of help text -->
+      <div id="keysHelpText" title="Help">
+      </div>
     </div>
     <div id="newWidget" title="Configure a New Widget">
         <!-- TODO: A better id would be configureNewWidget -->
@@ -121,6 +148,7 @@
 <script src="./js/wIndicator.js"></script>
 <script src="./js/joy.min.js"></script>
 <script src="./js/wJoystick.js"></script>
+<script src="./js/key_help.js"></script>
 <script src="./js/key_control.js"></script>
 <script src="./js/index.js"></script>
 </html>
