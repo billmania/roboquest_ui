@@ -6,6 +6,13 @@
 'use strict'
 /* global jQuery RQ_PARAMS RQKeysHelp */
 
+/*
+ * PROPERTY_SEP separates multiple property-value pairs
+ * PAIR_SEP separates the property name from its value
+ */
+const PROPERTY_SEP = ','
+const PAIR_SEP = ':'
+
 class KeyControl { // eslint-disable-line no-unused-vars
   /**
    * Setup to manage key events. Requires an HTML element in the page with
@@ -120,7 +127,7 @@ class KeyControl { // eslint-disable-line no-unused-vars
     const widgetObj = jQuery(widget).data('widget')
     let hasKeys = 'None'
     if (Object.hasOwn(widgetObj, 'keys')) {
-      hasKeys = 'Remove'
+      hasKeys = 'Yes'
     }
     this._widgetsTable += ('<tr>' +
       `<td>${widgetObj.label}</td>` +
@@ -180,6 +187,10 @@ class KeyControl { // eslint-disable-line no-unused-vars
         keyControl._configureWidgetObj = widgetObj
       }
     })
+
+    if (this._keyboardIsEnabled) {
+      this._handleKeysButton()
+    }
     jQuery('#widgetKeysDialog').dialog('open')
   }
 
@@ -190,7 +201,7 @@ class KeyControl { // eslint-disable-line no-unused-vars
    * @returns {string} - HTML to define a table of widgets
    */
   showWidgets () {
-    this._widgetsTable = '<table><tr><th>Label</th><th>Type</th><th>Edit</th><th>Remove all</th></tr>'
+    this._widgetsTable = '<table><tr><th>Label</th><th>Type</th><th>Edit</th><th>Keys</th></tr>'
     this._keyableWidgets.forEach(this._addWidgetRow.bind(this))
     this._widgetsTable += '</table>'
 
@@ -207,35 +218,67 @@ class KeyControl { // eslint-disable-line no-unused-vars
   }
 
   /**
+   * Parse a single property-value pair and return the separated property
+   * and value.
+   *
+   * @param {string} pair - the pair separated by PAIR_SEP
+   *
+   * @returns {object} - an object with a single property
+   */
+  _parsePair (pair) {
+    pair = pair.split(PAIR_SEP)
+    const property = pair[0]
+    let value = parseFloat(pair[1])
+    if (isNaN(value)) {
+      value = pair[1]
+    }
+
+    const pairObject = {}
+    pairObject[property] = value
+
+    return pairObject
+  }
+
+  /**
+   * Parse a string from the key assignment downValues or upValues and
+   * return a corresponding object suitable for inclusion in
+   * configuration.json.
+   *
+   * @param {string} values - a string looking similar to a JSON object,
+   *                          with colon-separated property-value pairs and
+   *                          comma-separated properties
+   *
+   * If a value can be converted to a number, it will be, otherwise it will
+   * remain a string.
+   */
+  _parseValues (values) {
+    values = values.replace(/ /g, '')
+
+    if (!values.includes(PROPERTY_SEP)) {
+      if (!values.includes(PAIR_SEP)) {
+        console.warn(`_parseValues: Failed to parse <${values}>`)
+        return ''
+      } else {
+        // There is a single property-value pair
+        return this._parsePair(values)
+      }
+    } else {
+      // There may be more than one property-value pair
+      let valuesObject = {}
+      for (const pair of values.split(PROPERTY_SEP)) {
+        valuesObject = { ...valuesObject, ...this._parsePair(pair) }
+      }
+
+      return valuesObject
+    }
+  }
+
+  /**
    * Read the #widgetKeysTable rows input elements to extract the
    * configuration of keycodes and use them to update this._configureWidgetObj.keys.
    * Each element of the table is expected to be identified with a unique HTML element
    * ID in the format "${columnName}_${rowIndex}" where columnName is from
    * ['keycode', 'name', 'downValues', 'upValues'].
-   *
-      "keys": {
-        "37": {
-          "name": "left",
-          "downValues": {
-            "x": 50,
-            "y": 0
-          },
-          "upValues": {
-            "x": 0,
-            "y": 0
-          }
-        },
-        "38": {
-          "name": "forward",
-          "downValues": {
-            "x": 0,
-            "y": 50
-          },
-          "upValues": {
-            "x": 0,
-            "y": 0
-          }
-        },
    */
   applyKeycodeConfig () {
     const newKeysConfig = {}
@@ -250,11 +293,25 @@ class KeyControl { // eslint-disable-line no-unused-vars
         newKeysConfig[newKeycode].downValues = jQuery('#' + `downValues_${rowIndex}`).val()
         newKeysConfig[newKeycode].upValues = jQuery('#' + `upValues_${rowIndex}`).val()
 
-        console.debug(`${newKeycode}: ${JSON.stringify(newKeysConfig[newKeycode])}`)
+        if (newKeysConfig[newKeycode].downValues !== '') {
+          newKeysConfig[newKeycode].downValues = this._parseValues(
+            newKeysConfig[newKeycode].downValues)
+        } else {
+          delete newKeysConfig[newKeycode].downValues
+        }
+        if (newKeysConfig[newKeycode].upValues !== '') {
+          newKeysConfig[newKeycode].upValues = this._parseValues(
+            newKeysConfig[newKeycode].upValues)
+        } else {
+          delete newKeysConfig[newKeycode].upValues
+        }
       }
     }
-    console.debug(`All: ${JSON.stringify(newKeysConfig)}`)
-    // this._configureWidgetObj.keys = {}
+    console.debug(
+      `applyKeycodeConfig: for ${this._configureWidgetObj.label}->` +
+      ` ${JSON.stringify(newKeysConfig)}`
+    )
+    this._configureWidgetObj.keys = newKeysConfig
   }
 
   /**
