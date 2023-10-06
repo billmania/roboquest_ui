@@ -286,7 +286,8 @@ class KeyControl { // eslint-disable-line no-unused-vars
 
     for (let rowIndex = 0; rowIndex < this._rowIndex; rowIndex++) {
       const newKeycode = jQuery('#' + `keycode_${rowIndex}`).text()
-      if (newKeycode && newKeycode !== '0') {
+      const remove = jQuery('#' + `remove_${rowIndex}`).is(':checked')
+      if (newKeycode && newKeycode !== '0' && !remove) {
         newKeysConfig[newKeycode] = {}
 
         newKeysConfig[newKeycode].name = jQuery('#' + `name_${rowIndex}`).val()
@@ -327,7 +328,7 @@ class KeyControl { // eslint-disable-line no-unused-vars
 
     jQuery('#widgetKeysTable')
       .append(
-        '<tr><th>Keycode</th><th>Key Name</th><th>On Press</th><th>On Release</th></tr>'
+        '<tr><th>Keycode</th><th>Key Name</th><th>On Press</th><th>On Release</th><th>Remove</th></tr>'
       )
 
     let keycodesRow = ''
@@ -350,6 +351,7 @@ class KeyControl { // eslint-disable-line no-unused-vars
           upValuesStr = JSON.stringify(keyConfig.upValues).replace(/"/g, '').replace(/{/g, '').replace(/}/g, '')
         }
         keycodesRow += `<td><input id="upValues_${this._rowIndex}" type="text" size=20 value="${upValuesStr}"></td>`
+        keycodesRow += `<td><input id="remove_${this._rowIndex}" type="checkbox"></td>`
         keycodesRow += '</tr>'
 
         jQuery('#widgetKeysTable').append(keycodesRow)
@@ -373,6 +375,7 @@ class KeyControl { // eslint-disable-line no-unused-vars
     keycodesRow += `<td><input id="name_${this._rowIndex}" type="text" size="10"></td>`
     keycodesRow += `<td><input id="downValues_${this._rowIndex}" type="text" size=20></td>`
     keycodesRow += `<td><input id="upValues_${this._rowIndex}" type="text" size=20></td>`
+    keycodesRow += `<td><input id="remove_${this._rowIndex}" type="checkbox" size=20></td>`
     keycodesRow += '</tr>'
 
     jQuery('#widgetKeysTable').append(keycodesRow)
