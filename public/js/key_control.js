@@ -306,6 +306,16 @@ class KeyControl { // eslint-disable-line no-unused-vars
         } else {
           delete newKeysConfig[newKeycode].upValues
         }
+
+        if (!Object.hasOwn(newKeysConfig[newKeycode], 'downValues') &&
+            !Object.hasOwn(newKeysConfig[newKeycode], 'upValues')) {
+          /*
+           * If neither downValues nor upValues are defined,
+           * an empty downValues object is required.
+           */
+          // TODO: Improve the key handler to not require an empty downValues
+          newKeysConfig[newKeycode].downValues = {}
+        }
       }
     }
     console.debug(
