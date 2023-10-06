@@ -297,7 +297,7 @@ jQuery(function () {
     width: 500,
     autoOpen: false,
     buttons: {
-      Cancel: function () {
+      Done: function () {
         jQuery(this).dialog('close')
       }
     },
@@ -317,7 +317,7 @@ jQuery(function () {
       },
       AddKey: keyControl.addKeyRow.bind(keyControl),
       Apply: keyControl.applyKeycodeConfig.bind(keyControl),
-      Cancel: function () {
+      Done: function () {
         jQuery(this).dialog('close')
         jQuery('#keysHelpDialog').dialog('close')
         jQuery('#configKeysDialog').dialog('open')
@@ -335,7 +335,7 @@ jQuery(function () {
     autoOpen: false,
     buttons: {
       Create: addWidget,
-      Cancel: function () {
+      Done: function () {
         jQuery(this).dialog('close')
       }
     },
