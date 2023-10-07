@@ -194,10 +194,9 @@ jQuery(function () {
       format: {},
       data: {}
     }
-    // TODO: Replace the id newWidgetForm with configureNewWidget
     jQuery(this)
       .find(
-        '#newWidgetForm input:visible, #newWidgetForm select:visible, #newWidgetType'
+        '#configureNewWidget input:visible, #configureNewWidget select:visible, #newWidgetType'
       )
       .each((i, element) => {
         // TODO: Provide a reasonable default value for element.value
