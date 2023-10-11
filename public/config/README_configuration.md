@@ -146,24 +146,10 @@ the widget properties have the following sections:
 
     (joystick)
             "keys": {
-              "38": {
-                "name": "forward",
+              "32": {
+                "name": "Space",
+                "description": "Move forward at half speed",
                 "downValues": { "x": 0, "y": 50 },
-                "upValues": { "x": 0, "y": 0 }
-              },
-              "40": {
-                "name": "reverse",
-                "downValues": { "x": 0, "y": -50 },
-                "upValues": { "x": 0, "y": 0 }
-              },
-              "37": {
-                "name": "left",
-                "downValues": { "x": 50, "y": 0 },
-                "upValues": { "x": 0, "y": 0 }
-              },
-              "39": {
-                "name": "right",
-                "downValues": { "x": -50, "y": 0 },
                 "upValues": { "x": 0, "y": 0 }
               }
             }
@@ -171,18 +157,16 @@ the widget properties have the following sections:
     (slider)
             "keys": { 
               "81": { 
-                "name": "left", 
+                "name": "KeyQ", 
+                "description": "Reduce the slider value",
                 "downValues": { "name": "Left", "value": -10 } 
-              }, 
-              "87": { 
-                "name": "right", 
-                "upValues": { "name": "Right", "value": 10 } 
-              } 
+              }
             }
     (button)
             "keys": {
               "190": {
-                "name": "period",
+                "name": "KeyPeriod",
+                "description": "Click the button",
                 "downValues": {}
               }
             }

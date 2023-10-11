@@ -353,8 +353,8 @@ class KeyControl { // eslint-disable-line no-unused-vars
     if (this._configureWidgetObj.keys) {
       this._widgetId = this._configureWidgetObj.id
 
-      for (const keyCode of Object.keys(this._configureWidgetObj.keys)) {
-        const keyConfig = this._configureWidgetObj.keys[keyCode]
+      for (const keycode of Object.keys(this._configureWidgetObj.keys)) {
+        const keyConfig = this._configureWidgetObj.keys[keycode]
         keycodesRow = '<tr>'
         keycodesRow += `<td><button id="keycode_${this._rowIndex}" style="border:2px solid;" onclick="keyControl.changeAssignedKeycode('keycode_${this._rowIndex}')">${keyConfig.name}</button></td>`
 
@@ -377,7 +377,7 @@ class KeyControl { // eslint-disable-line no-unused-vars
         keycodesRow += '</tr>'
 
         jQuery('#widgetKeysTable').append(keycodesRow)
-        jQuery('#' + `keycode_${this._rowIndex}`).data('keycode', keyCode)
+        jQuery('#' + `keycode_${this._rowIndex}`).data('keycode', keycode)
         this._rowIndex++
       }
     }
@@ -395,7 +395,7 @@ class KeyControl { // eslint-disable-line no-unused-vars
 
     keycodesRow = '<tr>'
     keycodesRow += `<td><button id="keycode_${this._rowIndex}" style="border:2px solid;" onclick="keyControl.changeAssignedKeycode('keycode_${this._rowIndex}')">0</button></td>`
-    keycodesRow += `<td><input id="name_${this._rowIndex}" type="text" size="10"></td>`
+    keycodesRow += `<td><input id="description_${this._rowIndex}" type="text" size="10"></td>`
     keycodesRow += `<td><input id="downValues_${this._rowIndex}" type="text" size=20></td>`
     keycodesRow += `<td><input id="upValues_${this._rowIndex}" type="text" size=20></td>`
     keycodesRow += `<td><input id="remove_${this._rowIndex}" type="checkbox" size=20></td>`
