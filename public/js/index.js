@@ -308,7 +308,7 @@ jQuery(function () {
   })
 
   jQuery('#widgetKeysDialog').dialog({
-    width: 500,
+    width: 800,
     autoOpen: false,
     buttons: {
       Help: function () {
