@@ -21,8 +21,10 @@
         <form id="menuForm">
             <div class="menuButton" id="updateSoftware">update robot software</div>
             <div class="menuButton" id="saveConfig">save config</div>
+            <div class="menuButton" id="saveServos">save servos</div>
             <div class="menuButton" id="addWidget">add widget</div>
             <div class="menuButton" id="configKeys">config keys</div>
+            <div class="menuButton" id="configServos">config servos</div>
         </form>
     </div>
     <div id="configKeysDialog" title="Configure keys for widgets">
@@ -48,6 +50,14 @@
       <div id="keysHelpText" title="Help">
       </div>
     </div>
+    <div id="chooseServo" title="Choose servo to configure">
+        <form id="configureServo">
+            <label>Servo channel and joint name:</label>
+            <select id="servoChannel" name="Servo">
+            </select>
+        </form>
+    </div>
+
     <div id="newWidget" title="Configure a New Widget">
         <form id="configureNewWidget">
             <label>widget type:</label>

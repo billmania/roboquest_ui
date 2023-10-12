@@ -70,7 +70,7 @@ class ConfigFile {
       try {
         configuration = JSON.parse(configuration)
       } catch (error) {
-        console.warn('save_config: Exception parsing')
+        console.error('save_config: Exception parsing')
         return false
       }
     }
@@ -79,6 +79,46 @@ class ConfigFile {
     }
     fs.writeFileSync(
       RQ_PARAMS.CONFIG_FILE,
+      JSON.stringify(configuration, null, '  ')
+    )
+
+    return true
+  }
+
+  /**
+   * Save the updated servo configuration file in the persistence directory.
+   * Any existing previous configuration file is removed. The existing
+   * configuration file is moved to the .old file. Lastly, the configuration
+   * object is stringified and written.
+   *
+   * This is a synchronous call, so it's expensive.
+   *
+   * @param {string|object} configuration - the servo configuration
+   *
+   * @returns {boolean} - true on success, false for anything else
+   */
+  save_servos (configuration) {
+    const oldServoFile = RQ_PARAMS.SERVO_FILE + '.old'
+    try {
+      if (fs.existsSync(oldServoFile)) {
+        fs.rmSync(oldServoFile)
+      }
+      fs.renameSync(RQ_PARAMS.SERVO_FILE, oldConfigFile)
+    } catch (error) {
+      console.warn('save_servos: Error saving old servo config file')
+      return false
+    }
+
+    if (typeof configuration === 'string') {
+      try {
+        configuration = JSON.parse(configuration)
+      } catch (error) {
+        console.error('save_servos: Exception parsing')
+        return false
+      }
+    }
+    fs.writeFileSync(
+      RQ_PARAMS.SERVO_FILE,
       JSON.stringify(configuration, null, '  ')
     )
 
