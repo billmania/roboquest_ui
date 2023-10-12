@@ -243,6 +243,13 @@ jQuery(function () {
   }
 
   /**
+   * Save the servo configuration object. Called by clicking the "save servos" button.
+   */
+  const saveServos = function () {
+    console.debug('saveServos() not implemented')
+  }
+
+  /**
    * Save the configuration object. Called by clicking the "save config" button
    * and by KeyControl.
    */
@@ -275,6 +282,13 @@ jQuery(function () {
     keyControl.getKeyedWidgets()
 
     jQuery('#configKeysDialog').dialog('open')
+  }
+
+  /**
+   * Execute the process for re-configuring the servos.
+   */
+  const configServos = function () {
+    console.debug('configServos() not implemented')
   }
 
   jQuery('#keysHelpDialog').dialog({
@@ -357,6 +371,8 @@ jQuery(function () {
   })
   jQuery('#configKeys').on('click', configKeys)
   jQuery('#saveConfig').on('click', saveConfig)
+  jQuery('#saveServos').on('click', saveServos)
+  jQuery('#configServos').on('click', configServos)
 
   jQuery('#updateSoftware').on('click', function () {
     if (objSocket.connected) {

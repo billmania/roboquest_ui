@@ -8,7 +8,7 @@
 const path = require('path')
 
 const RQ_PARAMS = {}
-RQ_PARAMS.VERSION = '16'
+RQ_PARAMS.VERSION = '17'
 
 RQ_PARAMS.CONFIG_FORMAT_VERSION = '6'
 RQ_PARAMS.SERVER_STATIC_DIR = path.join(
@@ -17,6 +17,8 @@ RQ_PARAMS.DEFAULT_CONFIG_FILE = path.join(
   __dirname, '../public/config/configuration.json')
 RQ_PARAMS.CONFIG_FILE = path.join(
   __dirname, '../public/persist/configuration.json')
+RQ_PARAMS.SERVO_FILE = path.join(
+  __dirname, '../public/persist/servos_config.json')
 RQ_PARAMS.SERVER_PORT_NUMBER = 80
 
 /*

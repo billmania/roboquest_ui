@@ -57,6 +57,18 @@ class WebServer {
       response.status(200).sendFile(indexHtmlFile)
     })
 
+    this.express_app.post('/servos', (request, response) => {
+      const servosObject = request.body
+
+      if (this.configFile.save_servos(servosObject)) {
+        response.status(200).json({ success: true })
+      } else {
+        response.status(400).json(
+          { success: false, error: 'Failed to save the servo config' })
+        console.error('save_servos: servo config not saved')
+      }
+    })
+
     this.express_app.post('/config', (request, response) => {
       const configObject = request.body
 
@@ -67,7 +79,7 @@ class WebServer {
        */
       if (!configObject.widgets) {
         response.status(400).json({ success: false, error: 'config missing widgets property' })
-        console.log(
+        console.error(
           `save_config: no widgets property in the config file ${JSON.stringify(request.body)}`)
         return
       }
@@ -77,7 +89,7 @@ class WebServer {
       } else {
         response.status(400).json(
           { success: false, error: 'Failed to save the config' })
-        console.log('save_config: config not saved')
+        console.error('save_config: config not saved')
       }
     })
   }
@@ -128,7 +140,7 @@ class WebServer {
    */
   event_cb (eventName, payload) {
     if (!this.incomingEvents.includes(eventName)) {
-      console.log(`event_cb: ${eventName} not in incomingEvents`)
+      console.warn(`event_cb: ${eventName} not in incomingEvents`)
       return false
     }
 
@@ -141,7 +153,7 @@ class WebServer {
         try {
           this.send_to_robot(eventName, payload)
         } catch (error) {
-          console.log(`event_cb: ${error}`)
+          console.error(`event_cb: ${error}`)
         }
         break
     }
@@ -180,7 +192,7 @@ class WebServer {
    * @returns {boolean} - false if the FIFO doesn't exist
    */
   update_software (command) {
-    console.log(`update_software: ${command}`)
+    console.info(`update_software: ${command}`)
 
     if (!fs.existsSync(RQ_PARAMS.UPDATE_FIFO)) {
       return false
