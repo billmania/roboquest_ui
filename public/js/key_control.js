@@ -38,20 +38,33 @@ class KeyControl { // eslint-disable-line no-unused-vars
   }
 
   /**
-   * Setup to capture a single keycode after a keycode button in the X table is clicked.
-   * This method is called via an "onclick" attribute for each keycode button element.
+   * Setup to capture a single keycode after a keycode button in #widgetKeysTable
+   * is clicked. This method is called via an "onclick" attribute for each keycode
+   * button element.
    *
    * When keycode capture has been enabled by changeAssignedKeycode,
-   * capture a single keycode and write it to the keycode button specified
-   * by this._clickedKeycodeId. Immediately after, disable the capture of
-   * keycodes.
+   * capture a single keycode. If the keycode isn't already assigned somewhere else,
+   * write it to the keycode button. Disable the capture of keycodes.
    *
    * @param {string} keycodeId - the HTML ID of the keycoded button
    */
   changeAssignedKeycode (keycodeId) {
     jQuery(window).on('keydown', (eventData) => {
       jQuery(window).off('keydown')
-      jQuery(`#${keycodeId}`).html(`${eventData.which}`)
+      if (jQuery(`#${keycodeId}`).data('keycode') !== eventData.which) {
+        if (this._isKeyAssigned(eventData.which)) {
+          console.warn(`changeAssignedKeycode: ${eventData.code} already assigned`)
+          return
+        }
+      }
+      jQuery(`#${keycodeId}`).html(eventData.code)
+      jQuery(`#${keycodeId}`).data('keycode', eventData.which)
+
+      console.debug(
+        'changeAssignedKeycode:' +
+        ` keycode: ${eventData.which}` +
+        `, name: ${eventData.code}`
+      )
     })
   }
 
@@ -78,7 +91,6 @@ class KeyControl { // eslint-disable-line no-unused-vars
    * getKeyedWidgets creates an Array of those widgets where the
    * type is in [ Joystick, Button, Slider ]. It doesn't care if
    * keys are assigned.
-   * This method must be called before getKeysSet().
    */
   getKeyedWidgets () {
     this._keyableWidgets = []
@@ -90,32 +102,41 @@ class KeyControl { // eslint-disable-line no-unused-vars
   }
 
   /**
-   * Given a widget object as an input, extract the keys assigned to the widget
-   * and add them to this._keysSet.
+   * Return true if a key is already assigned. A brute-force search through
+   * the collection of keyable widgets.
    *
-   * @param {object} widget - the widget configuration object
+   * @param {string} keycode - the numerical keycode
+   *
+   * @returns {boolean} - whether that keycode is assigned anywhere else
    */
-  _extractAssignedKeys (widget) {
-    const widgetObj = jQuery(widget).data('widget')
-    if (Object.hasOwn(widgetObj, 'keys')) {
-      this._keysSet = this._keysSet.concat(Object.keys(widgetObj.keys))
+  _isKeyAssigned (keycode) {
+    for (const widget of this._keyableWidgets) {
+      if (this._configureWidgetObj.label === widget.id) {
+        continue
+      }
+
+      const widgetData = jQuery(widget).data('widget')
+      let widgetKeys = null
+      if (!widgetData.keys) {
+        continue
+      }
+
+      /*
+       * The widgetData object has an object property named "keys". The next
+       * line wants the Array of properties of the "keys" object. Those
+       * properties are keycodes or "keys".
+       */
+      widgetKeys = Object.keys(widgetData.keys)
+      if (widgetKeys.length === 0) {
+        continue
+      }
+
+      if (widgetKeys.includes(String(keycode))) {
+        return true
+      }
     }
-  }
 
-  /**
-   * Return the set of assigned keys as a string. getKeyedWidgets()
-   * must have been called prior to calling this method.
-   *
-   * TODO: The keycodes alone aren't much use. They should instead be
-   * displayed with their widget label and their name.
-   *
-   * @returns {string} - the set of assigned keys
-   */
-  getKeysSet () {
-    this._keysSet = []
-    this._keyableWidgets.forEach(this._extractAssignedKeys.bind(this))
-
-    return String(this._keysSet.sort())
+    return false
   }
 
   /**
@@ -285,12 +306,13 @@ class KeyControl { // eslint-disable-line no-unused-vars
     console.debug(`applyKeycodeConfig: ${this._rowIndex} rows in table`)
 
     for (let rowIndex = 0; rowIndex < this._rowIndex; rowIndex++) {
-      const newKeycode = jQuery('#' + `keycode_${rowIndex}`).text()
+      const newKeycode = jQuery('#' + `keycode_${rowIndex}`).data('keycode')
       const remove = jQuery('#' + `remove_${rowIndex}`).is(':checked')
       if (newKeycode && newKeycode !== '0' && !remove) {
         newKeysConfig[newKeycode] = {}
 
-        newKeysConfig[newKeycode].name = jQuery('#' + `name_${rowIndex}`).val()
+        newKeysConfig[newKeycode].name = jQuery('#' + `keycode_${rowIndex}`).text()
+        newKeysConfig[newKeycode].description = jQuery('#' + `description_${rowIndex}`).val()
         newKeysConfig[newKeycode].downValues = jQuery('#' + `downValues_${rowIndex}`).val()
         newKeysConfig[newKeycode].upValues = jQuery('#' + `upValues_${rowIndex}`).val()
 
@@ -338,7 +360,7 @@ class KeyControl { // eslint-disable-line no-unused-vars
 
     jQuery('#widgetKeysTable')
       .append(
-        '<tr><th>Keycode</th><th>Key Name</th><th>On Press</th><th>On Release</th><th>Remove</th></tr>'
+        '<tr><th>Key</th><th>Description</th><th>On Press</th><th>On Release</th><th>Remove</th></tr>'
       )
 
     let keycodesRow = ''
@@ -346,11 +368,16 @@ class KeyControl { // eslint-disable-line no-unused-vars
     if (this._configureWidgetObj.keys) {
       this._widgetId = this._configureWidgetObj.id
 
-      for (const keyCode of Object.keys(this._configureWidgetObj.keys)) {
-        const keyConfig = this._configureWidgetObj.keys[keyCode]
+      for (const keycode of Object.keys(this._configureWidgetObj.keys)) {
+        const keyConfig = this._configureWidgetObj.keys[keycode]
         keycodesRow = '<tr>'
-        keycodesRow += `<td><button id="keycode_${this._rowIndex}" style="border:2px solid;" onclick="keyControl.changeAssignedKeycode('keycode_${this._rowIndex}')">${keyCode}</button></td>`
-        keycodesRow += `<td><input id="name_${this._rowIndex}" type="text" size="10" value="${keyConfig.name}"></td>`
+        keycodesRow += `<td><button id="keycode_${this._rowIndex}" style="border:2px solid;" onclick="keyControl.changeAssignedKeycode('keycode_${this._rowIndex}')">${keyConfig.name}</button></td>`
+
+        let keyDescription = ''
+        if (keyConfig.description !== undefined) {
+          keyDescription = keyConfig.description
+        }
+        keycodesRow += `<td><input id="description_${this._rowIndex}" type="text" size="10" value="${keyDescription}"></td>`
         let downValuesStr = ''
         if (keyConfig.downValues) {
           downValuesStr = JSON.stringify(keyConfig.downValues).replace(/"/g, '').replace(/{/g, '').replace(/}/g, '')
@@ -365,6 +392,7 @@ class KeyControl { // eslint-disable-line no-unused-vars
         keycodesRow += '</tr>'
 
         jQuery('#widgetKeysTable').append(keycodesRow)
+        jQuery('#' + `keycode_${this._rowIndex}`).data('keycode', keycode)
         this._rowIndex++
       }
     }
@@ -381,8 +409,8 @@ class KeyControl { // eslint-disable-line no-unused-vars
     let keycodesRow = ''
 
     keycodesRow = '<tr>'
-    keycodesRow += `<td><button id="keycode_${this._rowIndex}" onclick="keyControl.changeAssignedKeycode('keycode_${this._rowIndex}')">0</button></td>`
-    keycodesRow += `<td><input id="name_${this._rowIndex}" type="text" size="10"></td>`
+    keycodesRow += `<td><button id="keycode_${this._rowIndex}" style="border:2px solid;" onclick="keyControl.changeAssignedKeycode('keycode_${this._rowIndex}')">0</button></td>`
+    keycodesRow += `<td><input id="description_${this._rowIndex}" type="text" size="10"></td>`
     keycodesRow += `<td><input id="downValues_${this._rowIndex}" type="text" size=20></td>`
     keycodesRow += `<td><input id="upValues_${this._rowIndex}" type="text" size=20></td>`
     keycodesRow += `<td><input id="remove_${this._rowIndex}" type="checkbox" size=20></td>`
