@@ -447,6 +447,31 @@ class KeyControl { // eslint-disable-line no-unused-vars
   }
 
   /**
+   * Completely rebuild the mapping of keys to widgets. Intended for use after
+   * the 'config keys' functionality.
+   */
+  rebuildKeyMap () {
+    this._keyToWidget = {}
+    this.getKeyedWidgets()
+
+    /*
+     * Iterate through the collection of keyed widgets and call addKeysForWidget
+     * for each one.
+     */
+    for (const widget of this._keyableWidgets) {
+      const widgetConfig = jQuery(widget).data('widget')
+      if (widgetConfig &&
+          Object.hasOwn(widgetConfig, 'keys') &&
+          Object.keys(widgetConfig.keys).length > 0) {
+        console.debug(`rebuildKeyMap: adding ${widgetConfig.label}`)
+        this.addKeysForWidget(widgetConfig)
+      } else {
+        console.debug(`rebuildKeyMap: skipping ${widgetConfig.label}`)
+      }
+    }
+  }
+
+  /**
    * Associate each of a collection of keys with a specific widget.
    *
    * @param {object} objWidget - the object describing the widget configuration

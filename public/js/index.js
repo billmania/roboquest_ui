@@ -305,12 +305,13 @@ jQuery(function () {
     }
   })
 
-  // TODO: Reload the (re)assigned keys on the close event
   jQuery('#configKeysDialog').dialog({
     width: 500,
     autoOpen: false,
     buttons: {
       Done: function () {
+        keyControl.rebuildKeyMap()
+        saveConfig()
         jQuery(this).dialog('close')
       }
     },
