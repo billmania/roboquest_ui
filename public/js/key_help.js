@@ -8,7 +8,7 @@ const RQKeysHelp = {}
 
 RQKeysHelp.version = 3
 
-RQKeysHelp.keycodes = 'To change or set a keycode, click on the number in the Keycode column and then press and release the keyboard key. The number will change.'
+RQKeysHelp.keycodes = 'To change or set a key, click on the key name in the Key column and then press and release the keyboard key. If the new key is not assigned to another widget, the name will change.'
 
 RQKeysHelp.done = 'When finished making changes, click the Apply button. To make the changes permanent, click "save config" in Configuration settings.'
 
