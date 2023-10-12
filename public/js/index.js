@@ -302,7 +302,6 @@ jQuery(function () {
     },
     open: function (event, ui) {
       jQuery('#menuDialog').dialog('close')
-      jQuery('#configKeysDefined').text('Defined keys: ' + keyControl.getKeysSet())
       jQuery('#configKeysWidgetTable').html(keyControl.showWidgets())
     }
   })

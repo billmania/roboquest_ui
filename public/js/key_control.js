@@ -43,16 +43,23 @@ class KeyControl { // eslint-disable-line no-unused-vars
    * button element.
    *
    * When keycode capture has been enabled by changeAssignedKeycode,
-   * capture a single keycode and write it to the keycode button specified
-   * by this._clickedKeycodeId and disable the capture of keycodes.
+   * capture a single keycode. If the keycode isn't already assigned somewhere else,
+   * write it to the keycode button. Disable the capture of keycodes.
    *
    * @param {string} keycodeId - the HTML ID of the keycoded button
    */
   changeAssignedKeycode (keycodeId) {
     jQuery(window).on('keydown', (eventData) => {
       jQuery(window).off('keydown')
+      if (jQuery(`#${keycodeId}`).data('keycode') !== eventData.which) {
+        if (this._isKeyAssigned(eventData.which)) {
+          console.warn(`changeAssignedKeycode: ${eventData.code} already assigned`)
+          return
+        }
+      }
       jQuery(`#${keycodeId}`).html(eventData.code)
       jQuery(`#${keycodeId}`).data('keycode', eventData.which)
+
       console.debug(
         'changeAssignedKeycode:' +
         ` keycode: ${eventData.which}` +
@@ -84,7 +91,6 @@ class KeyControl { // eslint-disable-line no-unused-vars
    * getKeyedWidgets creates an Array of those widgets where the
    * type is in [ Joystick, Button, Slider ]. It doesn't care if
    * keys are assigned.
-   * This method must be called before getKeysSet().
    */
   getKeyedWidgets () {
     this._keyableWidgets = []
@@ -96,32 +102,41 @@ class KeyControl { // eslint-disable-line no-unused-vars
   }
 
   /**
-   * Given a widget object as an input, extract the keys assigned to the widget
-   * and add them to this._keysSet.
+   * Return true if a key is already assigned. A brute-force search through
+   * the collection of keyable widgets.
    *
-   * @param {object} widget - the widget configuration object
+   * @param {string} keycode - the numerical keycode
+   *
+   * @returns {boolean} - whether that keycode is assigned anywhere else
    */
-  _extractAssignedKeys (widget) {
-    const widgetObj = jQuery(widget).data('widget')
-    if (Object.hasOwn(widgetObj, 'keys')) {
-      this._keysSet = this._keysSet.concat(Object.keys(widgetObj.keys))
+  _isKeyAssigned (keycode) {
+    for (const widget of this._keyableWidgets) {
+      if (this._configureWidgetObj.label === widget.id) {
+        continue
+      }
+
+      const widgetData = jQuery(widget).data('widget')
+      let widgetKeys = null
+      if (!widgetData.keys) {
+        continue
+      }
+
+      /*
+       * The widgetData object has an object property named "keys". The next
+       * line wants the Array of properties of the "keys" object. Those
+       * properties are keycodes or "keys".
+       */
+      widgetKeys = Object.keys(widgetData.keys)
+      if (widgetKeys.length === 0) {
+        continue
+      }
+
+      if (widgetKeys.includes(String(keycode))) {
+        return true
+      }
     }
-  }
 
-  /**
-   * Return the set of assigned keys as a string. getKeyedWidgets()
-   * must have been called prior to calling this method.
-   *
-   * TODO: The keycodes alone aren't much use. They should instead be
-   * displayed with their widget label and their name.
-   *
-   * @returns {string} - the set of assigned keys
-   */
-  getKeysSet () {
-    this._keysSet = []
-    this._keyableWidgets.forEach(this._extractAssignedKeys.bind(this))
-
-    return String(this._keysSet.sort())
+    return false
   }
 
   /**
