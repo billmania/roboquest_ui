@@ -25,7 +25,7 @@ RQ_PARAMS.DISCONNECTED_IMAGE = 'img/background.jpg'
 RQ_PARAMS.ATTR_DELIMIT = ';'
 
 // TODO: Implement use of this in public/js/index.js
-RQ_PARAMS.WIDGET_NAMESPACE = 'rq'
+RQ_PARAMS.WIDGET_NAMESPACE = 'rq_widget'
 
 RQ_PARAMS.PING_TIMEOUT_MS = 1500
 RQ_PARAMS.PING_INTERVAL_MS = 1500

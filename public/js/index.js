@@ -12,6 +12,13 @@ console.info(`rq_ui config format version ${RQ_PARAMS.CONFIG_FORMAT_VERSION}`)
 const keyControl = new KeyControl('#keyControl')
 
 /**
+ * A simple helper function that expands on jQuery to allow the WIDGET_NAMESPACE
+ */
+jQuery.fn.getWidgetData = function () {
+  return this.data(RQ_PARAMS.WIDGET_NAMESPACE)
+}
+
+/**
  * Determine the greatest widget ID integer already assigned to a widget.
  * Return that integer + 1. ID numbers must be non-negative.
  *
@@ -20,7 +27,7 @@ const keyControl = new KeyControl('#keyControl')
 const getNextId = function () {
   let greatestId = -1
   jQuery('.widget').each((i, element) => {
-    const widgetId = parseInt(jQuery(element).data('widget').id)
+    const widgetId = parseInt(jQuery(element).getWidgetData().id)
     if (widgetId > greatestId) {
       greatestId = widgetId
     }
@@ -43,7 +50,7 @@ const getNextId = function () {
  */
 const positionWidgets = function () {
   jQuery('.widget').each((i, element) => {
-    const objWidget = jQuery(element).data('widget')
+    const objWidget = jQuery(element).getWidgetData()
     jQuery(element).position({
       ...objWidget.position,
       of: '#widgets',
@@ -107,10 +114,8 @@ const createWidget = function (objWidget, objSocket) {
   /*
    * In this function call, the string "widget" is not a class name
    * but is instead the key for a jQuery arbitrary data storage object.
-   *
-   * TODO: Replace "widget" with a more meaningful name.
    */
-  jQuery(widgetContainer).data('widget', objWidget)
+  jQuery(widgetContainer).data(RQ_PARAMS.WIDGET_NAMESPACE, objWidget)
 
   console.debug(`${JSON.stringify(objWidget)}`)
 
@@ -131,7 +136,10 @@ const createWidget = function (objWidget, objSocket) {
     },
     stop: function (event, ui) {
       const widgetId = event.target.id
-      const widgetPosition = jQuery('#' + widgetId).data('widget').position
+      const widgetData = jQuery('#' + widgetId).getWidgetData()
+      if (!widgetData) return // make sure widget still exists before continuing
+      const widgetPosition = widgetData.position
+
       console.debug(
         `drag stopped on ${widgetId}` +
         ` at offset ${JSON.stringify(jQuery('#' + widgetId).offset())}` +
@@ -139,12 +147,12 @@ const createWidget = function (objWidget, objSocket) {
         ` original ${JSON.stringify(widgetPosition)}`
       )
 
-      jQuery('#' + widgetId).data('widget').position = updateWidgetPosition(
+      jQuery('#' + widgetId).getWidgetData().position = updateWidgetPosition(
         widgetPosition,
         jQuery('#' + widgetId).position()
       )
       console.debug(
-        ` updated position to: ${JSON.stringify(jQuery('#' + widgetId).data('widget').position)}`
+        ` updated position to: ${JSON.stringify(jQuery('#' + widgetId).getWidgetData().position)}`
       )
     }
   })
@@ -258,7 +266,7 @@ jQuery(function () {
       widgets: []
     }
     jQuery('.widget').each((i, element) => {
-      objSaveConfig.widgets.push(jQuery(element).data('widget'))
+      objSaveConfig.widgets.push(jQuery(element).getWidgetData())
     })
     jQuery.ajax({
       type: 'POST',
@@ -400,8 +408,11 @@ jQuery(function () {
 
   jQuery('#trash').droppable({
     accept: '.widget',
+    classes: {
+      'ui-droppable-hover': 'trash-drop-hover'
+    },
     drop: function (event, ui) {
-      console.debug('dropped ID ', ui.draggable.data('widget').id)
+      console.debug('dropped ID ', ui.draggable.getWidgetData().id)
       ui.draggable.remove()
       // TODO: Not sure positionWidgets is required here
       positionWidgets()

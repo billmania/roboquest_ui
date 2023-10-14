@@ -210,3 +210,7 @@ input, select{
         0% 10%
     )
 }
+
+.trash-drop-hover{
+    background-color: #3d0000 !important;
+}
