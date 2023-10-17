@@ -213,7 +213,7 @@ input, select{
 
 /* 
  * jQuery adds this class to the #trash element when a widget is hovering over the trash.
- * The important flag is used to overwrite the bacground attribute in the #trash style when this class is applied.
+ * The important flag is used to overwrite the background attribute in the #trash style when this class is applied.
  * Though the use of the important flag can lead to complications when multiple styles are applied to the same element,
  * it's perfectly fine for a simple trash bin with two states.
  */
