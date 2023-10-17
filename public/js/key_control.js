@@ -75,8 +75,8 @@ class KeyControl { // eslint-disable-line no-unused-vars
    * @param {object} second - the second widget
    */
   _sortKeyableWidgets (first, second) {
-    const firstWidgetLabel = jQuery(first).data('widget').label
-    const secondWidgetLabel = jQuery(second).data('widget').label
+    const firstWidgetLabel = jQuery(first).getWidgetConfiguration().label
+    const secondWidgetLabel = jQuery(second).getWidgetConfiguration().label
 
     if (firstWidgetLabel === secondWidgetLabel) {
       return 0
@@ -115,7 +115,7 @@ class KeyControl { // eslint-disable-line no-unused-vars
         continue
       }
 
-      const widgetData = jQuery(widget).data('widget')
+      const widgetData = jQuery(widget).getWidgetConfiguration()
       let widgetKeys = null
       if (!widgetData.keys) {
         continue
@@ -145,7 +145,7 @@ class KeyControl { // eslint-disable-line no-unused-vars
    * @param {object} widget - the object defining the widget
    */
   _addWidgetRow (widget) {
-    const widgetObj = jQuery(widget).data('widget')
+    const widgetObj = jQuery(widget).getWidgetConfiguration()
     let hasKeys = 'None'
     if (Object.hasOwn(widgetObj, 'keys')) {
       hasKeys = 'Yes'
@@ -203,7 +203,7 @@ class KeyControl { // eslint-disable-line no-unused-vars
     const keyControl = this
     // TODO: Replace the forEach with a simple iteration loop
     this._keyableWidgets.forEach(function (widget) {
-      const widgetObj = jQuery(widget).data('widget')
+      const widgetObj = jQuery(widget).getWidgetConfiguration()
       if (widgetObj.id === widgetId) {
         keyControl._configureWidgetObj = widgetObj
       }
@@ -459,7 +459,7 @@ class KeyControl { // eslint-disable-line no-unused-vars
      * for each one.
      */
     for (const widget of this._keyableWidgets) {
-      const widgetConfig = jQuery(widget).data('widget')
+      const widgetConfig = jQuery(widget).getWidgetConfiguration()
       if (widgetConfig &&
           Object.hasOwn(widgetConfig, 'keys') &&
           Object.keys(widgetConfig.keys).length > 0) {
