@@ -1,6 +1,6 @@
 'use strict'
 
-/* global jQuery io RQ_PARAMS KeyControl */
+/* global jQuery io RQ_PARAMS KeyControl ServoConfig */
 
 /**
  * The main control for the RoboQuest front-end UI.
@@ -19,6 +19,7 @@ jQuery.fn.getWidgetConfiguration = function () {
 }
 
 const keyControl = new KeyControl('#keyControl')
+const servoConfig = new ServoConfig()
 
 /**
  * Determine the greatest widget ID integer already assigned to a widget.
@@ -306,7 +307,7 @@ jQuery(function () {
    * Execute the process for re-configuring the servos.
    */
   const configServos = function () {
-    console.debug('configServos() not implemented')
+    jQuery('#configServosDialog').dialog('open')
   }
 
   jQuery('#keysHelpDialog').dialog({
@@ -358,6 +359,24 @@ jQuery(function () {
       jQuery('#configKeysDialog').dialog('close')
       jQuery('#widgetKeysLabel').text(keyControl.configureWidgetLabel())
       jQuery('#widgetKeysForm').html(keyControl.showKeycodes())
+    }
+  })
+
+  jQuery('#configServosDialog').dialog({
+    width: 500,
+    autoOpen: false,
+    buttons: {
+      Edit: function () {
+        // TODO: Verify the format of the ServoConfig method names
+        servoConfig.editServo()
+      },
+      Done: function () {
+        servoConfig.saveServos()
+        jQuery(this).dialog('close')
+      }
+    },
+    open: function (event, ui) {
+      servoConfig.fetch_config()
     }
   })
 

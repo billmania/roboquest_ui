@@ -103,7 +103,7 @@ class ConfigFile {
       if (fs.existsSync(oldServoFile)) {
         fs.rmSync(oldServoFile)
       }
-      fs.renameSync(RQ_PARAMS.SERVO_FILE, oldConfigFile)
+      fs.renameSync(RQ_PARAMS.SERVO_FILE, oldServoFile)
     } catch (error) {
       console.warn('save_servos: Error saving old servo config file')
       return false
