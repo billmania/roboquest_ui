@@ -11,6 +11,7 @@ class ServoConfig { // eslint-disable-line no-unused-vars
    */
   constructor () {
     this._servos = null
+    this._editingServoChannel = null
     this._servos_changed = false
   }
 
@@ -42,6 +43,7 @@ class ServoConfig { // eslint-disable-line no-unused-vars
     const servoChannel = parseInt(jQuery('#servoChannel').find('option:selected').val())
     if (isNaN(servoChannel)) {
       console.warn('show_servo_config: No servo selected')
+      this._editingServoChannel = null
       jQuery('#channel').html('No servo selected')
       const servoForKeys = this._servos[0]
       Object.keys(servoForKeys).forEach(function (key) {
@@ -59,6 +61,7 @@ class ServoConfig { // eslint-disable-line no-unused-vars
       return
     }
     console.debug(`show_servo_config: channel ${servoChannel} - ${servoToConfig.joint_name}`)
+    this._editingServoChannel = servoChannel
     Object.keys(servoToConfig).forEach(function (key) {
       jQuery('#' + key).val(servoToConfig[key])
     })
@@ -69,7 +72,31 @@ class ServoConfig { // eslint-disable-line no-unused-vars
    * in configServoDialog.
    */
   apply_servo_config () {
-    this._servos_changed = true
+    const servoConfig = this
+
+    if (servoConfig._editingServoChannel === null) {
+      console.warn('apply_servo_config: Nothing to apply')
+      return
+    }
+
+    servoConfig._servos_changed = true
+    let value
+    let valueAsNumber
+    Object.keys(servoConfig._servos[servoConfig._editingServoChannel])
+      .forEach(function (key) {
+        value = jQuery('#' + key).val()
+        valueAsNumber = parseInt(value)
+        if (isNaN(valueAsNumber)) {
+          servoConfig._servos[servoConfig._editingServoChannel][key] = value
+        } else {
+          servoConfig._servos[servoConfig._editingServoChannel][key] = valueAsNumber
+        }
+      })
+
+    console.debug(
+      'apply_servo_config:' +
+      ` ${JSON.stringify(servoConfig._servos[servoConfig._editingServoChannel])}`
+    )
   }
 
   /**
