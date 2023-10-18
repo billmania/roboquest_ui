@@ -21,7 +21,6 @@
         <form id="menuForm">
             <div class="menuButton" id="updateSoftware">update robot software</div>
             <div class="menuButton" id="saveConfig">save config</div>
-            <div class="menuButton" id="saveServos">save servos</div>
             <div class="menuButton" id="addWidget">add widget</div>
             <div class="menuButton" id="configKeys">config keys</div>
             <div class="menuButton" id="configServos">config servos</div>
@@ -50,12 +49,38 @@
       <div id="keysHelpText" title="Help">
       </div>
     </div>
-    <div id="chooseServo" title="Choose servo to configure">
-        <form id="configureServo">
-            <label>Servo channel and joint name:</label>
-            <select id="servoChannel" name="Servo">
-            </select>
+    <div id="chooseServoDialog" title="Choose servo to configure">
+      <div id="chooseServo" title="Choose servo to configure">
+        <form id="chooseServo">
+          <label>Servos:</label>
+          <select id="servoChannel" name="Servo">
+          </select>
         </form>
+      </div>
+    </div>
+    <div id="configServoDialog" title="Configure the servo">
+      <div id="configureServo" title="Configure the servo">
+        <form id="configureServo">
+          <!--
+            The element IDs of the inputs must match the object property names
+            in servos_config.json.
+          -->
+          <label id="channel">Servo not selected</label><br/>
+          <label> name:</label><input id="joint_name" type="text" value=""><br/>
+          <label> make,model</label><input id="servo_make_model" type="text" value=""><br/>
+		  <br/>
+          <label> servo max angle</label><input id="servo_angle_max_deg" type="number" max="180" min="0" value=""><br/>
+          <label> servo min angle</label><input id="servo_angle_min_deg" type="number" max="180" min="0" value=""><br/>
+		  <br/>
+          <label> initial angle</label><input id="joint_angle_init_deg" type="number" max="180" min="0" value=""><br/>
+          <label> joint max angle</label><input id="joint_angle_max_deg" type="number" max="180" min="0" value=""><br/>
+          <label> joint min angle</label><input id="joint_angle_min_deg" type="number" max="180" min="0" value=""><br/>
+		  <br/>
+          <label> initial delay ms</label><input id="joint_init_wait_ms" type="number" max="100" min="0" value=""><br/>
+          <label> pulse max us</label><input id="pulse_max_us" type="number" max="2400" min="600" value=""><br/>
+          <label> pulse min us</label><input id="pulse_min_us" type="number" max="2400" min="600" value=""><br/>
+        </form>
+      </div>
     </div>
 
     <div id="newWidget" title="Configure a New Widget">
@@ -156,5 +181,6 @@
 <script src="./js/wJoystick.js"></script>
 <script src="./js/key_help.js"></script>
 <script src="./js/key_control.js"></script>
+<script src="./js/servo_config.js"></script>
 <script src="./js/index.js"></script>
 </html>

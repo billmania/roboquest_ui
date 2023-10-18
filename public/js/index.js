@@ -1,6 +1,6 @@
 'use strict'
 
-/* global jQuery io RQ_PARAMS KeyControl */
+/* global jQuery io RQ_PARAMS KeyControl ServoConfig */
 
 /**
  * The main control for the RoboQuest front-end UI.
@@ -19,6 +19,7 @@ jQuery.fn.getWidgetConfiguration = function () {
 }
 
 const keyControl = new KeyControl('#keyControl')
+const servoConfig = new ServoConfig()
 
 /**
  * Determine the greatest widget ID integer already assigned to a widget.
@@ -261,13 +262,6 @@ jQuery(function () {
   }
 
   /**
-   * Save the servo configuration object. Called by clicking the "save servos" button.
-   */
-  const saveServos = function () {
-    console.debug('saveServos() not implemented')
-  }
-
-  /**
    * Save the configuration object. Called by clicking the "save config" button
    * and by KeyControl.
    */
@@ -306,7 +300,7 @@ jQuery(function () {
    * Execute the process for re-configuring the servos.
    */
   const configServos = function () {
-    console.debug('configServos() not implemented')
+    jQuery('#chooseServoDialog').dialog('open')
   }
 
   jQuery('#keysHelpDialog').dialog({
@@ -361,6 +355,40 @@ jQuery(function () {
     }
   })
 
+  jQuery('#chooseServoDialog').dialog({
+    width: 300,
+    autoOpen: false,
+    buttons: {
+      Edit: function () {
+        jQuery('#configServoDialog').dialog('open')
+      },
+      Done: function () {
+        // TODO: Verify the format of the ServoConfig method names
+        servoConfig.save_servos()
+        jQuery(this).dialog('close')
+      }
+    },
+    open: function (event, ui) {
+      servoConfig.fetch_config()
+    }
+  })
+
+  jQuery('#configServoDialog').dialog({
+    width: 500,
+    autoOpen: false,
+    buttons: {
+      Apply: function () {
+        servoConfig.apply_servo_config()
+      },
+      Done: function () {
+        jQuery(this).dialog('close')
+      }
+    },
+    open: function (event, ui) {
+      servoConfig.show_servo_config()
+    }
+  })
+
   jQuery('#newWidget').dialog({
     width: 500,
     autoOpen: false,
@@ -390,7 +418,6 @@ jQuery(function () {
   })
   jQuery('#configKeys').on('click', configKeys)
   jQuery('#saveConfig').on('click', saveConfig)
-  jQuery('#saveServos').on('click', saveServos)
   jQuery('#configServos').on('click', configServos)
 
   jQuery('#updateSoftware').on('click', function () {

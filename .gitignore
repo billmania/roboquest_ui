@@ -1,5 +1,7 @@
 public/persist/configuration.json
 public/persist/configuration.json.old
+public/persist/servos_config.json
+public/persist/servos_config.json.old
 
 # colcon
 build/
