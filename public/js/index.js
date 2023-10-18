@@ -262,13 +262,6 @@ jQuery(function () {
   }
 
   /**
-   * Save the servo configuration object. Called by clicking the "save servos" button.
-   */
-  const saveServos = function () {
-    console.debug('saveServos() not implemented')
-  }
-
-  /**
    * Save the configuration object. Called by clicking the "save config" button
    * and by KeyControl.
    */
@@ -307,7 +300,7 @@ jQuery(function () {
    * Execute the process for re-configuring the servos.
    */
   const configServos = function () {
-    jQuery('#configServosDialog').dialog('open')
+    jQuery('#chooseServoDialog').dialog('open')
   }
 
   jQuery('#keysHelpDialog').dialog({
@@ -362,21 +355,37 @@ jQuery(function () {
     }
   })
 
-  jQuery('#configServosDialog').dialog({
-    width: 500,
+  jQuery('#chooseServoDialog').dialog({
+    width: 300,
     autoOpen: false,
     buttons: {
       Edit: function () {
-        // TODO: Verify the format of the ServoConfig method names
-        servoConfig.editServo()
+        jQuery('#configServoDialog').dialog('open')
       },
       Done: function () {
-        servoConfig.saveServos()
+        // TODO: Verify the format of the ServoConfig method names
+        servoConfig.save_servos()
         jQuery(this).dialog('close')
       }
     },
     open: function (event, ui) {
       servoConfig.fetch_config()
+    }
+  })
+
+  jQuery('#configServoDialog').dialog({
+    width: 500,
+    autoOpen: false,
+    buttons: {
+      Apply: function () {
+        servoConfig.apply_servo_config()
+      },
+      Done: function () {
+        jQuery(this).dialog('close')
+      }
+    },
+    open: function (event, ui) {
+      servoConfig.show_servo_config()
     }
   })
 
@@ -409,7 +418,6 @@ jQuery(function () {
   })
   jQuery('#configKeys').on('click', configKeys)
   jQuery('#saveConfig').on('click', saveConfig)
-  jQuery('#saveServos').on('click', saveServos)
   jQuery('#configServos').on('click', configServos)
 
   jQuery('#updateSoftware').on('click', function () {

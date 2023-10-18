@@ -11,6 +11,7 @@ class ServoConfig { // eslint-disable-line no-unused-vars
    */
   constructor () {
     this._servos = null
+    this._servos_changed = false
   }
 
   /**
@@ -34,19 +35,56 @@ class ServoConfig { // eslint-disable-line no-unused-vars
   }
 
   /**
-   * Edit the configuration of the servo selected in the drop-down menu.
-   *
+   * Populate the configServoDialog based on the servo selected in
+   * chooseServoDialog.
    */
-  editServo () {
-    console.warn('editServo not implemented yet')
+  show_servo_config () {
+    const servoChannel = parseInt(jQuery('#servoChannel').find('option:selected').val())
+    if (isNaN(servoChannel)) {
+      console.warn('show_servo_config: No servo selected')
+      jQuery('#channel').html('No servo selected')
+      const servoForKeys = this._servos[0]
+      Object.keys(servoForKeys).forEach(function (key) {
+        jQuery('#' + key).val('')
+      })
+
+      return
+    }
+
+    jQuery('#channel').html(`Servo ${servoChannel}`)
+
+    const servoToConfig = this._servos[servoChannel]
+    if (servoToConfig.channel !== servoChannel) {
+      console.error('show_servo_config: servos_config.json is out of order')
+      return
+    }
+    console.debug(`show_servo_config: channel ${servoChannel} - ${servoToConfig.joint_name}`)
+    Object.keys(servoToConfig).forEach(function (key) {
+      jQuery('#' + key).val(servoToConfig[key])
+    })
+  }
+
+  /**
+   * Update the configuration of the selected servo using the values
+   * in configServoDialog.
+   */
+  apply_servo_config () {
+    this._servos_changed = true
   }
 
   /**
    * Save the servo config list.
    */
-  saveServos () {
+  save_servos () {
+    const servoConfig = this
+
     if (!this._servos) {
       console.warn('No servo config to save')
+      return
+    }
+
+    if (!this._servos_changed) {
+      console.info('Servo config not changed, not saving')
       return
     }
 
@@ -57,6 +95,7 @@ class ServoConfig { // eslint-disable-line no-unused-vars
       data: JSON.stringify(this._servos),
       success: function (objResponse) {
         console.debug('Save Servos Response', objResponse)
+        servoConfig._servos_changed = false
       },
       error: function (objRequest, strStatus, strError) {
         console.error('Error saving servos:', strError)
@@ -73,12 +112,21 @@ class ServoConfig { // eslint-disable-line no-unused-vars
       .find('option')
       .remove()
 
+    /*
+     * Add a blank option to force the selecting of an actual option.
+     */
+    let nextOption = jQuery('<option>', {
+      value: '',
+      text: ''
+    })
+    jQuery('#servoChannel').append(nextOption)
+
     jQuery.each(this._servos, function (i, servo) {
-      jQuery('#servoChannel').append(
-        jQuery('<option>', {
-          value: servo.channel,
-          text: servo.channel + ' ' + servo.joint_name
-        }))
+      nextOption = jQuery('<option>', {
+        value: servo.channel,
+        text: servo.channel + ' ' + servo.joint_name
+      })
+      jQuery('#servoChannel').append(nextOption)
     })
   }
 }
