@@ -106,6 +106,14 @@ class RobotComms {
     this.read_config_file()
     this.setup_ROS(this.configuration.widgets)
 
+    this._restartServiceClient = this.create_service_client(
+      'std_srvs/srv/Empty',
+      'restart'
+    )
+    if (this._restartServiceClient !== undefined) {
+      this.logger.debug('_restartServiceClient set')
+    }
+
     this.counter = 0
     this.telemetryMessages = 0
     this.imageMessages = 0
@@ -146,8 +154,9 @@ class RobotComms {
       try {
         this.publishers[name].publish(rosMessage)
       } catch (error) {
-        console.log(
-          `handle_payload: ${error}, name:${name}, payload:${JSON.stringify(rosMessage)}`)
+        this.logger.warn(
+          `handle_payload: ${error}, name:${name}, payload:${JSON.stringify(rosMessage)}`
+        )
       }
     } else if (this.services.includes(name)) {
       const serviceRequest = this.buildServiceMessage(name, payload)
@@ -158,6 +167,24 @@ class RobotComms {
             this.logger.warn(
               `Service ${name} failed`)
           }
+        }
+      )
+    } else if (name === 'restart') {
+      /*
+       * This is a special "system" service, not associated with a widget. In
+       * the future, there may be more of these services. If that comes,
+       * this logic will be replaced with a separate function capable of
+       * handling multiple system services.
+       */
+      this.logger.debug('handle_payload: Calling restart service')
+      this._restartServiceClient.sendRequest(
+        {},
+        (response) => {
+          /*
+           * The restart service has an Empty response, so there's
+           * nothing to check, beyond the fact it returned.
+           */
+          this.logger.info(`handle_payload: restart called`)
         }
       )
     } else {
@@ -271,6 +298,7 @@ class RobotComms {
    * @param {string} serviceType - the request/response message for the service
    * @param {string} serviceName - the name of the service
    *
+   * @returns {object} - the service client object
    */
   create_service_client (serviceType, serviceName) {
     const serviceClient = this.node.createClient(
@@ -285,6 +313,7 @@ class RobotComms {
           return null
         }
       })
+
     return serviceClient
   }
 

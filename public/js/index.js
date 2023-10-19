@@ -363,8 +363,14 @@ jQuery(function () {
         jQuery('#configServoDialog').dialog('open')
       },
       Done: function () {
-        // TODO: Verify the format of the ServoConfig method names
+        // TODO: Verify the format and consistency of the ServoConfig method names
         servoConfig.save_servos()
+        console.debug('chooseServoDialog: emitting restart')
+        // TODO: Add a check if anything actually changed in the servo config
+        objSocket.emit(
+          'restart',
+          '{}'
+        )
         jQuery(this).dialog('close')
       }
     },
