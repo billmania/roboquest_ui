@@ -96,7 +96,12 @@ const createWidget = function (objWidget, objSocket) { // eslint-disable-line no
     `<div class="widget ${widgetTypeUpper}" id="${objWidget.label}"></div>`
   )
   const widgetHeader = '<div class="widget-header">' + objWidget.label + '</div>'
+  const widgetKebobMenu = jQuery(
+    '<img class="kebobMenu" src="img/kebobMenu.png"/>'
+  )
   const widgetContent = '<div class="widget-content"></div>'
+
+  widgetKebobMenu.appendTo(widgetContainer)
   jQuery(widgetHeader).appendTo(widgetContainer)
   jQuery(widgetContent).appendTo(widgetContainer)
 
@@ -156,6 +161,15 @@ const createWidget = function (objWidget, objSocket) { // eslint-disable-line no
         ` updated position to: ${JSON.stringify(jQuery('#' + widgetId).getWidgetConfiguration().position)}`
       )
     }
+  }).hover(function (event) {
+    jQuery(event.currentTarget).find('.kebobMenu')[0].style.display = 'block'
+  },
+  function (event) {
+    jQuery(event.currentTarget).find('.kebobMenu')[0].style.display = 'none'
+  })
+
+  widgetKebobMenu.on('click', function (event) {
+    console.log('Clicked on kebob menu for widget #' + event.target.closest('.widget').id)
   })
 }
 

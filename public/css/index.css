@@ -83,6 +83,12 @@ input, select{
     text-align: center;
     border-bottom: 1px solid rgba(50, 90, 255, .5)
 }
+.kebobMenu{
+    display: none;
+    height: 20px;
+    position: absolute;
+    right: 8px;
+}
 .widget-content{
     width: 100%;
     min-height:24px;
