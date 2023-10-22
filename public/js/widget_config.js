@@ -95,15 +95,19 @@ const createWidget = function (objWidget, objSocket) { // eslint-disable-line no
   const widgetContainer = jQuery(
     `<div class="widget ${widgetTypeUpper}" id="${objWidget.label}"></div>`
   )
-  const widgetHeader = '<div class="widget-header">' + objWidget.label + '</div>'
-  const widgetKebobMenu = jQuery(
-    '<img class="kebobMenu" src="img/kebobMenu.png"/>'
+  const widgetHeader = jQuery(
+    '<div class="widget-header">' + objWidget.label + '</div>'
   )
-  const widgetContent = '<div class="widget-content"></div>'
+  const widgetKebobMenu = jQuery(
+    '<img class="widget-kebobMenu" src="img/kebobMenu.png"/>'
+  )
+  const widgetContent = jQuery(
+    '<div class="widget-content"></div>'
+  )
 
   widgetKebobMenu.appendTo(widgetContainer)
-  jQuery(widgetHeader).appendTo(widgetContainer)
-  jQuery(widgetContent).appendTo(widgetContainer)
+  widgetHeader.appendTo(widgetContainer)
+  widgetContent.appendTo(widgetContainer)
 
   if (Object.hasOwn(objWidget, 'keys')) {
     keyControl.addKeysForWidget(objWidget) // eslint-disable-line no-undef
@@ -162,22 +166,47 @@ const createWidget = function (objWidget, objSocket) { // eslint-disable-line no
       )
     }
   }).hover(function (event) {
-    jQuery(event.currentTarget).find('.kebobMenu')[0].style.display = 'block'
+    jQuery(event.currentTarget).find('.widget-kebobMenu')[0].style.display = 'block'
   },
   function (event) {
-    jQuery(event.currentTarget).find('.kebobMenu')[0].style.display = 'none'
+    jQuery(event.currentTarget).find('.widget-kebobMenu')[0].style.display = 'none'
   })
 
+  /*
+  * Two alternative ways to do the same thing.
+  * We should see what students like best. Double clicking the widget header, or clicking on a kebob menu.
+  * I (Mark) personaly like the double-click option
+  */
   widgetKebobMenu.on('click', function (event) {
-    console.log('Clicked on kebob menu for widget #' + event.target.closest('.widget').id)
-    const widgetConfig = jQuery(event.target.closest('.widget')).getWidgetConfiguration()
-
-    populateWidgetConfigurationDialog(widgetConfig)
-
-    jQuery('#newWidget').dialog({
-      title: 'Configure Widget'
-    }).dialog('open')
+    openConfigureWidgetDialog(jQuery(event.target.closest('.widget')))
   })
+
+  widgetHeader.on('dblclick', function (event) {
+    openConfigureWidgetDialog(jQuery(event.target.closest('.widget')))
+  })
+}
+
+const openConfigureWidgetDialog = function (widget) {
+  const widgetConfig = widget.getWidgetConfiguration()
+
+  populateWidgetConfigurationDialog(widgetConfig)
+
+  jQuery('#newWidget').dialog({
+    title: 'Configure Widget',
+    buttons: {
+      Cancel: function () {
+        jQuery(this).dialog('close')
+      },
+      Done: function () {
+        reconfigureWidget(widgetConfig)
+        jQuery(this).dialog('close')
+      }
+    }
+  }).dialog('open')
+}
+
+const reconfigureWidget = function (widgetConfig) {
+  console.log("reconfiguring widgets hasn't been implemented yet")
 }
 
 const setNewWidgetDialogType = function (widgetType) {
@@ -188,7 +217,6 @@ const setNewWidgetDialogType = function (widgetType) {
 const populateWidgetConfigurationDialog = function (widgetConfig) {
   jQuery('#newWidget').find('[data-section]').each((i, element) => {
     const strPropSection = jQuery(element).data('section')
-    console.log(strPropSection, element.name, element.value)
 
     if (strPropSection === 'root') {
       if (Object.hasOwn(widgetConfig, element.name)) {
