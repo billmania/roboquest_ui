@@ -2,6 +2,11 @@
 
 /* global jQuery RQ_PARAMS */
 
+/*
+* A socket object is required to create a widget, so we need to define it globaly here to avoid a circular scope dependancy
+*/
+let socket
+
 /**
  * Extends jQuery. To be called on a jQuery element of class 'widget'.
  *
@@ -86,7 +91,7 @@ const updateWidgetPosition = function (oldPosition, newPosition) {
  *    is an HTML DIV with the CSS class "widget-content".
  *
  */
-const createWidget = function (objWidget, objSocket) { // eslint-disable-line no-unused-vars
+const createWidget = function (objWidget) { // eslint-disable-line no-unused-vars
   // TODO: Instead of using upper case widget names for unique-ness, use the
   // TODO: rq widget namespace.
   const widgetTypeUpper = objWidget.type.toUpperCase()
@@ -122,7 +127,7 @@ const createWidget = function (objWidget, objSocket) { // eslint-disable-line no
   console.debug(`${JSON.stringify(objWidget)}`)
 
   jQuery(widgetContainer)[widgetTypeUpper](
-    { ...objWidget, socket: objSocket }
+    { ...objWidget, socket: socket }
   ).appendTo(
     '#widgets'
   ).draggable({
@@ -187,9 +192,9 @@ const createWidget = function (objWidget, objSocket) { // eslint-disable-line no
 }
 
 const openConfigureWidgetDialog = function (widget) {
-  const widgetConfig = widget.getWidgetConfiguration()
+  const oldWidgetConfig = widget.getWidgetConfiguration()
 
-  populateWidgetConfigurationDialog(widgetConfig)
+  populateWidgetConfigurationDialog(oldWidgetConfig)
 
   jQuery('#newWidget').dialog({
     title: 'Configure Widget',
@@ -198,20 +203,40 @@ const openConfigureWidgetDialog = function (widget) {
         jQuery(this).dialog('close')
       },
       Done: function () {
-        reconfigureWidget(widgetConfig)
+        reconfigureWidget(oldWidgetConfig, extractWidgetConfigurationFromDialog())
         jQuery(this).dialog('close')
       }
     }
   }).dialog('open')
 }
 
-const reconfigureWidget = function (widgetConfig) {
-  console.log("reconfiguring widgets hasn't been implemented yet")
+/*
+* @returns {object} - the dragable jQuery widget element
+* TODO: We really need a better way of identifying widgets, not using their labels.
+*/
+const getjQueryWidgetFromConfig = function (widgetConfig) {
+  return jQuery('#' + widgetConfig.label)
+}
+
+/*
+* Simply delete the widget and re-create it with the new config settings
+* TODO: In the future, look at attempting to call a "update" method on the widget before defaulting to this method
+*/
+const reconfigureWidget = function (oldWidgetConfig, newWidgetConfig) {
+  const oldDragableWidget = getjQueryWidgetFromConfig(oldWidgetConfig)
+
+  oldDragableWidget.remove()
+  positionWidgets()
+
+  newWidgetConfig.position = oldWidgetConfig.position
+  createWidget(newWidgetConfig)
+  positionWidgets()
 }
 
 const setNewWidgetDialogType = function (widgetType) {
   jQuery('#newWidget .newWidgetType').hide()
   jQuery(`#newWidget #${widgetType}`).show()
+  positionWidgets()
 }
 
 const populateWidgetConfigurationDialog = function (widgetConfig) {
@@ -247,7 +272,66 @@ const populateWidgetConfigurationDialog = function (widgetConfig) {
   })
 }
 
+/*
+* Reads all the populated fields of the configuration dialog into an object
+*
+* @returns {object} - returns a configuration object assembled from the dialog's current state
+*/
+const extractWidgetConfigurationFromDialog = function () {
+  const objNewWidget = {
+    position: {},
+    format: {},
+    data: {}
+  }
+  jQuery('#newWidget')
+    .find(
+      '#configureNewWidget input:visible, #configureNewWidget select:visible, #newWidgetType'
+    )
+    .each((i, element) => {
+      // TODO: Provide a reasonable default value for element.value
+      if (element.value) {
+        const strPropSection = jQuery(element).data('section')
+        console.debug(strPropSection, element.name, element.value)
+        if (strPropSection === 'root') {
+          objNewWidget[element.name] = element.value
+        }
+        if (strPropSection === 'format') {
+          /*
+             * Some format values are integers.
+             */
+          const value = parseInt(element.value)
+          if (isNaN(value)) {
+            objNewWidget[strPropSection][element.name] = element.value
+          } else {
+            objNewWidget[strPropSection][element.name] = value
+          }
+        }
+        if (strPropSection === 'data') {
+          /*
+             * The topicAttribute element may contain multiple attributes.
+             * When found, assemble them into an Array of strings.
+             */
+          if (element.value.indexOf(RQ_PARAMS.ATTR_DELIMIT) > -1) {
+            const attributes = element.value
+              .replaceAll(' ', '')
+              .split(RQ_PARAMS.ATTR_DELIMIT)
+            objNewWidget[strPropSection][element.name] = attributes
+          } else {
+            objNewWidget[strPropSection][element.name] = element.value
+          }
+        }
+      }
+    })
+
+  // these are one off logic to string concat the values, not a nice 1-1 mapping
+  objNewWidget.position.my = `${jQuery('#widgetPositionMyX').val()} ${jQuery('#widgetPositionMyY').val()}`
+  objNewWidget.position.at = `${jQuery('#parentPositionAtX').val()} ${jQuery('#parentPositionAtY').val()}`
+
+  return objNewWidget
+}
+
 const initWidgetConfig = function (objSocket) { // eslint-disable-line no-unused-vars
+  socket = objSocket
   /**
      * Use the details of a new widget, collected via the configuration menu, to
      * instantiate and position a new widget.
@@ -256,58 +340,14 @@ const initWidgetConfig = function (objSocket) { // eslint-disable-line no-unused
      */
   // TODO: Give this function a more intuitive name based on its use and effect
   const addWidget = function () {
-    const objNewWidget = {
-      position: {},
-      format: {},
-      data: {}
-    }
-    jQuery(this)
-      .find(
-        '#configureNewWidget input:visible, #configureNewWidget select:visible, #newWidgetType'
-      )
-      .each((i, element) => {
-        // TODO: Provide a reasonable default value for element.value
-        if (element.value) {
-          const strPropSection = jQuery(element).data('section')
-          console.debug(strPropSection, element.name, element.value)
-          if (strPropSection === 'root') {
-            objNewWidget[element.name] = element.value
-          }
-          if (strPropSection === 'format') {
-            /*
-               * Some format values are integers.
-               */
-            const value = parseInt(element.value)
-            if (isNaN(value)) {
-              objNewWidget[strPropSection][element.name] = element.value
-            } else {
-              objNewWidget[strPropSection][element.name] = value
-            }
-          }
-          if (strPropSection === 'data') {
-            /*
-               * The topicAttribute element may contain multiple attributes.
-               * When found, assemble them into an Array of strings.
-               */
-            if (element.value.indexOf(RQ_PARAMS.ATTR_DELIMIT) > -1) {
-              const attributes = element.value
-                .replaceAll(' ', '')
-                .split(RQ_PARAMS.ATTR_DELIMIT)
-              objNewWidget[strPropSection][element.name] = attributes
-            } else {
-              objNewWidget[strPropSection][element.name] = element.value
-            }
-          }
-        }
-      })
-      // these are one off logic to string concat the values, not a nice 1-1 mapping
-    objNewWidget.position.my = `${jQuery('#widgetPositionMyX').val()} ${jQuery('#widgetPositionMyY').val()}`
-    objNewWidget.position.at = `${jQuery('#parentPositionAtX').val()} ${jQuery('#parentPositionAtY').val()}`
+    const objNewWidget = extractWidgetConfigurationFromDialog()
+
     objNewWidget.id = getNextId()
 
-    createWidget(objNewWidget, objSocket)
+    createWidget(objNewWidget)
     positionWidgets()
   }
+
   jQuery('#newWidget').dialog({
     width: 500,
     autoOpen: false,
@@ -330,7 +370,13 @@ const initWidgetConfig = function (objSocket) { // eslint-disable-line no-unused
 
   jQuery('#addWidget').on('click', function () {
     jQuery('#newWidget').dialog({
-      title: 'Configure a New Widget'
+      title: 'Configure a New Widget',
+      buttons: {
+        Create: addWidget,
+        Done: function () {
+          jQuery(this).dialog('close')
+        }
+      }
     }).dialog('open')
   })
 }
