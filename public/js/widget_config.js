@@ -246,7 +246,7 @@ const populateWidgetConfigurationDialog = function (widgetConfig) {
     if (strPropSection === 'root') {
       if (Object.hasOwn(widgetConfig, element.name)) {
         if (element.name === 'type') {
-          jQuery('#newWidgetType').val(widgetConfig[element.name]).selectmenu('refresh');
+          jQuery('#newWidgetType').val(widgetConfig[element.name]).selectmenu('refresh')
           setNewWidgetDialogType(widgetConfig[element.name])
         } else {
           element.value = widgetConfig[element.name]
