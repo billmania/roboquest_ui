@@ -170,6 +170,52 @@ const createWidget = function (objWidget, objSocket) { // eslint-disable-line no
 
   widgetKebobMenu.on('click', function (event) {
     console.log('Clicked on kebob menu for widget #' + event.target.closest('.widget').id)
+    const widgetConfig = jQuery(event.target.closest('.widget')).getWidgetConfiguration()
+
+    populateWidgetConfigurationDialog(widgetConfig)
+
+    jQuery('#newWidget').dialog({
+      title: 'Configure Widget'
+    }).dialog('open')
+  })
+}
+
+const setNewWidgetDialogType = function (widgetType) {
+  jQuery('#newWidget .newWidgetType').hide()
+  jQuery(`#newWidget #${widgetType}`).show()
+}
+
+const populateWidgetConfigurationDialog = function (widgetConfig) {
+  jQuery('#newWidget').find('[data-section]').each((i, element) => {
+    const strPropSection = jQuery(element).data('section')
+    console.log(strPropSection, element.name, element.value)
+
+    if (strPropSection === 'root') {
+      if (Object.hasOwn(widgetConfig, element.name)) {
+        if (element.name === 'type') {
+          jQuery('#newWidgetType').val(widgetConfig[element.name]).selectmenu('refresh');
+          setNewWidgetDialogType(widgetConfig[element.name])
+        } else {
+          element.value = widgetConfig[element.name]
+        }
+      }
+    }
+
+    if (strPropSection === 'format') {
+      if (Object.hasOwn(widgetConfig[strPropSection], element.name)) {
+        element.value = widgetConfig[strPropSection][element.name]
+      }
+    }
+    if (strPropSection === 'data') {
+      if (Object.hasOwn(widgetConfig[strPropSection], element.name)) {
+        const configValue = widgetConfig[strPropSection][element.name]
+        if (typeof (configValue) === 'object' && Array.isArray(configValue)) {
+          element.value = configValue.join(RQ_PARAMS.ATTR_DELIMIT)
+        } else {
+          element.value = configValue
+        }
+      }
+    }
   })
 }
 
@@ -234,7 +280,6 @@ const initWidgetConfig = function (objSocket) { // eslint-disable-line no-unused
     createWidget(objNewWidget, objSocket)
     positionWidgets()
   }
-
   jQuery('#newWidget').dialog({
     width: 500,
     autoOpen: false,
@@ -251,13 +296,13 @@ const initWidgetConfig = function (objSocket) { // eslint-disable-line no-unused
 
   jQuery('#newWidget #newWidgetType').selectmenu({
     change: function (event, ui) {
-      const widgetType = ui.item.value
-      jQuery('#newWidget .newWidgetType').hide()
-      jQuery(`#newWidget #${widgetType}`).show()
+      setNewWidgetDialogType(ui.item.value)
     }
   })
 
   jQuery('#addWidget').on('click', function () {
-    jQuery('#newWidget').dialog('open')
+    jQuery('#newWidget').dialog({
+      title: 'Configure a New Widget'
+    }).dialog('open')
   })
 }
