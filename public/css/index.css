@@ -9,6 +9,7 @@ html, body{
     color: #CC894E;
     line-height: 1.5;
     overflow-x: hidden;
+    user-select: none;
 }
 
 .full-height{
