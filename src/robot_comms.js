@@ -155,7 +155,7 @@ class RobotComms {
         this.publishers[name].publish(rosMessage)
       } catch (error) {
         this.logger.warn(
-          `handle_payload: ${error}, name:${name}, payload:${JSON.stringify(rosMessage)}`
+          `handle_payload: ${error}, name:${name}, rosMessage:${JSON.stringify(rosMessage)}`
         )
       }
     } else if (this.services.includes(name)) {
