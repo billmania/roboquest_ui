@@ -426,9 +426,9 @@
       },
       "format": {
         "min": 0,
-        "max": 100,
+        "max": 300,
         "step": 5,
-        "default": 100,
+        "default": 300,
         "orientation": "horizontal",
         "animate": "true"
       },
@@ -436,7 +436,7 @@
         "topicDirection": "publish",
         "topic": "motor_speed",
         "topicType": "rq_msgs/msg/MotorSpeed",
-        "topicAttribute": "max_speed"
+        "topicAttribute": "max_rpm"
       },
       "type": "slider",
       "label": "MotorSpeed",
