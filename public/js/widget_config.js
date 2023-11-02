@@ -162,13 +162,6 @@ const createWidget = function (objWidget) { // eslint-disable-line no-unused-var
 
       const widgetPosition = widgetData.position
 
-      console.debug(
-        `drag stopped on ${widgetId}` +
-        ` at offset ${JSON.stringify(jQuery('#' + widgetId).offset())}` +
-        ` and position ${JSON.stringify(jQuery('#' + widgetId).position())}` +
-        ` original ${JSON.stringify(widgetPosition)}`
-      )
-
       jQuery('#' + widgetId).getWidgetConfiguration().position = updateWidgetPosition(
         widgetPosition,
         jQuery('#' + widgetId).position()
@@ -255,7 +248,7 @@ const setWidgetConfigDefaults = function () {
   }
 
   const widgetType = jQuery('#newWidget #newWidgetType').find('option:selected').val()
-  console.debug(`setWidgetConfigDefaults: ${JSON.stringify(widgetDefaults[widgetType])}`)
+  populateWidgetConfigurationDialog(widgetDefaults[widgetType])
 }
 
 /**
@@ -300,6 +293,7 @@ const populateWidgetConfigurationDialog = function (widgetConfig) {
         element.value = widgetConfig[strPropSection][element.name]
       }
     }
+
     if (strPropSection === 'data') {
       if (Object.hasOwn(widgetConfig[strPropSection], element.name)) {
         const configValue = widgetConfig[strPropSection][element.name]
@@ -433,50 +427,75 @@ const initWidgetConfig = function (objSocket) { // eslint-disable-line no-unused
  * of widgetDefaults are the widget types. The properties under each widget
  * type are the name attribute of the input elements in the
  * configureNewWidget form.
+ * Each widget type object must have both a "format" and a "data" property.
  */
 const widgetDefaults = {
   button: {
-    text: '',
-    service: '',
-    serviceType: 'rq_msgs/srv',
-    serviceAttribute: '',
-    clickValue: ''
+    label: 'buttonX',
+    format: {
+      text: ''
+    },
+    data: {
+      service: '',
+      serviceType: 'rq_msgs/srv',
+      serviceAttribute: '',
+      clickValue: ''
+    }
   },
   slider: {
-    min: 0,
-    max: 180,
-    step: 10,
-    default: 90,
-    orientation: 'horizontal',
-    animate: 'true',
-    topicDirection: 'publish',
-    topic: '',
-    topicType: 'rq_msgs/msg',
-    topicAttribute: ''
+    label: 'sliderX',
+    format: {
+      min: 0,
+      max: 180,
+      step: 10,
+      default: 90,
+      orientation: 'horizontal',
+      animate: 'true'
+    },
+    data: {
+      topicDirection: 'publish',
+      topic: '',
+      topicType: 'rq_msgs/msg',
+      topicAttribute: ''
+    }
   },
   value: {
-    textColor: '#CCC',
-    prefix: ' ',
-    suffix: ' ',
-    topicDirection: 'subscribe',
-    topic: '',
-    topicType: 'rq_msgs/msg',
-    topicAttribute: ''
+    label: 'valueX',
+    format: {
+      textColor: '#CCC',
+      prefix: ' ',
+      suffix: ' '
+    },
+    data: {
+      topicDirection: 'subscribe',
+      topic: '',
+      topicType: 'rq_msgs/msg',
+      topicAttribute: ''
+    }
   },
   indicator: {
-    trueText: 'True',
-    trueColor: '#DDD',
-    falseText: 'False',
-    falseColor: '#EEE',
-    topicDirection: 'subscribe',
-    topic: '',
-    topicType: 'rq_msgs/msg',
-    topicAttribute: ''
+    label: 'indicatorX',
+    format: {
+      trueText: 'True',
+      trueColor: '#DDD',
+      falseText: 'False',
+      falseColor: '#EEE'
+    },
+    data: {
+      topicDirection: 'subscribe',
+      topic: '',
+      topicType: 'rq_msgs/msg',
+      topicAttribute: ''
+    }
   },
   joystick: {
-    topicDirection: 'publish',
-    topic: 'cmd_vel',
-    topicType: 'rq_msgs/msg/TwistStamped',
-    topicAttribute: 'twist.angular.z;twist.linear.x'
+    label: 'joystickX',
+    format: {},
+    data: {
+      topicDirection: 'publish',
+      topic: 'cmd_vel',
+      topicType: 'rq_msgs/msg/TwistStamped',
+      topicAttribute: 'twist.angular.z;twist.linear.x'
+    }
   }
 }
