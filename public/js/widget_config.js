@@ -3,9 +3,16 @@
 /* global jQuery RQ_PARAMS */
 
 /*
-* A socket object is required to create a widget, so we need to define it globaly here to avoid a circular scope dependancy
+ * A socket object is required to create a widget, so we need to define
+ * it globally here to avoid a circular scope dependency.
 */
 let socket
+
+/*
+ * Differentiate between using the widget configuration form for a
+ * new widget and for re-configuring an existing widget.
+ */
+let reconfiguringWidget = false
 
 /**
  * Extends jQuery. To be called on a jQuery element of class 'widget'.
@@ -127,7 +134,7 @@ const createWidget = function (objWidget) { // eslint-disable-line no-unused-var
   console.debug(`${JSON.stringify(objWidget)}`)
 
   jQuery(widgetContainer)[widgetTypeUpper](
-    { ...objWidget, socket: socket }
+    { ...objWidget, socket }
   ).appendTo(
     '#widgets'
   ).draggable({
@@ -177,11 +184,6 @@ const createWidget = function (objWidget) { // eslint-disable-line no-unused-var
     jQuery(event.currentTarget).find('.widget-kebobMenu')[0].style.display = 'none'
   })
 
-  /*
-  * Two alternative ways to do the same thing.
-  * We should see what students like best. Double clicking the widget header, or clicking on a kebob menu.
-  * I (Mark) personaly like the double-click option
-  */
   widgetKebobMenu.on('click', function (event) {
     openConfigureWidgetDialog(jQuery(event.target.closest('.widget')))
   })
@@ -191,11 +193,18 @@ const createWidget = function (objWidget) { // eslint-disable-line no-unused-var
   })
 }
 
+/**
+ * Change the configuration of an existing widget, using the same
+ * form used to add a widget.
+ *
+ * @param {object} widget - describes the widget being re-configured
+ */
 const openConfigureWidgetDialog = function (widget) {
   const oldWidgetConfig = widget.getWidgetConfiguration()
 
   populateWidgetConfigurationDialog(oldWidgetConfig)
 
+  reconfiguringWidget = true
   jQuery('#newWidget').dialog({
     title: 'Configure Widget',
     buttons: {
@@ -212,16 +221,16 @@ const openConfigureWidgetDialog = function (widget) {
 
 /*
 * @returns {object} - the dragable jQuery widget element
-* TODO: We really need a better way of identifying widgets, not using their labels.
 */
+// TODO: Find better way to identify widgets than using their label
 const getjQueryWidgetFromConfig = function (widgetConfig) {
   return jQuery('#' + widgetConfig.label)
 }
 
 /*
-* Simply delete the widget and re-create it with the new config settings
-* TODO: In the future, look at attempting to call a "update" method on the widget before defaulting to this method
-*/
+ * Simply delete the widget and re-create it with the new config settings
+ */
+// TODO: Call an "update" method on the widget before defaulting to this method
 const reconfigureWidget = function (oldWidgetConfig, newWidgetConfig) {
   const oldDragableWidget = getjQueryWidgetFromConfig(oldWidgetConfig)
 
@@ -233,12 +242,44 @@ const reconfigureWidget = function (oldWidgetConfig, newWidgetConfig) {
   positionWidgets()
 }
 
+/**
+ * In the widget configuration dialog, set the input element default
+ * values based on the selected widget type.
+ * The global variable reconfiguringWidget prevents over-writing an
+ * existing configuration with the defaults.
+ */
+const setWidgetConfigDefaults = function () {
+  if (reconfiguringWidget) {
+    reconfiguringWidget = false
+    return
+  }
+
+  const widgetType = jQuery('#newWidget #newWidgetType').find('option:selected').val()
+  // TODO: Get defaults and populate the input form
+}
+
+/**
+ * Adjust the newWidget dialog to show only the relevant input elements,
+ * based on the selected widget type. Set the default value for each input,
+ * using the object of defaults for the widget type.
+ *
+ * @param {string} widgetType - the type of widget from [Button, Value,
+ *                              Slider, Indicator, Joystick]
+ */
 const setNewWidgetDialogType = function (widgetType) {
   jQuery('#newWidget .newWidgetType').hide()
   jQuery(`#newWidget #${widgetType}`).show()
-  positionWidgets()
+
+  // TODO: Don't believe it's necessary to call positionWidgets() here
+  // positionWidgets()
 }
 
+/**
+ * Used when re-configuring an existing widget.
+ *
+ * @param {object} widgetConfig - the current configuration to use as
+ *                                default values.
+ */
 const populateWidgetConfigurationDialog = function (widgetConfig) {
   jQuery('#newWidget').find('[data-section]').each((i, element) => {
     const strPropSection = jQuery(element).data('section')
@@ -364,7 +405,10 @@ const initWidgetConfig = function (objSocket) { // eslint-disable-line no-unused
 
   jQuery('#newWidget #newWidgetType').selectmenu({
     change: function (event, ui) {
-      setNewWidgetDialogType(ui.item.value)
+      const widgetType = ui.item.value
+
+      setWidgetConfigDefaults()
+      setNewWidgetDialogType(widgetType)
     }
   })
 
@@ -376,6 +420,9 @@ const initWidgetConfig = function (objSocket) { // eslint-disable-line no-unused
         Done: function () {
           jQuery(this).dialog('close')
         }
+      },
+      open: function (event, ui) {
+        setWidgetConfigDefaults()
       }
     }).dialog('open')
   })
