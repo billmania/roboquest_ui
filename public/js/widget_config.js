@@ -255,7 +255,7 @@ const setWidgetConfigDefaults = function () {
   }
 
   const widgetType = jQuery('#newWidget #newWidgetType').find('option:selected').val()
-  // TODO: Get defaults and populate the input form
+  console.debug(`setWidgetConfigDefaults: ${JSON.stringify(widgetDefaults[widgetType])}`)
 }
 
 /**
@@ -426,4 +426,57 @@ const initWidgetConfig = function (objSocket) { // eslint-disable-line no-unused
       }
     }).dialog('open')
   })
+}
+
+/*
+ * Default configuration values for each type of widget. The properties
+ * of widgetDefaults are the widget types. The properties under each widget
+ * type are the name attribute of the input elements in the
+ * configureNewWidget form.
+ */
+const widgetDefaults = {
+  button: {
+    text: '',
+    service: '',
+    serviceType: 'rq_msgs/srv',
+    serviceAttribute: '',
+    clickValue: ''
+  },
+  slider: {
+    min: 0,
+    max: 180,
+    step: 10,
+    default: 90,
+    orientation: 'horizontal',
+    animate: 'true',
+    topicDirection: 'publish',
+    topic: '',
+    topicType: 'rq_msgs/msg',
+    topicAttribute: ''
+  },
+  value: {
+    textColor: '#CCC',
+    prefix: ' ',
+    suffix: ' ',
+    topicDirection: 'subscribe',
+    topic: '',
+    topicType: 'rq_msgs/msg',
+    topicAttribute: ''
+  },
+  indicator: {
+    trueText: 'True',
+    trueColor: '#DDD',
+    falseText: 'False',
+    falseColor: '#EEE',
+    topicDirection: 'subscribe',
+    topic: '',
+    topicType: 'rq_msgs/msg',
+    topicAttribute: ''
+  },
+  joystick: {
+    topicDirection: 'publish',
+    topic: 'cmd_vel',
+    topicType: 'rq_msgs/msg/TwistStamped',
+    topicAttribute: 'twist.angular.z;twist.linear.x'
+  }
 }
