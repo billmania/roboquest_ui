@@ -209,9 +209,7 @@ class KeyControl { // eslint-disable-line no-unused-vars
       }
     })
 
-    if (this._keyboardIsEnabled) {
-      this._handleKeysButton()
-    }
+    this.disableKeys()
     jQuery('#widgetKeysDialog').dialog('open')
   }
 
@@ -485,6 +483,15 @@ class KeyControl { // eslint-disable-line no-unused-vars
         objWidget.type,
         objWidget.keys[key].downValues,
         objWidget.keys[key].upValues)
+    }
+  }
+
+  /**
+   * Disable the key events, if they are enabled.
+   */
+  disableKeys () {
+    if (this._keyboardIsEnabled) {
+      this._handleKeysButton()
     }
   }
 

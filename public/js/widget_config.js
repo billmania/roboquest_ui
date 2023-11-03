@@ -1,6 +1,6 @@
 'use strict'
 
-/* global jQuery RQ_PARAMS */
+/* global jQuery RQ_PARAMS keyControl */
 
 /*
  * A socket object is required to create a widget, so we need to define
@@ -208,6 +208,9 @@ const openConfigureWidgetDialog = function (widget) {
         reconfigureWidget(oldWidgetConfig, extractWidgetConfigurationFromDialog())
         jQuery(this).dialog('close')
       }
+    },
+    open: function (event, ui) {
+      keyControl.disableKeys()
     }
   }).dialog('open')
 }
@@ -416,6 +419,7 @@ const initWidgetConfig = function (objSocket) { // eslint-disable-line no-unused
         }
       },
       open: function (event, ui) {
+        keyControl.disableKeys()
         setWidgetConfigDefaults()
       }
     }).dialog('open')
