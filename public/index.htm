@@ -83,7 +83,7 @@
       </div>
     </div>
 
-    <div id="newWidget" title="Configure a New Widget">
+    <div id="newWidget">
         <form id="configureNewWidget">
             <label>widget type:</label>
             <select id="newWidgetType" name="type" data-section="root">
@@ -127,21 +127,21 @@
                 <label>display prefix:</label> <input type="text" value="" name="prefix" data-section="format"><br/>
                 <label>display suffix:</label> <input type="text" value="" name="suffix" data-section="format"><br/>
                 <h3>Robot Communications</h3>
-                <label>topic direction:</label> <input type="text" data-section="data" class="socket" value="subscribe" name="topicDirection"><br/>
+                <label>topic direction:</label> <input type="text" data-section="data" class="socket" value="" name="topicDirection"><br/>
                 <label>topic:</label> <input type="text" data-section="data" class="socket" value="" name="topic"><br/>
                 <label>topic type:</label> <input type="text" data-section="data" value="" name="topicType"><br/>
                 <label>topic attribute:</label> <input type="text" data-section="data" class="socket" value="" name="topicAttribute"><br/>
             </div>
 
             <div class="newWidgetType" id="slider">
-                <label>min:</label> <input type="number" value="0" name="min" data-section="format"><br/>
-                <label>max:</label> <input type="number" value="180" name="max" data-section="format"><br/>
-                <label>step:</label> <input type="number" value="10" name="step" data-section="format"><br/>
-                <label>default:</label> <input type="number" value="90" name="default" data-section="format"><br/>
-                <label>orientation:</label> <input type="text" value="horizontal" name="orientation" data-section="format"><br/>
-                <label>animate:</label> <input type="text" value="true" name="animate" data-section="format"><br/>
+                <label>min:</label> <input type="number" value="" name="min" data-section="format"><br/>
+                <label>max:</label> <input type="number" value="" name="max" data-section="format"><br/>
+                <label>step:</label> <input type="number" value="" name="step" data-section="format"><br/>
+                <label>default:</label> <input type="number" value="" name="default" data-section="format"><br/>
+                <label>orientation:</label> <input type="text" value="" name="orientation" data-section="format"><br/>
+                <label>animate:</label> <input type="text" value="" name="animate" data-section="format"><br/>
                 <h3>Robot Communications</h3>
-                <label>topic direction:</label> <input type="text" data-section="data" class="socket" value="publish" name="topicDirection"><br/>
+                <label>topic direction:</label> <input type="text" data-section="data" class="socket" value="" name="topicDirection"><br/>
                 <label>topic:</label> <input type="text" data-section="data" class="socket" value="" name="topic"><br/>
                 <label>topic type:</label> <input type="text" data-section="data" class="socket" value="" name="topicType"><br/>
                 <label>topic attribute:</label> <input type="text" data-section="data" class="socket" value="" name="topicAttribute"><br/>
@@ -153,7 +153,7 @@
                 <label>false text:</label> <input type="text" value="" name="falseText" data-section="format"><br/>
                 <label>false color:</label> <input type="text" value="" name="falseColor" data-section="format"><br/>
                 <h3>Robot Communications</h3>
-                <label>topic direction:</label> <input type="text" data-section="data" class="socket" value="subscribe" name="topicDirection"><br/>
+                <label>topic direction:</label> <input type="text" data-section="data" class="socket" value="" name="topicDirection"><br/>
                 <label>topic:</label> <input type="text" data-section="data" data-section="data" value="" name="topic"><br/>
                 <label>topic type:</label> <input type="text" data-section="data" class="socket" value="" name="topicType"><br/>
                 <label>topic attribute:</label> <input type="text" data-section="data" class="socket" value="" name="topicAttribute"><br/>
@@ -161,7 +161,7 @@
 
             <div class="newWidgetType" id="joystick">
                 <h3>Robot Communications</h3>
-                <label>topic direction:</label> <input type="text" data-section="data" class="socket" value="publish" name="topicDirection"><br/>
+                <label>topic direction:</label> <input type="text" data-section="data" class="socket" value="" name="topicDirection"><br/>
                 <label>topic:</label> <input type="text" data-section="data" class="socket" value="" name="topic"><br/>
                 <label>topic type:</label> <input type="text" data-section="data" class="socket" value="" name="topicType"><br/>
                 <label>topic attribute:</label> <input type="text" data-section="data" class="socket" value="" name="topicAttribute"><br/>
@@ -182,5 +182,6 @@
 <script src="./js/key_help.js"></script>
 <script src="./js/key_control.js"></script>
 <script src="./js/servo_config.js"></script>
+<script src="./js/widget_config.js"></script>
 <script src="./js/index.js"></script>
 </html>
