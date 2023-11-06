@@ -50,7 +50,11 @@ const initSocket = function () {
   return objSocket
 }
 
-const initMisc = function (objSocket) {
+jQuery(function () {
+  const objSocket = initSocket()
+
+  initWidgetConfig(objSocket)
+
   /**
    * Save the configuration object. Called by clicking the "save config" button
    * and by KeyControl.
@@ -132,7 +136,7 @@ const initMisc = function (objSocket) {
       servoConfig.show_servo_config()
     }
   })
-  
+
   jQuery('#keysHelpDialog').dialog({
     width: 300,
     autoOpen: false,
@@ -237,11 +241,4 @@ const initMisc = function (objSocket) {
       positionWidgets()
     }
   })
-}
-
-jQuery(function () {
-  const objSocket = initSocket()
-
-  initWidgetConfig(objSocket)
-  initMisc(objSocket)
 })
