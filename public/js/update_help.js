@@ -15,7 +15,7 @@ RQUpdateHelp.steps = []
 RQUpdateHelp.steps.push('Ensure the connection to wall power')
 RQUpdateHelp.steps.push('Set the battery charger to ON')
 RQUpdateHelp.steps.push('Keep the Internet connection stable')
-RQUpdateHelp.steps.push('Change to screen 4 on the HAT')
+RQUpdateHelp.steps.push('Change to screen 4 on the UI board')
 RQUpdateHelp.steps.push('Confirm it shows "HAT setup"')
 RQUpdateHelp.steps.push('Click the Update button below')
 RQUpdateHelp.steps.push('WAITING FOR ROBOT will appear')
