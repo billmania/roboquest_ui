@@ -1,6 +1,8 @@
 'use strict'
 
-/* global jQuery io RQ_PARAMS KeyControl positionWidgets createWidget initWidgetConfig ServoConfig */
+/* global jQuery io RQ_PARAMS KeyControl ServoConfig */
+/* global positionWidgets createWidget initWidgetConfig */
+/* global RQUpdateHelp */
 
 /**
  * The main control for the RoboQuest front-end UI.
@@ -11,6 +13,7 @@ console.info(`rq_ui config format version ${RQ_PARAMS.CONFIG_FORMAT_VERSION}`)
 
 const keyControl = new KeyControl('#keyControl')
 const servoConfig = new ServoConfig()
+let updating = null
 
 jQuery(window).on('resize', function () {
   positionWidgets()
@@ -28,6 +31,7 @@ const initSocket = function () {
   )
   objSocket.on('connect', () => {
     console.info('Connection to the robot established.')
+    updating = false
   })
   objSocket.on('connect_error', (objError) => {
     console.error('Error connecting to robot. ', objError)
@@ -96,6 +100,51 @@ jQuery(function () {
   const configServos = function () {
     jQuery('#chooseServoDialog').dialog('open')
   }
+
+  /**
+   * Add the software update steps to the list in
+   * populateUpdateSoftwareList. Reads the ordered list of steps
+   * from RQUpdateHelp.steps.
+   */
+  const populateUpdateSoftwareList = function () {
+    jQuery('#updateSoftwareList').empty()
+    for (const step of RQUpdateHelp.steps) {
+      jQuery('#updateSoftwareList').append(
+        jQuery('<li>').append(
+          step
+        )
+      )
+    }
+  }
+
+  jQuery('#updateSoftwareDialog').dialog({
+    title: 'Update RoboQuest software',
+    width: 400,
+    autoOpen: false,
+    buttons: {
+      Update: function () {
+        if (updating) {
+          console.warn('Software update already started')
+          return
+        }
+
+        if (objSocket.connected) {
+          updating = true
+
+          objSocket.emit('control_hat', '{"set_charger": "ON"}')
+          const intTimeS = Math.round(Date.now() / 1000)
+          objSocket.emit(
+            'update',
+            `{"timestamp":"${intTimeS}", "version":"${RQ_PARAMS.UPDATE_FORMAT_VERSION}", "action":"UPDATE", "args":"UI"}`
+          )
+        } else {
+          console.error(
+            'Not connected to the robot so an UPDATE is not possible. Check the robot.'
+          )
+        }
+      }
+    }
+  })
 
   jQuery('#chooseServoDialog').dialog({
     width: 300,
@@ -204,18 +253,9 @@ jQuery(function () {
   jQuery('#configServos').on('click', configServos)
 
   jQuery('#updateSoftware').on('click', function () {
-    if (objSocket.connected) {
-      objSocket.emit('control_hat', '{"set_charger": "ON"}')
-      const intTimeS = Math.round(Date.now() / 1000)
-      objSocket.emit(
-        'update',
-        `{"timestamp":"${intTimeS}", "version":"${RQ_PARAMS.UPDATE_FORMAT_VERSION}", "action":"UPDATE", "args":"UI"}`
-      )
-    } else {
-      console.error(
-        'Not connected to the robot so an UPDATE is not possible. Check the robot.'
-      )
-    }
+    jQuery('#menuDialog').dialog('close')
+    populateUpdateSoftwareList()
+    jQuery('#updateSoftwareDialog').dialog('open')
   })
 
   jQuery('#trash').droppable({
