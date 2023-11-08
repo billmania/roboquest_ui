@@ -1,7 +1,6 @@
 'use strict'
 /* global jQuery, RQ_PARAMS */
 
-// TODO: disable arrow key control of the slider when it has focus
 jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.SLIDER', {
   options: {
     socket: null,
@@ -63,6 +62,13 @@ jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.SLIDER', {
     this.element.children('.widget-content').append(sliderValues)
     this.element.children('.widget-content').append(sliderElement)
 
+    /*
+     * Unbind all keys from the slider, to prevent any conflict between
+     * other widgets' configured keys and the slider value.
+     */
+    jQuery('.ui-slider-handle').off('keydown')
+    jQuery('.ui-slider-handle').off('keyup')
+
     this.options.currentPosition = this.options.format.default
   },
 
@@ -70,15 +76,20 @@ jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.SLIDER', {
     if (this.options.socket) {
       this.element.find('.sliderCurrent').text(ui.value)
       const objPayload = {}
+
+      let value = ui.value
+      if (this.options.format.reversed.toLowerCase() === 'yes') {
+        value = [Math.abs(value - this.options.format.max) + this.options.format.min]
+      }
       /*
        * A slider may use one or two topicAttributes. When only one, it's
        * a string. When two, it's an Array of two strings.
        */
       if (this.options.data.topicAttribute instanceof Array) {
-        objPayload[this.options.data.topicAttribute[0]] = ui.value
+        objPayload[this.options.data.topicAttribute[0]] = value
         objPayload[this.options.data.topicAttribute[1]] = this.options.label
       } else {
-        objPayload[this.options.data.topicAttribute] = ui.value
+        objPayload[this.options.data.topicAttribute] = value
       }
       this.options.socket.emit(
         this.options.data.topic,
