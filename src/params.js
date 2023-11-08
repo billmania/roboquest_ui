@@ -8,9 +8,9 @@
 const path = require('path')
 
 const RQ_PARAMS = {}
-RQ_PARAMS.VERSION = '23'
+RQ_PARAMS.VERSION = '24'
 
-RQ_PARAMS.CONFIG_FORMAT_VERSION = '6'
+RQ_PARAMS.CONFIG_FORMAT_VERSION = '7'
 RQ_PARAMS.SERVER_STATIC_DIR = path.join(
   __dirname, '../public')
 RQ_PARAMS.DEFAULT_CONFIG_FILE = path.join(

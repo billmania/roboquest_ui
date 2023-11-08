@@ -107,6 +107,9 @@ the widget properties have the following sections:
 * format.step: (slider) increment value of dragging slider. when dragging
                         the slider a new value isn't emitted until it's at
                         least this amount different from the previous value
+* format.reversed: (slider) reverse the values from the slider, ie. sliding
+                            the knob toward the max value decreases the value.
+                            yes or no
 * format.orientation: (slider) horizontal or vertical
 * format.default: (slider) default value of slider
 * format.animate: (slider) true | false animate the slider when clicking to jump values

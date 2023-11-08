@@ -360,6 +360,7 @@
         "min": 0,
         "max": 180,
         "step": 1,
+        "reversed": "no",
         "default": 90,
         "orientation": "horizontal",
         "animate": "true"
@@ -404,6 +405,7 @@
         "min": 0,
         "max": 180,
         "step": 1,
+        "reversed": "no",
         "default": 90,
         "orientation": "horizontal",
         "animate": "true"
@@ -428,6 +430,7 @@
         "min": 0,
         "max": 300,
         "step": 5,
+        "reversed": "no",
         "default": 300,
         "orientation": "horizontal",
         "animate": "true"
@@ -443,5 +446,5 @@
       "id": 21
     }
   ],
-  "version": "5"
+  "version": "7"
 }
