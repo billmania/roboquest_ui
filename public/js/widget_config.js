@@ -452,6 +452,7 @@ const widgetDefaults = {
       min: 0,
       max: 180,
       step: 10,
+      reversed: 'no',
       default: 90,
       orientation: 'horizontal',
       animate: 'true'

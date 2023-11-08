@@ -10,6 +10,7 @@ jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.SLIDER', {
       max: 180,
       default: 90,
       step: 1,
+      reversed: 'no',
       orientation: 'horizontal',
       animate: true
     },
@@ -50,6 +51,7 @@ jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.SLIDER', {
       min: this.options.format.min,
       max: this.options.format.max,
       step: this.options.format.step,
+      reversed: this.options.format.reversed,
       value: this.options.format.default,
       animate: this.options.format.animate,
       orientation: this.options.format.orientation,
