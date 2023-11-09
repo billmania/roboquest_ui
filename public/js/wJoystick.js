@@ -1,6 +1,8 @@
 'use strict'
 /* global jQuery, RQ_PARAMS, JoyStick */
 
+const JOYSTICK_DEFAULT_SCALING = [1.0, 1.0]
+
 /**
  * A joystick for providing two values based on the position of the joystick
  * knob. Typically used to drive the robot. The x-axis value is always
@@ -51,11 +53,38 @@ jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.JOYSTICK', {
     }
   },
 
-  _create: function () {
-    if (!this.options.data.scale) {
-      this.options.data.scale = [1, 1]
+  /**
+   * Process the "scale" option. If no scale was provided, set its default
+   * value to JOYSTICK_DEFAULT_SCALING. If it was provided as two strings,
+   * convert each to a float when required or an int when possible.
+   *
+   * @param {Array} scaling - the configured scaling
+   *
+   * @returns {Array} - a two member Array with the scaling values as numbers
+   */
+  _setupScaling: function (scaling) {
+    if (!Array.isArray(scaling) ||
+        scaling.length !== 2) {
+      scaling = JOYSTICK_DEFAULT_SCALING
     }
+
+    scaling.forEach(function (item, index) {
+      if (typeof item !== 'number') {
+        scaling[index] = parseFloat(item)
+        if (isNaN(scaling[index])) {
+          scaling[index] = 1
+        }
+      }
+    })
+
+    return scaling
+  },
+
+  _create: function () {
     const objContent = jQuery('<div id="joystick" style="width:200px; height:200px"></div>')
+
+    this.options.data.scale = this._setupScaling(this.options.data.scale)
+    this.options.data.topicPeriodS = parseFloat(this.options.data.topicPeriodS)
 
     this.element.children('.widget-content').html(objContent).ready(
       () => {
