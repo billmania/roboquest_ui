@@ -235,6 +235,15 @@ const reconfigureWidget = function (oldWidgetConfig, newWidgetConfig) {
 
   newWidgetConfig.position = oldWidgetConfig.position
   createWidget(newWidgetConfig)
+  if (Object.hasOwn(oldWidgetConfig, 'keys')) {
+    /*
+     * The configuration of widgets keys is handled separately from
+     * the configuration of the widget itself. Therefore the keys
+     * configuration must be preserved here.
+     */
+    newWidgetConfig.keys = oldWidgetConfig.keys
+    keyControl.rebuildKeyMap()
+  }
   positionWidgets()
 }
 
