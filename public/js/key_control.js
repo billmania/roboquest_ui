@@ -622,10 +622,6 @@ class KeyControl { // eslint-disable-line no-unused-vars
       return
     }
 
-    if (this._keyToWidget[whichKey].widgetType === 'joystick') {
-      console.debug(`_keyHandler: called with joystick key ${whichKey}`)
-    }
-
     let values
     if (eventData.type === 'keydown' &&
         Object.hasOwn(this._keyToWidget[whichKey], 'downValues')) {
