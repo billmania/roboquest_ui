@@ -2,6 +2,11 @@
 /* global jQuery, RQ_PARAMS, JoyStick */
 
 const JOYSTICK_DEFAULT_SCALING = [1.0, 1.0]
+/*
+ * joystickIntervalId is global so any previous setInterval() can be cleared
+ * just before reconfiguring the joystick widget.
+ */
+let joystickIntervalId = null
 
 /**
  * A joystick for providing two values based on the position of the joystick
@@ -109,7 +114,12 @@ jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.JOYSTICK', {
      * in case the previous emission was lost.
      */
     if (this.options.data.topicPeriodS > 0) {
-      this._repeater = setInterval(
+      if (joystickIntervalId) {
+        clearInterval(joystickIntervalId)
+        joystickIntervalId = null
+      }
+
+      joystickIntervalId = setInterval(
         () => {
           if (this.options.skipAnInterval) {
             this.options.skipAnInterval = false
