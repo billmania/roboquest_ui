@@ -346,8 +346,9 @@ const extractWidgetConfigurationFromDialog = function () {
         }
         if (strPropSection === 'data') {
           /*
-             * The topicAttribute element may contain multiple attributes.
-             * When found, assemble them into an Array of strings.
+             * Elements, such as topicAttribute and scale, may contain
+             * multiple items. When found, assemble them into an Array
+             * of strings.
              */
           if (element.value.indexOf(RQ_PARAMS.ATTR_DELIMIT) > -1) {
             const attributes = element.value
@@ -497,6 +498,8 @@ const widgetDefaults = {
     label: 'joystickX',
     format: {},
     data: {
+      scale: '1;1',
+      topicPeriodS: 3,
       topicDirection: 'publish',
       topic: 'cmd_vel',
       topicType: 'rq_msgs/msg/TwistStamped',

@@ -27,6 +27,7 @@ class KeyControl { // eslint-disable-line no-unused-vars
   constructor (keyButtonId) {
     this._keyButtonId = keyButtonId
     this._keyToWidget = {}
+    this._widgetValues = {}
     this._keyableWidgets = []
     this._keysSet = []
     this._configureWidgetObj = null
@@ -430,11 +431,30 @@ class KeyControl { // eslint-disable-line no-unused-vars
    */
   _mapKeyToWidget (key, widgetId, widgetType, downValues, upValues) {
     if (!Object.hasOwn(this._keyToWidget, key)) {
-      this._keyToWidget[key] = {
-        widgetId,
-        widgetType,
-        downValues,
-        upValues
+      if (widgetType !== 'joystick') {
+        this._keyToWidget[key] = {
+          widgetId,
+          widgetType,
+          downValues,
+          upValues
+        }
+      } else {
+        /*
+         * Joystick widgets allow multiple keys to be pressed
+         * simultaneously. latestValues keeps track of this key's
+         * latest downValues.
+         */
+        this._keyToWidget[key] = {
+          widgetId,
+          widgetType,
+          downValues,
+          upValues,
+          latestValues: { x: 0, y: 0 }
+        }
+        this._widgetValues[widgetId] = {
+          x: 0,
+          y: 0
+        }
       }
     } else {
       console.error(
@@ -534,8 +554,63 @@ class KeyControl { // eslint-disable-line no-unused-vars
   }
 
   /**
-   * Based on the key specified in eventData.which, call the associated widget's
-   * valueHandler.
+   * Based on the widgetType and the direction, calculate the values
+   * to send to the widget's valuesHandler function.
+   *
+   * keydown events can repeat. The downValues for the key must be applied
+   * only once before a keyup event occurs. keyup events don't repeat.
+   *
+   * @param {string} widgetType
+   * @param {string} widgetId
+   * @param {number} whichKey
+   * @param {string} direction - 'up' or 'down'
+   * @param {Array} values
+   */
+  _applyValues (widgetType, widgetId, whichKey, direction, values) {
+    if (widgetType !== 'joystick') {
+      return values
+    }
+
+    if (direction === 'down') {
+      if (this._keyToWidget[whichKey].latestValues.x === 0 &&
+          this._keyToWidget[whichKey].latestValues.y === 0) {
+        this._keyToWidget[whichKey].latestValues.x = values.x
+        this._keyToWidget[whichKey].latestValues.y = values.y
+        this._widgetValues[widgetId].x += values.x
+        this._widgetValues[widgetId].y += values.y
+      }
+    } else {
+      /*
+       * Handle the keyup event. A keyup event will normally set
+       * all values to 0. That must cause the key's values to be
+       * subtracted from _widgetValues. If the keyup values are
+       * instead non-zero, latestValues must first be subtracted
+       * from _widgetValues. Then _latestValues are set to the
+       * keyup values and finally the keyup values are added
+       * to _widgetValues.
+       */
+      this._widgetValues[widgetId].x -= this._keyToWidget[whichKey].latestValues.x
+      this._widgetValues[widgetId].y -= this._keyToWidget[whichKey].latestValues.y
+      if (values.x === 0 && values.y === 0) {
+        this._keyToWidget[whichKey].latestValues.x = 0
+        this._keyToWidget[whichKey].latestValues.y = 0
+      } else {
+        this._keyToWidget[whichKey].latestValues.x = values.x
+        this._keyToWidget[whichKey].latestValues.y = values.y
+        this._widgetValues[widgetId].x += values.x
+        this._widgetValues[widgetId].y += values.y
+      }
+    }
+
+    return this._widgetValues[widgetId]
+  }
+
+  /**
+   * Based on the key specified in eventData.which, first determine the
+   * type of widget to which this key is assigned. Then, call the
+   * associated widget's valueHandler function.
+   * Keys assigned to joystick widgets have special handling because
+   * multiple keys are allowed to be pressed simultaneously.
    *
    * @param {object} eventData - the event type and the specific key
    */
@@ -550,23 +625,34 @@ class KeyControl { // eslint-disable-line no-unused-vars
     let values
     if (eventData.type === 'keydown' &&
         Object.hasOwn(this._keyToWidget[whichKey], 'downValues')) {
-      values = this._keyToWidget[whichKey].downValues
+      values = this._applyValues(
+        this._keyToWidget[whichKey].widgetType,
+        this._keyToWidget[whichKey].widgetId,
+        whichKey,
+        'down',
+        this._keyToWidget[whichKey].downValues
+      )
     } else if (eventData.type === 'keyup' &&
                Object.hasOwn(this._keyToWidget[whichKey], 'upValues')) {
-      values = this._keyToWidget[whichKey].upValues
+      values = this._applyValues(
+        this._keyToWidget[whichKey].widgetType,
+        this._keyToWidget[whichKey].widgetId,
+        whichKey,
+        'up',
+        this._keyToWidget[whichKey].upValues
+      )
     } else {
       console.error(
         `No values defined for ${this._keyToWidget[whichKey].widgetId}` +
         ` and ${whichKey}`)
+      return
     }
 
-    if (values) {
-      jQuery('#' + this._keyToWidget[whichKey].widgetId)
-        .data(
-          RQ_PARAMS.WIDGET_NAMESPACE +
-          '-' +
-          this._keyToWidget[whichKey].widgetType.toUpperCase())
-        .valuesHandler(values)
-    }
+    jQuery('#' + this._keyToWidget[whichKey].widgetId)
+      .data(
+        RQ_PARAMS.WIDGET_NAMESPACE +
+        '-' +
+        this._keyToWidget[whichKey].widgetType.toUpperCase())
+      .valuesHandler(values)
   }
 }

@@ -132,14 +132,15 @@ the widget properties have the following sections:
 * data.topicPeriodS: (joystick) Only when data.topicDirection is "publish",
                                 the browser UI will continually publish the
                                 current value with a period of
-                                data.topicPeriodS seconds
+                                data.topicPeriodS seconds. set to 0 to disable.
   
 * data.service: (button) ROS service to call
 * data.serviceType: (button) ROS service type of the service
 * data.serviceAttribute: (button) ROS service attribute to set
 * data.clickValue: (button) value when button is clicked
 
-* data.scale : (joystick) floating point values array [x, y]
+* data.scale : (joystick) floating point values array [x, y] used to scale
+*                         the joystick axis values.
 
 * keys: how keycodes map to widget actions. individual keycodes may only appear once
         in the configuration file. the quantity of keycodes per widget is limited
