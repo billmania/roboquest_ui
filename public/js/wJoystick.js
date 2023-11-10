@@ -33,7 +33,7 @@ jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.JOYSTICK', {
    * There is a bit of complexity due to the different way the Joystick and KeyControl
    * send their axesData. The Joystick only calls valuesHandler() when the position of
    * the joystick knob moves. KeyControl calls valuesHandler repeatedly as long as the
-   * key is depressed, because the OS/browser repeat the keycode for a depressed key.
+   * key is depressed, because the OS/browser repeats the keycode for a depressed key.
    * Further complicating matters is the setInterval() based on topicPeriodS from the
    * configuration.
    *
@@ -41,7 +41,15 @@ jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.JOYSTICK', {
    * calls to _triggerSocketEvent - once for each repeated key event and once for every
    * topicPeriodS interval. The skipAnInterval option is provided to deal with this.
    *
-   * @param {object} axisData - an object with two properties, x and y.
+   * @param {object} axesData - an object describing the joystick state. Joystick
+   *                            calls with the object
+   *                              {"xPosition":109,
+   *                               "yPosition":71,
+   *                               "x":"18",
+   *                               "y":"58",
+   *                               "cardinalDirection":"N"}
+   *                            while KeyControl calls with the object
+   *                              {"x":0,"y":0}.
    */
   valuesHandler: function (axesData) {
     if (this.options.currentAxes.x !== axesData.x ||
@@ -100,7 +108,7 @@ jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.JOYSTICK', {
      * When topicPeriodS is a positive integer, periodically emit the axes values,
      * in case the previous emission was lost.
      */
-    if (this.options.data.topicPeriodS) {
+    if (this.options.data.topicPeriodS > 0) {
       this._repeater = setInterval(
         () => {
           if (this.options.skipAnInterval) {
