@@ -6,6 +6,11 @@ const JOYSTICK_DEFAULT_SCALING = [1.0, 1.0]
  * joystickIntervalId is global so any previous setInterval() can be cleared
  * just before reconfiguring the joystick widget.
  */
+/*
+ * TODO: Enhance this to handle multiple Joystick instances
+ * Convert it to an object with a property for each unique
+ * this.options.label.
+ */
 let joystickIntervalId = null
 
 /**
@@ -32,28 +37,34 @@ jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.JOYSTICK', {
   },
 
   /**
-   * Accepts axesData (x and y value) and passes them along to _triggerSocketEvent().
-   * Used by both the Joystick widget and the KeyControl class.
-   *
-   * There is a bit of complexity due to the different way the Joystick and KeyControl
-   * send their axesData. The Joystick only calls valuesHandler() when the position of
-   * the joystick knob moves. KeyControl calls valuesHandler repeatedly as long as the
-   * key is depressed, because the OS/browser repeats the keycode for a depressed key.
-   * Further complicating matters is the setInterval() based on topicPeriodS from the
+   * Accepts axesData (x and y value) and passes them along to
+   * _triggerSocketEvent(). Used by both the Joystick widget and
+   * the KeyControl class.
+   * There is a bit of complexity due to the different way the
+   * Joystick and KeyControl send their axesData. The Joystick
+   * only calls valuesHandler() when the position of the joystick
+   * knob moves. KeyControl calls valuesHandler repeatedly as
+   * long as the key is depressed, because the OS/browser repeats
+   * the keycode for a depressed key. Further complicating
+   * matters is the setInterval() based on topicPeriodS from the
    * configuration.
    *
-   * If topicPeriodS is a positive number, KeyControl events could cause twice as many
-   * calls to _triggerSocketEvent - once for each repeated key event and once for every
-   * topicPeriodS interval. The skipAnInterval option is provided to deal with this.
+   * If topicPeriodS is a positive number, KeyControl events
+   * could cause twice as many calls to _triggerSocketEvent - once
+   * for each repeated key event and once for every topicPeriodS
+   * interval. The skipAnInterval option is provided to deal with
+   * this.
    *
-   * @param {object} axesData - an object describing the joystick state. Joystick
+   * @param {object} axesData - an object describing the joystick
+   *                            state. Joystick
    *                            calls with the object
    *                              {"xPosition":109,
    *                               "yPosition":71,
    *                               "x":"18",
    *                               "y":"58",
    *                               "cardinalDirection":"N"}
-   *                            while KeyControl calls with the object
+   *                            while KeyControl calls with the
+   *                            object
    *                              {"x":0,"y":0}.
    */
   valuesHandler: function (axesData) {
@@ -94,24 +105,30 @@ jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.JOYSTICK', {
   },
 
   _create: function () {
-    const objContent = jQuery('<div id="joystick" style="width:200px; height:200px"></div>')
+    const divId = this.options.label + '-joystick-div'
+    const objContent = jQuery(
+      '<div id="' +
+      divId +
+      '" style="width:200px; height:200px"></div>'
+    )
 
     this.options.data.scale = this._setupScaling(this.options.data.scale)
     this.options.data.topicPeriodS = parseFloat(this.options.data.topicPeriodS)
 
+    const canvasId = this.options.label + '-joystick-canvas'
     this.element.children('.widget-content').html(objContent).ready(
       () => {
         const objJoystick = new JoyStick( // eslint-disable-line no-unused-vars
-          'joystick',
-          {},
+          divId,
+          { title: canvasId },
           this.valuesHandler.bind(this)
         )
       }
     )
 
     /**
-     * When topicPeriodS is a positive integer, periodically emit the axes values,
-     * in case the previous emission was lost.
+     * When topicPeriodS is a positive integer, periodically emit
+     * the axes values, in case the previous emission was lost.
      */
     if (this.options.data.topicPeriodS > 0) {
       if (joystickIntervalId) {
@@ -139,8 +156,15 @@ jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.JOYSTICK', {
       return
     }
 
-    objPayload[this.options.data.topicAttribute[0]] = axisValues.x * this.options.data.scale[0]
-    objPayload[this.options.data.topicAttribute[1]] = axisValues.y * this.options.data.scale[1]
-    this.options.socket.emit(this.options.data.topic, JSON.stringify(objPayload))
+    objPayload[this.options.data.topicAttribute[0]] = (
+      axisValues.x * this.options.data.scale[0]
+    )
+    objPayload[this.options.data.topicAttribute[1]] = (
+      axisValues.y * this.options.data.scale[1]
+    )
+    this.options.socket.emit(
+      this.options.data.topic,
+      JSON.stringify(objPayload)
+    )
   }
 })
