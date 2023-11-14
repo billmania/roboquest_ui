@@ -126,8 +126,9 @@ const createWidget = function (objWidget) { // eslint-disable-line no-unused-var
   }
 
   /*
-   * Store the widget configuration object (objWidget) under the WIDGET_NAMESPACE
-   * in an arbetrary jQuery data unit attatched to the widgetContainer
+   * Store the widget configuration object (objWidget) under the
+   * WIDGET_NAMESPACE in an arbitrary jQuery data unit attached
+   * to the widgetContainer.
    */
   jQuery(widgetContainer).data(RQ_PARAMS.WIDGET_NAMESPACE, objWidget)
 
@@ -142,11 +143,7 @@ const createWidget = function (objWidget) { // eslint-disable-line no-unused-var
     snap: true,
     start: function (event, ui) {
       const widgetId = event.currentTarget.id
-      console.debug(
-        `drag started on ${widgetId}` +
-        ` at position ${JSON.stringify(jQuery('#' + widgetId).position())}` +
-        ` and offset ${JSON.stringify(jQuery('#' + widgetId).offset())}`
-      )
+      console.debug(`drag started on ${widgetId}`)
     },
     stop: function (event, ui) {
       const widgetId = event.target.id
@@ -154,8 +151,8 @@ const createWidget = function (objWidget) { // eslint-disable-line no-unused-var
 
       if (!widgetData) {
         /*
-         * The widgetData no longer exists, likely because the widget was deleted from the UI. That condition
-         * is acceptable here.
+         * The widgetData no longer exists, likely because the widget
+         * was deleted from the UI. That condition is acceptable here.
          */
         return
       }

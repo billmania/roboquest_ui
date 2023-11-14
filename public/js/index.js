@@ -260,6 +260,7 @@ jQuery(function () {
 
   jQuery('#trash').droppable({
     accept: '.widget',
+    tolerance: 'pointer',
     classes: {
       'ui-droppable-hover': 'trash-drop-hover'
     },

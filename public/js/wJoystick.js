@@ -24,8 +24,13 @@ let joystickIntervalId = null
 jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.JOYSTICK', {
   options: {
     socket: null,
+    /*
+     * joystick widget type doesn't have any "format" options.
+     */
+    format: {},
     data: {
-      format: {}
+      scale: [1, 1],
+      topicPeriodS: 5
     },
 
     /*
@@ -105,7 +110,7 @@ jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.JOYSTICK', {
   },
 
   _create: function () {
-    const divId = this.options.label + '-joystick-div'
+    const divId = this.options.label + '-div'
     const objContent = jQuery(
       '<div id="' +
       divId +
@@ -115,7 +120,7 @@ jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.JOYSTICK', {
     this.options.data.scale = this._setupScaling(this.options.data.scale)
     this.options.data.topicPeriodS = parseFloat(this.options.data.topicPeriodS)
 
-    const canvasId = this.options.label + '-joystick-canvas'
+    const canvasId = this.options.label + '-canvas'
     this.element.children('.widget-content').html(objContent).ready(
       () => {
         const objJoystick = new JoyStick( // eslint-disable-line no-unused-vars
