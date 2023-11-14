@@ -508,7 +508,7 @@ const widgetDefaults = {
       topicPeriodS: 3,
       topicDirection: 'publish',
       topic: 'cmd_vel',
-      topicType: 'rq_msgs/msg/TwistStamped',
+      topicType: 'geometry_msgs/msg/TwistStamped',
       topicAttribute: 'twist.angular.z;twist.linear.x'
     }
   }

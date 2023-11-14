@@ -6,12 +6,7 @@ const JOYSTICK_DEFAULT_SCALING = [1.0, 1.0]
  * joystickIntervalId is global so any previous setInterval() can be cleared
  * just before reconfiguring the joystick widget.
  */
-/*
- * TODO: Enhance this to handle multiple Joystick instances
- * Convert it to an object with a property for each unique
- * this.options.label.
- */
-let joystickIntervalId = null
+const joystickIntervalId = {}
 
 /**
  * A joystick for providing two values based on the position of the joystick
@@ -136,12 +131,12 @@ jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.JOYSTICK', {
      * the axes values, in case the previous emission was lost.
      */
     if (this.options.data.topicPeriodS > 0) {
-      if (joystickIntervalId) {
-        clearInterval(joystickIntervalId)
-        joystickIntervalId = null
+      if (Object.hasOwn(joystickIntervalId, this.options.label)) {
+        clearInterval(joystickIntervalId[this.options.label])
+        delete joystickIntervalId[this.options.label]
       }
 
-      joystickIntervalId = setInterval(
+      joystickIntervalId[this.options.label] = setInterval(
         () => {
           if (this.options.skipAnInterval) {
             this.options.skipAnInterval = false
