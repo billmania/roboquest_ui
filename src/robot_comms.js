@@ -6,10 +6,13 @@
 
 const rclnodejs = require('rclnodejs')
 const set = require('lodash.set')
+const cloneDeep = require('lodash.clonedeep')
 
 /*
- * It's possible to get these ROS message objects via rclnodejs.createMessageObject(),
- * but it is not obivous how to initialize them to 0 and ''.
+ * Attempted all of the following:
+ * rclnodejs.createMessage(): missing hasMember()
+ * rclnodejs.createMessageObject(): but only the non-terminal objects
+ * rclnodejs.require(): very similar to createMessage()
  */
 // TODO: Convert these to classes to get a new object every time
 const Control = {
@@ -18,27 +21,6 @@ const Control = {
   set_fet2: '',
   set_motors: '',
   set_servos: ''
-}
-const twistStamped = {
-  header: {
-    stamp: {
-      sec: 0,
-      nanosec: 0
-    },
-    frame_id: ''
-  },
-  twist: {
-    linear: {
-      x: 0,
-      y: 0,
-      z: 0
-    },
-    angular: {
-      x: 0,
-      y: 0,
-      z: 0
-    }
-  }
 }
 const servoAngles = {
   header: {
@@ -90,7 +72,7 @@ class RobotComms {
 
     this.subscribers = {}
     this.publishers = {}
-    this.publishedTopics = []
+    this.publishedTopics = {}
     this.serviceClients = {}
     this.services = []
 
@@ -126,7 +108,14 @@ class RobotComms {
    * @returns {Array} - the topics as strings
    */
   published_topics_list () {
-    return this.publishedTopics
+    const publishedTopics = []
+    for (const topic in this.publishedTopics) {
+      if (Object.hasOwn(this.publishedTopics, topic)) {
+        publishedTopics.push(topic)
+      }
+    }
+
+    return publishedTopics
   }
 
   /**
@@ -149,13 +138,14 @@ class RobotComms {
    *                           or widgetConfig.data.serviceAttribute(s)
    */
   handle_payload (name, payload) {
-    if (this.publishedTopics.includes(name)) {
+    if (Object.hasOwn(this.publishedTopics, name)) {
       const rosMessage = this.buildPublishMessage(name, payload)
       try {
         this.publishers[name].publish(rosMessage)
       } catch (error) {
         this.logger.warn(
-          `handle_payload: ${error}, name:${name}, rosMessage:${JSON.stringify(rosMessage)}`
+          `handle_payload: Type:${error.name}, Message:${error.message}` +
+          `, name:${name}, rosMessage:${JSON.stringify(rosMessage)}`
         )
       }
     } else if (this.services.includes(name)) {
@@ -184,7 +174,7 @@ class RobotComms {
            * The restart service has an Empty response, so there's
            * nothing to check, beyond the fact it returned.
            */
-          this.logger.info(`handle_payload: restart called`)
+          this.logger.info('handle_payload: restart called')
         }
       )
     } else {
@@ -242,8 +232,7 @@ class RobotComms {
    * Return the populated ROS message.
    *
    * This method uses the lodash Object.set() utility function
-   * to assign a value to a property of the twistStamped identified
-   * by a string.
+   * to assign a value for an attribute of a ROS message.
    *
    * @param {string} topicName
    * @param {object} message - contains key-value pairs, where the key is a
@@ -254,16 +243,6 @@ class RobotComms {
    */
   buildPublishMessage (topicName, message) {
     switch (topicName) {
-      case ('cmd_vel'): {
-        twistStamped.header.stamp = getRosTimestamp()
-
-        for (const attribute in message) {
-          set(twistStamped, attribute, message[attribute])
-        }
-
-        return twistStamped
-      }
-
       case ('servos'): {
         servoAngles.header.stamp = getRosTimestamp()
         servoAngles.servos = []
@@ -277,16 +256,35 @@ class RobotComms {
       }
 
       default: {
-        const publishMessage = {
-          header: {
-            stamp: getRosTimestamp(),
-            frame_id: ''
-          }
-        }
+        console.debug(
+          `buildPublishMessage: topic: ${topicName}, msgType: ${this.publishedTopics[topicName]}`
+        )
+
+        const publishMessageClass = rclnodejs.createMessage(
+          this.publishedTopics[topicName]
+        )._refObject
+        /*
+         * TODO:
+         * This is admittedly ugly. It's based completely on not understanding
+         * two things:
+         * 1. how to get a new ROS message object from rclnodejs
+         * 2. why this implementation works
+         */
+        const publishMessage = JSON.parse(
+          JSON.stringify(
+            cloneDeep(publishMessageClass)
+          )
+        )
+
+        set(publishMessage, 'header.stamp', getRosTimestamp())
+        set(publishMessage, 'header.frame_id', '')
         for (const attribute in message) {
           set(publishMessage, attribute, message[attribute])
         }
 
+        console.debug(
+          `buildPublishMessage: publishMessage: ${JSON.stringify(publishMessage, null, '  ')}`
+        )
         return publishMessage
       }
     }
@@ -402,7 +400,7 @@ class RobotComms {
               this.publishers[widgetConfig.data.topic] = this.create_publisher(
                 widgetConfig.data.topic,
                 widgetConfig.data.topicType)
-              this.publishedTopics.push(widgetConfig.data.topic)
+              this.publishedTopics[widgetConfig.data.topic] = widgetConfig.data.topicType
               this.logger.debug('Added publisher for ' + widgetConfig.data.topic)
             }
             continue
