@@ -104,6 +104,16 @@ jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.JOYSTICK', {
     return scaling
   },
 
+  /**
+   * How to cleanup before deleting the widget.
+   */
+  _destroy: function () {
+    if (Object.hasOwn(joystickIntervalId, this.options.label)) {
+      clearInterval(joystickIntervalId[this.options.label])
+      delete joystickIntervalId[this.options.label]
+    }
+  },
+
   _create: function () {
     const divId = this.options.label + '-div'
     const objContent = jQuery(

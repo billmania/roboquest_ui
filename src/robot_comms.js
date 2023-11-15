@@ -256,10 +256,6 @@ class RobotComms {
       }
 
       default: {
-        console.debug(
-          `buildPublishMessage: topic: ${topicName}, msgType: ${this.publishedTopics[topicName]}`
-        )
-
         const publishMessageClass = rclnodejs.createMessage(
           this.publishedTopics[topicName]
         )._refObject
@@ -282,9 +278,6 @@ class RobotComms {
           set(publishMessage, attribute, message[attribute])
         }
 
-        console.debug(
-          `buildPublishMessage: publishMessage: ${JSON.stringify(publishMessage, null, '  ')}`
-        )
         return publishMessage
       }
     }

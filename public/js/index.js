@@ -265,8 +265,8 @@ jQuery(function () {
       'ui-droppable-hover': 'trash-drop-hover'
     },
     drop: function (event, ui) {
-      console.debug('dropped ID ', ui.draggable.getWidgetConfiguration().id)
       ui.draggable.remove()
+      console.debug('dropped ID ', ui.draggable.getWidgetConfiguration().id)
       // TODO: Not sure positionWidgets is required here
       positionWidgets()
     }
