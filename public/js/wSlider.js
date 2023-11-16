@@ -79,7 +79,7 @@ jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.SLIDER', {
 
       let value = ui.value
       if (this.options.format.reversed.toLowerCase() === 'yes') {
-        value = [Math.abs(value - this.options.format.max) + this.options.format.min]
+        value = Math.abs(value - this.options.format.max) + this.options.format.min
       }
       /*
        * A slider may use one or two topicAttributes. When only one, it's

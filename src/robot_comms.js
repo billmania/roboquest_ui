@@ -138,6 +138,9 @@ class RobotComms {
    *                           or widgetConfig.data.serviceAttribute(s)
    */
   handle_payload (name, payload) {
+    console.debug(
+      `handle_payload: name: ${name}` +
+      `, payload: ${JSON.stringify(payload)}`)
     if (Object.hasOwn(this.publishedTopics, name)) {
       const rosMessage = this.buildPublishMessage(name, payload)
       try {

@@ -159,6 +159,38 @@ jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.JOYSTICK', {
     }
   },
 
+  /**
+   * Assign a value to a specific attribute. This function
+   * modifies its first argument.
+   *
+   * @param {object} payload - the payload object
+   * @param {number} attrIndex - which attribute
+   * @param {number} value - axis value to assign
+   */
+  _assignValue: function (payload, attrIndex, value) {
+    if (this.options.data.topicAttribute[attrIndex] !== '') {
+      if (this.options.data.topicAttribute[attrIndex].indexOf(
+        RQ_PARAMS.VALUE_DELIMIT) === -1) {
+        payload[this.options.data.topicAttribute[attrIndex]] = (
+          value * this.options.data.scale[attrIndex]
+        )
+      } else {
+        const nameAndValue = this.options.data.topicAttribute[attrIndex]
+          .split(RQ_PARAMS.VALUE_DELIMIT)
+        payload[nameAndValue[0]] = nameAndValue[1]
+      }
+    }
+  },
+
+  /**
+   * Assemble a payload from the axisValues based on the
+   * contents of this.options.data.topicAttribute. There
+   * can be one or two attributes. The x value is always
+   * assigned to the first attribute, if it exists. y is
+   * always assigned to the second, if it exists.
+   * An attribute can also have a constant value assinged
+   * to it.
+   */
   _triggerSocketEvent: function (event, axisValues) {
     const objPayload = {}
     if (!axisValues) {
@@ -166,12 +198,17 @@ jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.JOYSTICK', {
       return
     }
 
-    objPayload[this.options.data.topicAttribute[0]] = (
-      axisValues.x * this.options.data.scale[0]
+    console.debug(
+      '_triggerSocketEvent:' +
+      ` axisValues: ${JSON.stringify(axisValues)}`
     )
-    objPayload[this.options.data.topicAttribute[1]] = (
-      axisValues.y * this.options.data.scale[1]
-    )
+    console.debug(
+      '_triggerSocketEvent:' +
+      ` topicAttribute: ${JSON.stringify(this.options.data.topicAttribute)}`)
+
+    this._assignValue(objPayload, 0, axisValues.x)
+    this._assignValue(objPayload, 1, axisValues.y)
+
     this.options.socket.emit(
       this.options.data.topic,
       JSON.stringify(objPayload)

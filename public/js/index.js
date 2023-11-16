@@ -266,8 +266,6 @@ jQuery(function () {
     },
     drop: function (event, ui) {
       ui.draggable.remove()
-      console.debug('dropped ID ', ui.draggable.getWidgetConfiguration().id)
-      // TODO: Not sure positionWidgets is required here
       positionWidgets()
     }
   })
