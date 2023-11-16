@@ -198,14 +198,6 @@ jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.JOYSTICK', {
       return
     }
 
-    console.debug(
-      '_triggerSocketEvent:' +
-      ` axisValues: ${JSON.stringify(axisValues)}`
-    )
-    console.debug(
-      '_triggerSocketEvent:' +
-      ` topicAttribute: ${JSON.stringify(this.options.data.topicAttribute)}`)
-
     this._assignValue(objPayload, 0, axisValues.x)
     this._assignValue(objPayload, 1, axisValues.y)
 
