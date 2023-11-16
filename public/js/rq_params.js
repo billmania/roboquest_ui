@@ -12,7 +12,7 @@
 
 const RQ_PARAMS = {}
 
-RQ_PARAMS.VERSION = '25'
+RQ_PARAMS.VERSION = '26'
 
 RQ_PARAMS.CONFIG_FORMAT_VERSION = '7'
 RQ_PARAMS.CONFIG_FILE = 'persist/configuration.json'
@@ -22,8 +22,14 @@ RQ_PARAMS.MESSAGE_DURATION_S = 15
 RQ_PARAMS.UPDATE_FORMAT_VERSION = 1
 RQ_PARAMS.DISCONNECTED_IMAGE = 'img/background.jpg'
 
-// multiple topic attributes are delimited with this character
+// topic attributes are delimited with this character
 RQ_PARAMS.ATTR_DELIMIT = ';'
+/*
+ * When an attribute is to always be assigned a constant,
+ * use this character to separate the attribute name from
+ * the constant.
+ */
+RQ_PARAMS.VALUE_DELIMIT = ':'
 
 // TODO: Implement use of this in public/js/index.js
 RQ_PARAMS.WIDGET_NAMESPACE = 'rq'

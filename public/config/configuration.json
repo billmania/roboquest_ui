@@ -280,7 +280,7 @@
     {
       "id": 18,
       "type": "joystick",
-      "label": "Joystick",
+      "label": "drive",
       "position": {
         "my": "left top",
         "at": "left+-21 top+879.0999755859375"
@@ -372,8 +372,7 @@
           "angle",
           "name"
         ],
-        "topicType": "rq_msgs/msg/ServoAngles",
-        "topicPeriodS": 3
+        "topicType": "rq_msgs/msg/ServoAngles"
       },
       "keys": {
         "81": {
@@ -417,8 +416,7 @@
           "angle",
           "name"
         ],
-        "topicType": "rq_msgs/msg/ServoAngles",
-        "topicPeriodS": 3
+        "topicType": "rq_msgs/msg/ServoAngles"
       }
     },
     {
