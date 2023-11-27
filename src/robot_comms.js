@@ -359,24 +359,13 @@ class RobotComms {
   }
 
   /**
-   * Used until a way is found to properly unsubscribe from a topic.
-   */
-  dummy_cb (msg) {
-  }
-
-  /**
    * Subscribe to an image topic.
    *
    * @param {string} cameraId - the numerical ID of the camera
    */
   choose_camera (cameraId) {
     if (this.image_sub) {
-      /*
-       * Delete this subscriber, so the messages stop flowing.
-       * Haven't found a better way to unsubscribe from a topic.
-       */
-      this.image_sub._callback = this.dummy_cb
-      delete this.image_sub
+      this.node.destroySubscription(this.image_sub)
       this.image_sub = null
     }
 
