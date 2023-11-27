@@ -8,6 +8,8 @@ const rclnodejs = require('rclnodejs')
 const set = require('lodash.set')
 const cloneDeep = require('lodash.clonedeep')
 
+const DEFAULT_CAMERA = '0'
+
 /*
  * Attempted all of the following:
  * rclnodejs.createMessage(): missing hasMember()
@@ -76,6 +78,8 @@ class RobotComms {
     this.serviceClients = {}
     this.services = []
 
+    this.image_sub = null
+
     this.rclnodejs = rclnodejs
     this.rclnodejs.init()
     this.node = this.rclnodejs.createNode(this.nodeName)
@@ -138,9 +142,6 @@ class RobotComms {
    *                           or widgetConfig.data.serviceAttribute(s)
    */
   handle_payload (name, payload) {
-    console.debug(
-      `handle_payload: name: ${name}` +
-      `, payload: ${JSON.stringify(payload)}`)
     if (Object.hasOwn(this.publishedTopics, name)) {
       const rosMessage = this.buildPublishMessage(name, payload)
       try {
@@ -180,6 +181,8 @@ class RobotComms {
           this.logger.info('handle_payload: restart called')
         }
       )
+    } else if (name === 'choose_camera') {
+      this.choose_camera(payload)
     } else {
       this.logger.warn(`handle_payload(): ${name} not recognized as publish or service`)
     }
@@ -356,6 +359,26 @@ class RobotComms {
   }
 
   /**
+   * Subscribe to an image topic.
+   *
+   * @param {string} cameraId - the numerical ID of the camera
+   */
+  choose_camera (cameraId) {
+    if (this.image_sub) {
+      this.node.destroySubscription(this.image_sub)
+      this.image_sub = null
+    }
+
+    this.logger.debug(`choose_camera: ${cameraId}`)
+    const cameraTopic = 'rq_camera_node' + cameraId + '/image_raw/compressed'
+    this.image_sub = this.node.createSubscription(
+      'sensor_msgs/msg/CompressedImage',
+      cameraTopic,
+      { history: 1, depth: 1 },
+      this.image_cb.bind(this))
+  }
+
+  /**
    * Setup the connections to the ROS graph. This includes the
    * creation of topic subscribers and publishers as well as service
    * clients.
@@ -367,15 +390,7 @@ class RobotComms {
   setup_ROS (widgetsConfig) {
     this.logger.info(`${this.nodeName} started`)
 
-    /*
-     * The image_sub subscriber isn't associated with any widget.
-     */
-    // TODO: Replace this with a call to create_subscriber()
-    this.image_sub = this.node.createSubscription(
-      'sensor_msgs/msg/CompressedImage',
-      'rq_camera_node/image_raw/compressed',
-      { history: 1, depth: 1 },
-      this.image_cb.bind(this))
+    this.choose_camera(DEFAULT_CAMERA)
 
     for (const widgetConfig of widgetsConfig) {
       this.logger.debug('Parsing widget ' + widgetConfig.type + ' ' + widgetConfig.label)
@@ -461,12 +476,6 @@ class RobotComms {
    * 'mainImage' event. The payload sent with the 'mainImage' emit must
    * be a complete JPEG encoding of the image, further encoded into a
    * base64 representation.
-   *
-   * The configuration of the image messages is controlled by the
-   * usb_cam/set_parameters service. The most useful parameters
-   * are:
-   * ['camera_name', 'framerate', 'image_width', 'image_height',
-   *  'image_raw.format', 'pixel_format', 'video_device']
    *
    * @param {CompressedImage} msg - The complete ROS image message
    */
