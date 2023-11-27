@@ -54,10 +54,37 @@ const initSocket = function () {
   return objSocket
 }
 
+/**
+ * Remove any existing options from the chooseCamera dropdown
+ * menu and then add an option for each camera in cameras.
+ */
+const chooseCamera = function () {
+  jQuery('#chooseCamera')
+    .find('option')
+    .remove()
+
+  // TODO: Populate cameras with the list of actually available cameras
+  const cameras = ['camera0', 'camera1', 'camera2', 'camera3']
+  let nextOption = null
+  jQuery.each(cameras, function (i, camera) {
+    nextOption = jQuery('<option>', {
+      value: i,
+      text: camera
+    })
+    jQuery('#chooseCamera').append(nextOption)
+  })
+}
+
 jQuery(function () {
   const objSocket = initSocket()
 
   initWidgetConfig(objSocket)
+  chooseCamera()
+  jQuery('#chooseCamera').change(function () {
+    const newCamera = jQuery('#chooseCamera').find('option:selected').val()
+    console.debug(`chooseCamera: ${newCamera}`)
+    objSocket.emit('choose_camera', newCamera)
+  })
 
   /**
    * Save the configuration object. Called by clicking the "save config" button

@@ -15,10 +15,7 @@ class WebServer {
   constructor (clientName, configFile) {
     this.clientName = clientName
     this.configFile = configFile
-    /*
-     * update and restart aren't associated with any widget.
-     */
-    this.incomingEvents = ['update', 'restart']
+    this.incomingEvents = ['update', 'restart', 'choose_camera']
     this.send_to_robot = null
 
     this.express_app = express()

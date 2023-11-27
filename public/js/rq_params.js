@@ -12,7 +12,7 @@
 
 const RQ_PARAMS = {}
 
-RQ_PARAMS.VERSION = '26'
+RQ_PARAMS.VERSION = '27'
 
 RQ_PARAMS.CONFIG_FORMAT_VERSION = '7'
 RQ_PARAMS.CONFIG_FILE = 'persist/configuration.json'
