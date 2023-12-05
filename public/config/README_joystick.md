@@ -1,12 +1,13 @@
 # Joystick capabilities and configuration
 
 ## General
+
 The Joystick widget is the most complex widget available. It
 always produces two numerical values. Typically, it's used to
-command two-dimensional robot motion. It can be used in
-place of a non-servo slider, as well as anywhere two values are
-needed within a single ROS message. Lastly, it's possible to use
-a single joystick to command one servo.
+command two-dimensional robot motion. It can be used in place of
+a non-servo slider, albeit not well, as well as anywhere two
+values are needed within a single ROS message. Lastly, it's
+possible to use a single joystick to command one or two servos.
 
 ## Configuration options
 
@@ -88,57 +89,10 @@ seconds.
 
 ## simple slider
 
-```
-    {
-      "position": {
-        "my": "left top",
-        "at": "left top"
-      },
-      "format": {},
-      "data": {
-        "topicDirection": "publish",
-        "topic": "motor_speed",
-        "topicType": "rq_msgs/msg/MotorSpeed",
-        "topicAttribute": [
-          "max_rpm",
-          ""
-        ],
-        "scale": [
-          1,
-          0
-        ],
-        "topicPeriodS": "0"
-      },
-      "type": "joystick",
-      "label": "MotorSpeed2",
-      "id": 22
-    }
-```
+A joystick can be used to emulate a slider, but not well. There's
+a significant difference between a slider and a joystick. When a
+slider is released, its value remains where it was released. When
+a joystick is released, its values returns to 0.
 
 ## servo
 
-```
-    {
-      "position": {
-        "my": "left top",
-        "at": "left top"
-      },
-      "format": {},
-      "data": {
-        "topicDirection": "publish",
-        "topic": "servos",
-        "topicType": "rq_msgs/msg/ServoAngles",
-        "topicAttribute": [
-          "name:0",
-          "angle"
-        ],
-        "scale": [
-          0,
-          1.8
-        ],
-        "topicPeriodS": "0"
-      },
-      "type": "joystick",
-      "label": "camera_pan2"
-    },
-```

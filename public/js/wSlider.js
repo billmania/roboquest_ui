@@ -1,5 +1,6 @@
 'use strict'
-/* global jQuery, RQ_PARAMS */
+/* global jQuery, RQ_PARAMS, assignValue */
+/* global DONT_SCALE, DEFAULT_VALUE */
 
 jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.SLIDER', {
   options: {
@@ -81,16 +82,30 @@ jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.SLIDER', {
       if (this.options.format.reversed.toLowerCase() === 'yes') {
         value = Math.abs(value - this.options.format.max) + this.options.format.min
       }
+
       /*
-       * A slider may use one or two topicAttributes. When only one, it's
-       * a string. When two, it's an Array of two strings.
+       * A slider provides one numeric value. If any more attributes
+       * are specified, they must include constant values.
        */
-      if (this.options.data.topicAttribute instanceof Array) {
-        objPayload[this.options.data.topicAttribute[0]] = value
-        objPayload[this.options.data.topicAttribute[1]] = this.options.label
-      } else {
-        objPayload[this.options.data.topicAttribute] = value
+      if (this.options.data.topicAttribute.length > 0) {
+        assignValue(
+          objPayload,
+          this.options.data.topicAttribute[0],
+          DONT_SCALE,
+          value
+        )
       }
+      if (this.options.data.topicAttribute.length > 1) {
+        for (const attr of this.options.data.topicAttribute.slice(1)) {
+          assignValue(
+            objPayload,
+            attr,
+            DONT_SCALE,
+            DEFAULT_VALUE
+          )
+        }
+      }
+
       this.options.socket.emit(
         this.options.data.topic,
         JSON.stringify(objPayload)
