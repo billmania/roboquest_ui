@@ -437,7 +437,10 @@
         "topicDirection": "publish",
         "topic": "motor_speed",
         "topicType": "rq_msgs/msg/MotorSpeed",
-        "topicAttribute": "max_rpm"
+        "topicAttribute": [
+          "max_rpm",
+          ""
+        ]
       },
       "type": "slider",
       "label": "MotorSpeed",
