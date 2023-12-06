@@ -34,7 +34,17 @@ jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.SLIDER', {
    *                                an absolute position.
    */
   valuesHandler: function (positionData) {
-    const newPosition = this.options.currentPosition + positionData.value
+    let newPosition = null
+    try {
+      newPosition = this.options.currentPosition + positionData.value
+    } catch (error) {
+      console.warn(
+        'slider-valuesHandler Error:' +
+        ` Type:${error.name}` +
+        ` Message:${error.message}`
+      )
+    }
+
     if (newPosition < this.options.format.min) {
       this.options.currentPosition = this.options.format.min
     } else if (newPosition > this.options.format.max) {
