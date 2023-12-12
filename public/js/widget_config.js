@@ -511,5 +511,10 @@ const widgetDefaults = {
       topicType: 'geometry_msgs/msg/TwistStamped',
       topicAttribute: 'twist.angular.z;twist.linear.x'
     }
+  },
+  gamepad: {
+    label: 'gamepadX',
+    format: {},
+    data: {}
   }
 }
