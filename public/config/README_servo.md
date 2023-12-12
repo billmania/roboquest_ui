@@ -1,14 +1,13 @@
 # Servo capabilities and configuration
 
-## Relevant releases
+## Version
 
-### rq_core  v21
-### rq_ui v28
+rq_core  v21
 
 ## General
 
 The RoboQuest hardware can support up to 16 servos. The servos
-have several configuration options. They also have two separate
+have several configuration options. They have three separate
 ways to be controlled.
 
 ## Configuration
@@ -51,8 +50,8 @@ position by default, set the initial angle to D.
 ## Control
 
 Individual servos are referenced by their channel number. They
-can be commanded with either a specific angle to achieve or an
-angle increment.
+can be commanded with a specific angle to achieve, an increment
+to apply to the current angle, or a rotational speed to achieve.
 
 ### Angle
 
@@ -64,15 +63,11 @@ a servo to move from its minimum angle to its maximum angle.
 
 ### Angle increment
 
-This will be an rq_core v21 feature.
-
 The servo can be commanded to change its current position by a
 specified increment, in a specified direction. The change occurs
 at maximum servo speed.
 
 ### Rotational velocity
-
-This will be an rq_core v21 feature.
 
 The servo can be commanded to rotate in a specific direction at
 a specific speed. The direction is clockwise (from the zero

@@ -1,13 +1,14 @@
 # Joystick capabilities and configuration
 
+## Version
+rq_ui v28
+
 ## General
 
 The Joystick widget is the most complex widget available. It
 always produces two numerical values. Typically, it's used to
-command two-dimensional robot motion. It can be used in place of
-a non-servo slider, albeit not well, as well as anywhere two
-values are needed within a single ROS message. Lastly, it's
-possible to use a single joystick to command one or two servos.
+command two-dimensional robot motion or two servos. It can be
+used anywhere two values are needed within a single ROS message.
 
 ## Configuration options
 
@@ -35,7 +36,7 @@ is specified, the y axis value is assigned to it.
 
 The first attribute name must be terminated with a semi-colon,
 even when there is no second attribute.
-For example, "twist.angular.z;twist.linear.x" or "max_rpm;".
+For example, "twist.angular.z;twist.linear.x" or "servo0.angle_deg;".
 
 ### axes scaling
 
@@ -61,38 +62,30 @@ seconds.
 ### motion command
 
 ```
-{
-  "id": 18,
-  "type": "joystick",
-  "label": "motion",
-  "position": {
-  "my": "left top",
-  "at": "left top"
-  },
-  "format": {},
-  "data": {
-    "scale": [
-      1,
-      1
-    ],
-    "topic": "cmd_vel",
-    "topicAttribute": [
-      "twist.angular.z",
-      "twist.linear.x"
-    ],
-    "topicType": "geometry_msgs/msg/TwistStamped",
-    "topicDirection": "publish",
-    "topicPeriodS": 5
-  }
-}
+topic direction: publish
+topic: cmd_vel
+topic type: geometry_msgs/msg/TwistStamped
+topic attribute: twist.angular.z;twist.linear.x
+axes_scaling: 3;3
+topic_period: 5
 ```
-
-## simple slider
-
-A joystick can be used to emulate a slider, but not well. There's
-a significant difference between a slider and a joystick. When a
-slider is released, its value remains where it was released. When
-a joystick is released, its values returns to 0.
 
 ## servo
 
+For servos, the scaling will work best around 0.2. Scaling which is too large will
+cause the servo to move to its extreme in one update cycle.
+
+In the following example, the joystick's x value will control the speed of servo 0.
+The y value will control servo 1.
+
+The topic period must be 0 for a joystick servo. Undesirable behavior will occur with
+a non-zero period.
+
+```
+topic direction: publish
+topic: servos
+topic type: rq_msgs/msg/Servos
+topic_attribute: servo0.speed_dps;servo1.speed_dps;servo0.command_type:3;servo1.command_type:3
+axes_scaling: 0.2;0.2
+topic_period: 0
+```
