@@ -369,10 +369,10 @@
         "topic": "servos",
         "topicDirection": "publish",
         "topicAttribute": [
-          "angle",
-          "name"
+          "servo0.angle_deg",
+          "servo0.command_type:1"
         ],
-        "topicType": "rq_msgs/msg/ServoAngles"
+        "topicType": "rq_msgs/msg/Servos"
       },
       "keys": {
         "81": {
@@ -413,10 +413,10 @@
         "topic": "servos",
         "topicDirection": "publish",
         "topicAttribute": [
-          "angle",
-          "name"
+          "servo1.angle_deg",
+          "servo1.command_type:1"
         ],
-        "topicType": "rq_msgs/msg/ServoAngles"
+        "topicType": "rq_msgs/msg/Servos"
       }
     },
     {
@@ -437,7 +437,10 @@
         "topicDirection": "publish",
         "topic": "motor_speed",
         "topicType": "rq_msgs/msg/MotorSpeed",
-        "topicAttribute": "max_rpm"
+        "topicAttribute": [
+          "max_rpm",
+          ""
+        ]
       },
       "type": "slider",
       "label": "MotorSpeed",

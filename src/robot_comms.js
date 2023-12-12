@@ -10,12 +10,6 @@ const cloneDeep = require('lodash.clonedeep')
 
 const DEFAULT_CAMERA = '0'
 
-/*
- * Attempted all of the following:
- * rclnodejs.createMessage(): missing hasMember()
- * rclnodejs.createMessageObject(): but only the non-terminal objects
- * rclnodejs.require(): very similar to createMessage()
- */
 // TODO: Convert these to classes to get a new object every time
 const Control = {
   set_charger: '',
@@ -23,20 +17,6 @@ const Control = {
   set_fet2: '',
   set_motors: '',
   set_servos: ''
-}
-const servoAngles = {
-  header: {
-    stamp: {
-      sec: 0,
-      nanosec: 0
-    },
-    frame_id: ''
-  },
-  servos: []
-}
-const servoAngle = {
-  name: '',
-  angle: 0
 }
 
 /**
@@ -148,8 +128,9 @@ class RobotComms {
         this.publishers[name].publish(rosMessage)
       } catch (error) {
         this.logger.warn(
-          `handle_payload: Type:${error.name}, Message:${error.message}` +
-          `, name:${name}, rosMessage:${JSON.stringify(rosMessage)}`
+          `handle_payload: ERROR topic:${name}` +
+          `, Type:${error.name}` +
+          `, Message:${error.message}`
         )
       }
     } else if (this.services.includes(name)) {
@@ -170,7 +151,6 @@ class RobotComms {
        * this logic will be replaced with a separate function capable of
        * handling multiple system services.
        */
-      this.logger.debug('handle_payload: Calling restart service')
       this._restartServiceClient.sendRequest(
         {},
         (response) => {
@@ -248,45 +228,29 @@ class RobotComms {
    * @returns {ROS message object}
    */
   buildPublishMessage (topicName, message) {
-    switch (topicName) {
-      case ('servos'): {
-        servoAngles.header.stamp = getRosTimestamp()
-        servoAngles.servos = []
+    const publishMessageClass = rclnodejs.createMessage(
+      this.publishedTopics[topicName]
+    )._refObject
+    /*
+     * TODO:
+     * This is admittedly ugly. It's based completely on not understanding
+     * two things:
+     * 1. how to get a new ROS message object from rclnodejs
+     * 2. why this implementation works
+     */
+    const publishMessage = JSON.parse(
+      JSON.stringify(
+        cloneDeep(publishMessageClass)
+      )
+    )
 
-        for (const attribute in message) {
-          set(servoAngle, attribute, message[attribute])
-        }
-        servoAngles.servos.push(servoAngle)
-
-        return servoAngles
-      }
-
-      default: {
-        const publishMessageClass = rclnodejs.createMessage(
-          this.publishedTopics[topicName]
-        )._refObject
-        /*
-         * TODO:
-         * This is admittedly ugly. It's based completely on not understanding
-         * two things:
-         * 1. how to get a new ROS message object from rclnodejs
-         * 2. why this implementation works
-         */
-        const publishMessage = JSON.parse(
-          JSON.stringify(
-            cloneDeep(publishMessageClass)
-          )
-        )
-
-        set(publishMessage, 'header.stamp', getRosTimestamp())
-        set(publishMessage, 'header.frame_id', '')
-        for (const attribute in message) {
-          set(publishMessage, attribute, message[attribute])
-        }
-
-        return publishMessage
-      }
+    set(publishMessage, 'header.stamp', getRosTimestamp())
+    set(publishMessage, 'header.frame_id', '')
+    for (const attribute in message) {
+      set(publishMessage, attribute, message[attribute])
     }
+
+    return publishMessage
   }
 
   /**

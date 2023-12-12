@@ -18,9 +18,9 @@ class KeyControl { // eslint-disable-line no-unused-vars
    * Setup to manage key events. Requires an HTML element in the page with
    * the HTML ID set to the CSS string in keyButtonId.
    *
-   * If key events will be the primary way to command the robot, set the relevant
-   * topicPeriodS attribute to a value about twice the period of the key event repeat
-   * frequency.
+   * If key events will be the primary way to command the robot, set the
+   * relevant topicPeriodS attribute to a value about twice the period of
+   * the key event repeat frequency.
    *
    * @param {string} keyButtonId - the CSS string identifying the UI KEY button
    */
@@ -39,13 +39,14 @@ class KeyControl { // eslint-disable-line no-unused-vars
   }
 
   /**
-   * Setup to capture a single keycode after a keycode button in #widgetKeysTable
-   * is clicked. This method is called via an "onclick" attribute for each keycode
-   * button element.
+   * Setup to capture a single keycode after a keycode button in
+   * #widgetKeysTable is clicked. This method is called via an "onclick"
+   * attribute for each keycode button element.
    *
    * When keycode capture has been enabled by changeAssignedKeycode,
-   * capture a single keycode. If the keycode isn't already assigned somewhere else,
-   * write it to the keycode button. Disable the capture of keycodes.
+   * capture a single keycode. If the keycode isn't already assigned
+   * somewhere else, write it to the keycode button. Disable the capture
+   * of keycodes.
    *
    * @param {string} keycodeId - the HTML ID of the keycoded button
    */
@@ -54,7 +55,10 @@ class KeyControl { // eslint-disable-line no-unused-vars
       jQuery(window).off('keydown')
       if (jQuery(`#${keycodeId}`).data('keycode') !== eventData.which) {
         if (this._isKeyAssigned(eventData.which)) {
-          console.warn(`changeAssignedKeycode: ${eventData.code} already assigned`)
+          console.warn(
+            'changeAssignedKeycode:' +
+            ` ${eventData.code} already assigned`
+          )
           return
         }
       }
@@ -197,7 +201,8 @@ class KeyControl { // eslint-disable-line no-unused-vars
    * every member of this._keyableWidgets, even when it has already located
    * the matching widget.
    *
-   * @param {number} widgetId - the unique ID of the widget having its keys configured
+   * @param {number} widgetId - the unique ID of the widget having its keys
+   *                            configured
    */
   configureWidget (widgetId) {
     this._configureWidgetObj = null
@@ -295,9 +300,10 @@ class KeyControl { // eslint-disable-line no-unused-vars
 
   /**
    * Read the #widgetKeysTable rows input elements to extract the
-   * configuration of keycodes and use them to update this._configureWidgetObj.keys.
-   * Each element of the table is expected to be identified with a unique HTML element
-   * ID in the format "${columnName}_${rowIndex}" where columnName is from
+   * configuration of keycodes and use them to update
+   * this._configureWidgetObj.keys. Each element of the table is
+   * expected to be identified with a unique HTML element ID in the
+   * format "${columnName}_${rowIndex}" where columnName is from
    * ['keycode', 'name', 'downValues', 'upValues'].
    */
   applyKeycodeConfig () {
@@ -553,9 +559,12 @@ class KeyControl { // eslint-disable-line no-unused-vars
     jQuery(window).off('keyup')
   }
 
+  // TODO: A better name might be _adjustValues
   /**
    * Based on the widgetType and the direction, calculate the values
-   * to send to the widget's valuesHandler function.
+   * to send to the widget's valuesHandler function. The joystick widget
+   * must have its output values adjusted before they can be sent to
+   * valuesHandler(). No other widget requires adjustment.
    *
    * keydown events can repeat. The downValues for the key must be applied
    * only once before a keyup event occurs. keyup events don't repeat.
@@ -564,20 +573,23 @@ class KeyControl { // eslint-disable-line no-unused-vars
    * @param {string} widgetId
    * @param {number} whichKey
    * @param {string} direction - 'up' or 'down'
-   * @param {Array} values
+   * @param {object} inputValues
+   *
+   * @returns {object} - the values for valuesHandler()
    */
-  _applyValues (widgetType, widgetId, whichKey, direction, values) {
+  _applyValues (widgetType, widgetId, whichKey, direction, inputValues) {
     if (widgetType !== 'joystick') {
-      return values
+      return inputValues
     }
 
+    // TODO: Does this belong in the Joystick widget?
     if (direction === 'down') {
       if (this._keyToWidget[whichKey].latestValues.x === 0 &&
           this._keyToWidget[whichKey].latestValues.y === 0) {
-        this._keyToWidget[whichKey].latestValues.x = values.x
-        this._keyToWidget[whichKey].latestValues.y = values.y
-        this._widgetValues[widgetId].x += values.x
-        this._widgetValues[widgetId].y += values.y
+        this._keyToWidget[whichKey].latestValues.x = inputValues.x
+        this._keyToWidget[whichKey].latestValues.y = inputValues.y
+        this._widgetValues[widgetId].x += inputValues.x
+        this._widgetValues[widgetId].y += inputValues.y
       }
     } else {
       /*
@@ -591,14 +603,14 @@ class KeyControl { // eslint-disable-line no-unused-vars
        */
       this._widgetValues[widgetId].x -= this._keyToWidget[whichKey].latestValues.x
       this._widgetValues[widgetId].y -= this._keyToWidget[whichKey].latestValues.y
-      if (values.x === 0 && values.y === 0) {
+      if (inputValues.x === 0 && inputValues.y === 0) {
         this._keyToWidget[whichKey].latestValues.x = 0
         this._keyToWidget[whichKey].latestValues.y = 0
       } else {
-        this._keyToWidget[whichKey].latestValues.x = values.x
-        this._keyToWidget[whichKey].latestValues.y = values.y
-        this._widgetValues[widgetId].x += values.x
-        this._widgetValues[widgetId].y += values.y
+        this._keyToWidget[whichKey].latestValues.x = inputValues.x
+        this._keyToWidget[whichKey].latestValues.y = inputValues.y
+        this._widgetValues[widgetId].x += inputValues.x
+        this._widgetValues[widgetId].y += inputValues.y
       }
     }
 
@@ -606,13 +618,16 @@ class KeyControl { // eslint-disable-line no-unused-vars
   }
 
   /**
-   * Based on the key specified in eventData.which, first determine the
-   * type of widget to which this key is assigned. Then, call the
-   * associated widget's valueHandler function.
+   * Based on the key specified in eventData.which, first determine
+   * if that key is assigned to a widget. Next, check for keydown or
+   * keyup. Lastly, check if there are values assigned for that event.
+   * If the call gets through all of that logic, call the widget's
+   * valuesHandler function with the appropriate values.
+   *
    * Keys assigned to joystick widgets have special handling because
    * multiple keys are allowed to be pressed simultaneously.
    *
-   * @param {object} eventData - the event type and the specific key
+   * @param {object} eventData - the key and event type
    */
   _keyHandler (eventData) {
     const whichKey = eventData.which
@@ -624,7 +639,8 @@ class KeyControl { // eslint-disable-line no-unused-vars
 
     let values
     if (eventData.type === 'keydown' &&
-        Object.hasOwn(this._keyToWidget[whichKey], 'downValues')) {
+        Object.hasOwn(this._keyToWidget[whichKey], 'downValues') &&
+        this._keyToWidget[whichKey].downValues !== undefined) {
       values = this._applyValues(
         this._keyToWidget[whichKey].widgetType,
         this._keyToWidget[whichKey].widgetId,
@@ -633,7 +649,8 @@ class KeyControl { // eslint-disable-line no-unused-vars
         this._keyToWidget[whichKey].downValues
       )
     } else if (eventData.type === 'keyup' &&
-               Object.hasOwn(this._keyToWidget[whichKey], 'upValues')) {
+               Object.hasOwn(this._keyToWidget[whichKey], 'upValues') &&
+               this._keyToWidget[whichKey].upValues !== undefined) {
       values = this._applyValues(
         this._keyToWidget[whichKey].widgetType,
         this._keyToWidget[whichKey].widgetId,
@@ -642,9 +659,12 @@ class KeyControl { // eslint-disable-line no-unused-vars
         this._keyToWidget[whichKey].upValues
       )
     } else {
-      console.error(
-        `No values defined for ${this._keyToWidget[whichKey].widgetId}` +
-        ` and ${whichKey}`)
+      console.debug(
+        '_keyHandler: No assignment for' +
+        ` ${this._keyToWidget[whichKey].widgetId}` +
+        ` and key ${whichKey}` +
+        ` ${eventData.type}`
+      )
       return
     }
 
