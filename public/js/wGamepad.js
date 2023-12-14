@@ -20,8 +20,8 @@ class Gamepad {
   constructor () {
     this._gamepad = null
     this._gamepadEnabled = false
-    this._gamepadConfig = {}
     this._pollIntervalId = null
+    this._lastPoll = 0
 
     this._haveEvents = false
     this._haveWebkitEvents = false
@@ -29,13 +29,37 @@ class Gamepad {
   }
 
   /**
-   * Retrieve the axis and button values from the gamepad. The gamepad
-   * state must be polled — it doesn't create an Event when its
-   * button or axis state changes.
+   * Check the gamepad object for updates.
    *
    */
   _pollGamepad () {
-    // TODO: Implement
+    if (!this._gamepadEnabled || !this._gamepad) {
+      return
+    }
+
+    if (this._gamepad.timestamp <= this._lastPoll) {
+      return
+    }
+    console.debug(`_pollGamepad: updated at ${this._gamepad.timestamp}`)
+
+    let index
+    for (
+      index = 0;
+      index < this._gamepad.buttons.length;
+      index++
+    ) {
+      // TODO: Implement
+    }
+
+    for (
+      index = 0;
+      index < this._gamepad.axes.length;
+      index++
+    ) {
+      // TODO: Implement
+    }
+
+    this._lastPoll = performance.now()
   }
 
   /**
@@ -78,23 +102,12 @@ class Gamepad {
    */
   _handleConnect (event) {
     this._gamepad = event.gamepad
-    this._buttons = this._gamepad.buttons
-    this._axes = this._gamepad.axes
 
     console.debug(
       '_handleConnect:' +
       ` id: ${this._gamepad.id}` +
-      ` buttons: ${this._buttons.length}` +
-      ` axes: ${this._axes.length}`
-    )
-
-    if (this._pollIntervalId) {
-      clearInterval(this._pollIntervalId)
-      this._pollIntervalId = null
-    }
-    this._pollIntervalId = setInterval(
-      this._pollGamepad,
-      RQ_PARAMS.POLL_PERIOD_MS
+      ` buttons: ${this._gamepad.buttons.length}` +
+      ` axes: ${this._gamepad.axes.length}`
     )
   }
 
@@ -114,21 +127,27 @@ class Gamepad {
     }
     delete this._gamepad
     this._gamepad = null
-    this._buttons = 0
-    this._axes = 0
   }
 
   /**
    * Change the state of the gamepad.
    */
   changeGamepadState () {
-    // TODO Do the needful here
     console.debug('changeGamepadState: called')
+    if (this._pollIntervalId) {
+      clearInterval(this._pollIntervalId)
+      this._pollIntervalId = null
+    }
+
     if (this._gamepadEnabled) {
       this._gamepadEnabled = false
       console.debug('changeGamepadState: disabled')
     } else {
       this._gamepadEnabled = true
+      this._pollIntervalId = setInterval(
+        this._pollGamepad.bind(this),
+        RQ_PARAMS.POLL_PERIOD_MS
+      )
       console.debug('changeGamepadState: enabled')
     }
   }
@@ -155,7 +174,7 @@ jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.GAMEPAD', {
     this.element.children('.widget-content').html(gamepadElement)
 
     gamepadElement.on('click', () => {
-      this._gamepad.changeGamepadState()
+      _gamepad.changeGamepadState()
     })
   },
 
