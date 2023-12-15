@@ -102,35 +102,52 @@ class Gamepad {
    */
   _setupConfigForm () {
     jQuery('#gamepadId').html(this._gamepad.id)
-    const columnNames = 'ID destination type attributes scaling'
-    jQuery('#gamepadColumns').html(columnNames)
+    const attributes = [
+      'name',
+      'destination',
+      'interface',
+      'attributes',
+      'scaling'
+    ]
+    let columnHeadings = '<tr><th>ID</th>'
+    for (const attribute of attributes) {
+      columnHeadings += `<th>${attribute}</th>`
+    }
+    columnHeadings += '</tr>'
 
     let index
     let row
-    const gamepadInputs = jQuery('#gamepadInputs')
-    gamepadInputs.empty()
+    const gamepadInputsTable = jQuery('#gamepadInputsTable')
+    gamepadInputsTable.children('tr').remove()
+    gamepadInputsTable.append(columnHeadings)
 
-    gamepadInputs.append('<label>Buttons</label><br/>')
-    for (
-      index = 0;
-      index < this._gamepad.buttons.length;
-      index++
-    ) {
-      row = `<label id="b${index}LabeButtons">B${index}</label>`
-      row += `<input type="text" data-section="data" value="" name="b${0}Destination">`
-      row += '<br/>'
-      gamepadInputs.append(row)
-    }
-    gamepadInputs.append('<label>Axes</label><br/>')
-    for (
-      index = 0;
-      index < this._gamepad.axes.length;
-      index++
-    ) {
-      row = `<label id="a${index}Label">A${index}</label>`
-      row += `<input type="text" data-section="data" value="" name="a${0}Destination">`
-      row += '<br/>'
-      gamepadInputs.append(row)
+    const sectionDetails = [
+      {
+        rows: this._gamepad.buttons.length,
+        prefix: 'b',
+        type: 'Buttons'
+      },
+      {
+        rows: this._gamepad.axes.length,
+        prefix: 'a',
+        type: 'Axes'
+      }
+    ]
+    for (const section of sectionDetails) {
+      gamepadInputsTable.append(`<tr><td><label>${section.type}</label></td></tr>`)
+      for (
+        index = 0;
+        index < section.rows;
+        index++
+      ) {
+        row = '<tr>'
+        row += `<td><label id="${section.prefix}${index}">${section.prefix}${index}</label></td>`
+        for (const attribute of attributes) {
+          row += `<td><input type="text" data-section="data" value="" name="${section.prefix}${index}${attribute}"></td>`
+        }
+        row += '</tr>'
+        gamepadInputsTable.append(row)
+      }
     }
   }
 
