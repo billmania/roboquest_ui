@@ -16,11 +16,18 @@ makes the configuration process somewhat lengthy and complex.
 ## Configuration options
 
 For a gamepad to be configured, it must be connected to the
-computer and then detected by the RQ UI. If the UI is already
-running and then the gamepad is connected to the USB, it will be
-detected automatically. If it was connected to the USB before the
-UI was started, a gamepad button press is required for it to be
-detected.
+computer and then detected by the RQ UI. To ensure it's detected, press
+any button on the device.
+
+The configuration process involves selecting each button or joystick and
+defining what is to be done with the action. The configuration form has
+a row for each button/joystick. The buttons are listed first and then the
+axes (joysticks). Each row looks like:
+
+index service/topic type attribute-list scaling
+
+When the associated button is activated on the gamepad, its corresponding
+index number will be highlighted.
 
 ### topic or service
 

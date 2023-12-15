@@ -40,7 +40,6 @@ class Gamepad {
     if (this._gamepad.timestamp <= this._lastPoll) {
       return
     }
-    console.debug(`_pollGamepad: updated at ${this._gamepad.timestamp}`)
 
     let index
     for (
@@ -95,6 +94,47 @@ class Gamepad {
   }
 
   /**
+   * Enumerate the buttons and axes from the gamepad and build the
+   * configuration input form.
+   *
+   * Put the gamepad ID at the top of the form.
+   * Add a row with column names. Then add a row for each input.
+   */
+  _setupConfigForm () {
+    jQuery('#gamepadId').html(this._gamepad.id)
+    const columnNames = 'ID destination type attributes scaling'
+    jQuery('#gamepadColumns').html(columnNames)
+
+    let index
+    let row
+    const gamepadInputs = jQuery('#gamepadInputs')
+    gamepadInputs.empty()
+
+    gamepadInputs.append('<label>Buttons</label><br/>')
+    for (
+      index = 0;
+      index < this._gamepad.buttons.length;
+      index++
+    ) {
+      row = `<label id="b${index}LabeButtons">B${index}</label>`
+      row += `<input type="text" data-section="data" value="" name="b${0}Destination">`
+      row += '<br/>'
+      gamepadInputs.append(row)
+    }
+    gamepadInputs.append('<label>Axes</label><br/>')
+    for (
+      index = 0;
+      index < this._gamepad.axes.length;
+      index++
+    ) {
+      row = `<label id="a${index}Label">A${index}</label>`
+      row += `<input type="text" data-section="data" value="" name="a${0}Destination">`
+      row += '<br/>'
+      gamepadInputs.append(row)
+    }
+  }
+
+  /**
    * Handle the gamepad connect event, where the details are
    * in event.gamepad.
    *
@@ -109,6 +149,7 @@ class Gamepad {
       ` buttons: ${this._gamepad.buttons.length}` +
       ` axes: ${this._gamepad.axes.length}`
     )
+    this._setupConfigForm()
   }
 
   /**
