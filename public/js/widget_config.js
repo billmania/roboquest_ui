@@ -1,6 +1,6 @@
 'use strict'
 
-/* global jQuery RQ_PARAMS keyControl */
+/* global jQuery RQ_PARAMS keyControl gamepad */
 
 /*
  * A socket object is required to create a widget, so we need to define
@@ -9,10 +9,16 @@
 let socket
 
 /*
- * Differentiate between using the widget configuration form for a
- * new widget and for re-configuring an existing widget.
+ * So the widget default configuration can be shown for a new
+ * widget but not for an existing widget.
  */
-let reconfiguringWidget = false
+let showConfigDefaults = true
+/*
+ * Used to tell other logic that the widget configuration process is
+ * active. An example is the Gamepad class, so it can determine what to
+ * do with gamepad events.
+ */
+let configuringWidget = false // eslint-disable-line no-unused-vars
 
 /**
  * Extends jQuery. To be called on a jQuery element of class 'widget'.
@@ -194,7 +200,8 @@ const openConfigureWidgetDialog = function (widget) {
 
   populateWidgetConfigurationDialog(oldWidgetConfig)
 
-  reconfiguringWidget = true
+  showConfigDefaults = false
+  configuringWidget = true
   jQuery('#newWidget').dialog({
     title: 'Configure Widget',
     buttons: {
@@ -208,6 +215,7 @@ const openConfigureWidgetDialog = function (widget) {
     },
     open: function (event, ui) {
       keyControl.disableKeys()
+      gamepad.disableGamepad()
     }
   }).dialog('open')
 }
@@ -247,17 +255,16 @@ const reconfigureWidget = function (oldWidgetConfig, newWidgetConfig) {
 /**
  * In the widget configuration dialog, set the input element default
  * values based on the selected widget type.
- * The global variable reconfiguringWidget prevents over-writing an
+ * The global variable showConfigDefaults prevents over-writing an
  * existing configuration with the defaults.
  */
 const setWidgetConfigDefaults = function () {
-  if (reconfiguringWidget) {
-    reconfiguringWidget = false
+  if (showConfigDefaults) {
+    const widgetType = jQuery('#newWidget #newWidgetType').find('option:selected').val()
+    populateWidgetConfigurationDialog(widgetDefaults[widgetType])
     return
   }
-
-  const widgetType = jQuery('#newWidget #newWidgetType').find('option:selected').val()
-  populateWidgetConfigurationDialog(widgetDefaults[widgetType])
+  showConfigDefaults = true
 }
 
 /**
@@ -266,14 +273,18 @@ const setWidgetConfigDefaults = function () {
  * using the object of defaults for the widget type.
  *
  * @param {string} widgetType - the type of widget from [Button, Value,
- *                              Slider, Indicator, Joystick]
+ *                              Slider, Indicator, Joystick, Gamepad]
  */
 const setNewWidgetDialogType = function (widgetType) {
   jQuery('#newWidget .newWidgetType').hide()
   jQuery(`#newWidget #${widgetType}`).show()
-
-  // TODO: Don't believe it's necessary to call positionWidgets() here
-  // positionWidgets()
+  if (widgetType === 'gamepad') {
+    if (gamepad.gamepadConnected()) {
+      gamepad.enableGamepad()
+    } else {
+      console.warn('setNewWidgetDialogType: No gamepad connected')
+    }
+  }
 }
 
 /**
@@ -378,21 +389,30 @@ const extractWidgetConfigurationFromDialog = function () {
 const initWidgetConfig = function (objSocket) { // eslint-disable-line no-unused-vars
   socket = objSocket
   /**
-     * Use the details of a new widget, collected via the configuration menu, to
-     * instantiate and position a new widget.
-     * It's called by clicking the "Create" button in the "Configure a New Widget"
-     * form which implies this function needs a better name.
-     */
+   * Use the details of a new widget, collected via the configuration menu, to
+   * instantiate and position a new widget.
+   * It's called by clicking the "Create" button in the "Configure a New Widget"
+   * form which implies this function needs a better name.
+   */
   // TODO: Give this function a more intuitive name based on its use and effect
   const addWidget = function () {
     const objNewWidget = extractWidgetConfigurationFromDialog()
 
+    if (objNewWidget.type === 'gamepad') {
+      gamepad.disableGamepad()
+    }
     objNewWidget.id = getNextId()
 
     createWidget(objNewWidget)
+    configuringWidget = false
     positionWidgets()
   }
 
+  /*
+   * TODO:
+   * Why is this newWidget dialog defined here and then redefined
+   * when the addWidget button is clicked?
+   */
   jQuery('#newWidget').dialog({
     width: 500,
     autoOpen: false,
@@ -417,6 +437,10 @@ const initWidgetConfig = function (objSocket) { // eslint-disable-line no-unused
   })
 
   jQuery('#addWidget').on('click', function () {
+    /*
+     * The #newWidget dialog is used to define a new widget, which
+     * doesn't yet exist in the widget configuration file.
+     */
     jQuery('#newWidget').dialog({
       title: 'Configure a New Widget',
       buttons: {
@@ -428,6 +452,7 @@ const initWidgetConfig = function (objSocket) { // eslint-disable-line no-unused
       open: function (event, ui) {
         keyControl.disableKeys()
         setWidgetConfigDefaults()
+        configuringWidget = true
       }
     }).dialog('open')
   })

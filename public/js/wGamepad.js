@@ -1,5 +1,5 @@
 'use strict'
-/* global jQuery, RQ_PARAMS */
+/* global jQuery, RQ_PARAMS, configuringWidget */
 
 /**
  * A widget to represent a single gamepad. Only one gamepad
@@ -29,6 +29,16 @@ class Gamepad {
   }
 
   /**
+   * Is there a gamepad connected, regardless of its current
+   * state.
+   *
+   * @returns {boolean} - true if a gamepad is connected
+   */
+  gamepadConnected () {
+    return (this._gamepad !== null)
+  }
+
+  /**
    * Check the gamepad object for updates.
    *
    */
@@ -39,6 +49,12 @@ class Gamepad {
 
     if (this._gamepad.timestamp <= this._lastPoll) {
       return
+    }
+
+    if (!configuringWidget) {
+      console.debug('_pollGamepad: Routing events to valuesHandler')
+    } else {
+      console.debug('_pollGamepad: Routing events to configuration dialog')
     }
 
     let index
@@ -96,9 +112,6 @@ class Gamepad {
   /**
    * Enumerate the buttons and axes from the gamepad and build the
    * configuration input form.
-   *
-   * Put the gamepad ID at the top of the form.
-   * Add a row with column names. Then add a row for each input.
    */
   _setupConfigForm () {
     jQuery('#gamepadId').html(this._gamepad.id)
@@ -153,7 +166,11 @@ class Gamepad {
 
   /**
    * Handle the gamepad connect event, where the details are
-   * in event.gamepad.
+   * in event.gamepad. This method is called each time the gamepad
+   * is connected, which can occur in either of two scenarioes:
+   *
+   * 1. no gamepad is configured
+   * 2. a gamepad configuration already exists
    *
    * @param {object} event - the complete gamepad connect event
    */
@@ -179,39 +196,67 @@ class Gamepad {
       '_handleDisconnect:' +
       ` id: ${this._gamepad.id}`
     )
-    if (this._pollIntervalId) {
-      clearInterval(this._pollIntervalId)
-      this._pollIntervalId = null
-    }
+    this.disableGamepad()
     delete this._gamepad
     this._gamepad = null
   }
 
   /**
-   * Change the state of the gamepad.
+   * Ensure the gamepad is disabled.
    */
-  changeGamepadState () {
-    console.debug('changeGamepadState: called')
+  disableGamepad () {
+    console.debug('disableGamepad: called')
+
     if (this._pollIntervalId) {
       clearInterval(this._pollIntervalId)
       this._pollIntervalId = null
     }
+    this._gamepadEnabled = false
+  }
+
+  /**
+   * Try to enable the gamepad. Used for scenarios where
+   * the gamepad is needed, without explicit user action, such
+   * as gamepad configuration.
+   */
+  enableGamepad () {
+    console.debug('enableGamepad: called')
+    if (!this.gamepadConnected()) {
+      console.debug('enableGamepad: no gamepad')
+      return
+    }
+
+    this.disableGamepad()
+    this._pollIntervalId = setInterval(
+      this._pollGamepad.bind(this),
+      RQ_PARAMS.POLL_PERIOD_MS
+    )
+    this._gamepadEnabled = true
+    console.debug('enableGamepad: enabled')
+  }
+
+  /**
+   * Toggle the state of the gamepad, without knowing its current
+   * state in advance.
+   */
+  changeGamepadState () {
+    console.debug('changeGamepadState: called')
 
     if (this._gamepadEnabled) {
-      this._gamepadEnabled = false
+      this.disableGamepad()
       console.debug('changeGamepadState: disabled')
     } else {
-      this._gamepadEnabled = true
-      this._pollIntervalId = setInterval(
-        this._pollGamepad.bind(this),
-        RQ_PARAMS.POLL_PERIOD_MS
-      )
+      this.enableGamepad()
       console.debug('changeGamepadState: enabled')
     }
   }
 }
 
-const _gamepad = new Gamepad()
+/*
+ * This is intentionally global, so the widget configuration logic
+ * has the ability to enable and disable the gamepad.
+ */
+const gamepad = new Gamepad()
 
 jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.GAMEPAD', {
   options: {
@@ -221,7 +266,7 @@ jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.GAMEPAD', {
     },
     data: {},
     socket: null,
-    gamepad: _gamepad
+    gamepad
   },
 
   _create: function () {
@@ -232,7 +277,7 @@ jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.GAMEPAD', {
     this.element.children('.widget-content').html(gamepadElement)
 
     gamepadElement.on('click', () => {
-      _gamepad.changeGamepadState()
+      gamepad.changeGamepadState()
     })
   },
 
