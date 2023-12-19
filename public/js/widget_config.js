@@ -215,7 +215,9 @@ const openConfigureWidgetDialog = function (widget) {
     },
     open: function (event, ui) {
       keyControl.disableKeys()
-      gamepad.disableGamepad()
+    },
+    close: function (event, ui) {
+      configuringWidget = false
     }
   }).dialog('open')
 }

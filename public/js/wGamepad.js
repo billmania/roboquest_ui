@@ -13,11 +13,15 @@
  * to a single topic or service.
  */
 
+const BUTTON_PREFIX = 'b'
+const AXIS_PREFIX = 'a'
+
 class Gamepad {
   /**
    *
    */
   constructor () {
+    this._gamepadIndex = null
     this._gamepad = null
     this._gamepadEnabled = false
     this._pollIntervalId = null
@@ -29,49 +33,85 @@ class Gamepad {
   }
 
   /**
-   * Is there a gamepad connected, regardless of its current
-   * state.
+   * Is there a gamepad connected.
    *
    * @returns {boolean} - true if a gamepad is connected
    */
   gamepadConnected () {
-    return (this._gamepad !== null)
+    return (this._gamepadIndex !== null)
   }
 
   /**
-   * Check the gamepad object for updates.
+   * Highlight a specific row the the table of axes and buttons
+   * configuration. All other highlights will be removed.
    *
+   * @param {string} rowPrefix - the prefix part of the HTML element
+   *                             ID which identifies the row
+   * @param {number} rowIndex - the index part of the HTML element
+   *                            ID which identifies the row
+   */
+  _highlightConfigRow (rowPrefix, rowIndex) {
+    const HighLightRowClass = 'highlight-row'
+    console.debug(`_highlightConfigRow: ${rowPrefix}, ${rowIndex}`)
+
+    const configRow = jQuery(`#${rowPrefix}${rowIndex}span`)
+    jQuery('.' + HighLightRowClass).removeClass(HighLightRowClass)
+    configRow.addClass(HighLightRowClass)
+  }
+
+  /**
+   * Check the gamepad object for changes.
    */
   _pollGamepad () {
-    if (!this._gamepadEnabled || !this._gamepad) {
+    if (!this._gamepadEnabled ||
+        this._gamepadIndex === null) {
       return
     }
 
-    if (this._gamepad.timestamp <= this._lastPoll) {
+    this._queryGamepads()
+    if (!this._gamepad.connected) {
       return
     }
 
-    if (!configuringWidget) {
-      console.debug('_pollGamepad: Routing events to valuesHandler')
-    } else {
-      console.debug('_pollGamepad: Routing events to configuration dialog')
+    let bIndex
+    for (
+      bIndex = 0;
+      bIndex < this._gamepad.buttons.length;
+      bIndex++
+    ) {
+      /*
+       * this._gamepad.buttons is an Array of GamepadButton objects,
+       * described in
+       * https://developer.mozilla.org/en-US/docs/Web/API/GamepadButton
+       * pressed is a boolean set when the button is pressed. If the
+       * button can produce a range of values, like the trigger buttons,
+       * then value will have a positive, floating point value between
+       * 0 and 1.0
+       */
+      if (this._gamepad.buttons[bIndex].pressed) {
+        const value = this._gamepad.buttons[bIndex].value
+        if (!configuringWidget) {
+          console.debug(`_pollGamepad: Routing button ${bIndex} value ${value} to valuesHandler`)
+        } else {
+          this._highlightConfigRow(BUTTON_PREFIX, bIndex)
+        }
+      }
     }
 
-    let index
+    let aIndex
     for (
-      index = 0;
-      index < this._gamepad.buttons.length;
-      index++
+      aIndex = 0;
+      aIndex < this._gamepad.axes.length;
+      aIndex++
     ) {
-      // TODO: Implement
-    }
-
-    for (
-      index = 0;
-      index < this._gamepad.axes.length;
-      index++
-    ) {
-      // TODO: Implement
+      const value = this._gamepad.axes[aIndex]
+      if (value !== 0) {
+        if (!configuringWidget) {
+          console.debug(`_pollGamepad: Routing axis ${aIndex} value ${value} to valuesHandler`)
+        } else {
+          this._highlightConfigRow(AXIS_PREFIX, aIndex)
+        }
+      }
     }
 
     this._lastPoll = performance.now()
@@ -116,8 +156,9 @@ class Gamepad {
   _setupConfigForm () {
     jQuery('#gamepadId').html(this._gamepad.id)
     const attributes = [
-      'name',
-      'destination',
+      'actionName',
+      'destinationType',
+      'destinationName',
       'interface',
       'attributes',
       'scaling'
@@ -137,12 +178,12 @@ class Gamepad {
     const sectionDetails = [
       {
         rows: this._gamepad.buttons.length,
-        prefix: 'b',
+        prefix: BUTTON_PREFIX,
         type: 'Buttons'
       },
       {
         rows: this._gamepad.axes.length,
-        prefix: 'a',
+        prefix: AXIS_PREFIX,
         type: 'Axes'
       }
     ]
@@ -154,7 +195,11 @@ class Gamepad {
         index++
       ) {
         row = '<tr>'
-        row += `<td><label id="${section.prefix}${index}">${section.prefix}${index}</label></td>`
+        row += `<td><label id="${section.prefix}${index}">`
+        row += `<span id="${section.prefix}${index}span">`
+        row += `${section.prefix}${index}`
+        row += '</span>'
+        row += '</label></td>'
         for (const attribute of attributes) {
           row += `<td><input type="text" data-section="data" value="" name="${section.prefix}${index}${attribute}"></td>`
         }
@@ -175,13 +220,13 @@ class Gamepad {
    * @param {object} event - the complete gamepad connect event
    */
   _handleConnect (event) {
-    this._gamepad = event.gamepad
+    this._gamepadIndex = event.gamepad.index
+    this._queryGamepads()
 
     console.debug(
       '_handleConnect:' +
-      ` id: ${this._gamepad.id}` +
-      ` buttons: ${this._gamepad.buttons.length}` +
-      ` axes: ${this._gamepad.axes.length}`
+      ` index: ${this._gamepadIndex}` +
+      ` ID: ${this._gamepad.id}`
     )
     this._setupConfigForm()
   }
@@ -199,6 +244,7 @@ class Gamepad {
     this.disableGamepad()
     delete this._gamepad
     this._gamepad = null
+    this._gamepadIndex = null
   }
 
   /**
@@ -249,6 +295,18 @@ class Gamepad {
       this.enableGamepad()
       console.debug('changeGamepadState: enabled')
     }
+  }
+
+  /**
+   * Queries the gamepad(s) to get their latest state.
+   */
+  _queryGamepads () {
+    if (this._gamepadIndex === null) {
+      console.warn('_queryGamepads: No gamepad index')
+      return
+    }
+
+    this._gamepad = navigator.getGamepads()[this._gamepadIndex]
   }
 }
 

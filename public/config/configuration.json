@@ -445,7 +445,67 @@
       "type": "slider",
       "label": "MotorSpeed",
       "id": 21
+    },
+    {
+      "id": 22,
+      "type": "gamepad",
+      "label": "arm1",
+      "position": {
+        "my": "left top",
+        "at": "left top"
+      },
+      "format": {
+        "gamepadId": "0x1234:CheapGamePadKnockoff"
+      },
+      "data": [
+        {
+          "name": "ServosOn",
+          "row": "b0",
+          "service": "control_hat",
+          "serviceType": "rq_msgs.srv/Control",
+          "serviceAttribute": [
+            "set_servos:ON"
+          ]
+        },
+        {
+          "name": "CenterCamera",
+          "row": "b1",
+          "topicDirection": "publish",
+          "topic": "servos",
+          "topicType": "rq_msgs/msg/Servos",
+          "topicAttribute": [
+            "servo0.angle_deg:90",
+            "servo0.command_type:1",
+            "servo1.angle_deg:100",
+            "servo1.command_type:1"
+          ]
+        },
+        {
+          "name": "PanCamera",
+          "row": "a0",
+          "topicDirection": "publish",
+          "topic": "servos",
+          "topicType": "rq_msgs/msg/Servos",
+          "topicScale": 0.2,
+          "topicAttribute": [
+            "servo0.angle_deg",
+            "servo0.command_type:3"
+          ]
+        },
+        {
+          "name": "TiltCamera",
+          "row": "a1",
+          "topicDirection": "publish",
+          "topic": "servos",
+          "topicType": "rq_msgs/msg/Servos",
+          "topicScale": 0.3,
+          "topicAttribute": [
+            "servo1.angle_deg",
+            "servo0.command_type:3"
+          ]
+        }
+      ]
     }
   ],
-  "version": "7"
+  "version": "8"
 }
