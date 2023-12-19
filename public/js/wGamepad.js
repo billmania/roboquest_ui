@@ -15,12 +15,18 @@
 
 const BUTTON_PREFIX = 'b'
 const AXIS_PREFIX = 'a'
+/*
+ * What to display on the gamepad widget button when the gamepad
+ * is in each state. The button toggles the state.
+ */
+const ENABLED_TEXT = 'Disable'
+const DISABLED_TEXT = 'Enable'
 
 class Gamepad {
   /**
-   *
    */
   constructor () {
+    this.widgetId = null
     this._gamepadIndex = null
     this._gamepad = null
     this._gamepadEnabled = false
@@ -30,6 +36,15 @@ class Gamepad {
     this._haveEvents = false
     this._haveWebkitEvents = false
     this._setupEvents()
+  }
+
+  /**
+   * Set the unique ID for this instance of the Gamepad.
+   *
+   * @param {string} widgetId - the unique HTML element ID for the widget
+   */
+  setWidgetId (widgetId) {
+    this.widgetId = widgetId
   }
 
   /**
@@ -68,7 +83,6 @@ class Gamepad {
       return
     }
 
-    this._queryGamepads()
     if (!this._gamepad.connected) {
       return
     }
@@ -221,7 +235,7 @@ class Gamepad {
    */
   _handleConnect (event) {
     this._gamepadIndex = event.gamepad.index
-    this._queryGamepads()
+    this._gamepad = event.gamepad
 
     console.debug(
       '_handleConnect:' +
@@ -286,19 +300,26 @@ class Gamepad {
    * state in advance.
    */
   changeGamepadState () {
-    console.debug('changeGamepadState: called')
+    if (!this.gamepadConnected()) {
+      console.debug('changeGamepadState: no gamepad to enable')
+      return
+    }
 
     if (this._gamepadEnabled) {
       this.disableGamepad()
+      jQuery(`#${this.widgetId} .ui-button`).text(DISABLED_TEXT)
       console.debug('changeGamepadState: disabled')
     } else {
       this.enableGamepad()
+      jQuery(`#${this.widgetId} .ui-button`).text(ENABLED_TEXT)
       console.debug('changeGamepadState: enabled')
     }
   }
 
   /**
-   * Queries the gamepad(s) to get their latest state.
+   * Queries the gamepad(s) to get their latest state. This doesn't
+   * work the way I expect it to work - it doesn't find a connected
+   * gamepad.
    */
   _queryGamepads () {
     if (this._gamepadIndex === null) {
@@ -306,7 +327,12 @@ class Gamepad {
       return
     }
 
-    this._gamepad = navigator.getGamepads()[this._gamepadIndex]
+    console.debug(`_queryGamepads: id ${this._gamepad.id}`)
+    const gamepads = navigator.getGamepads()
+    this._gamepad = gamepads[this._gamepadIndex]
+    if (this._gamepad === undefined) {
+      console.debug('_queryGamepads: navigator.getGamepads() found no gamepads')
+    }
   }
 }
 
@@ -316,24 +342,30 @@ class Gamepad {
  */
 const gamepad = new Gamepad()
 
+/*
+ * The data option for the gamepad widget is different from the
+ * button, label, value, indicator, and joystick widgets. Instead
+ * of it being a single object, it's an Array of data objects.
+ */
 jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.GAMEPAD', {
   options: {
     format: {
-      text: 'Enable pad',
+      text: DISABLED_TEXT,
       name: 'Gamepad0'
     },
-    data: {},
+    data: [],
     socket: null,
     gamepad
   },
 
   _create: function () {
     const gamepadElement = jQuery('<div class="widgetGamepad">')
-      .text(this.options.format.text)
+      .text(DISABLED_TEXT)
       .button()
       .appendTo(this.element)
     this.element.children('.widget-content').html(gamepadElement)
 
+    gamepad.setWidgetId(this.options.label)
     gamepadElement.on('click', () => {
       gamepad.changeGamepadState()
     })

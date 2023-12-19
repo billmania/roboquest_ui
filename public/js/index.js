@@ -37,7 +37,6 @@ const initSocket = function () {
     console.error('Error connecting to robot. ', objError)
   })
 
-  // need to have the image loaded before disconnect or else we cant request it when disconnected
   const imgDisconnected = new Image()
   imgDisconnected.src = RQ_PARAMS.DISCONNECTED_IMAGE
 
