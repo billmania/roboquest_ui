@@ -1,7 +1,7 @@
 'use strict'
 
 /* global jQuery RQ_PARAMS keyControl */
-/* global gamepad GamepadData */
+/* global gamepad GamepadData ROW_ID_LENGTH */
 
 /*
  * A socket object is required to create a widget, so we need to define
@@ -433,18 +433,25 @@ const extractWidgetConfigurationFromDialog = function () {
                 objNewWidget.data = []
               }
 
-              rowId = element.name.slice(0, 2)
+              rowId = element.name.slice(0, ROW_ID_LENGTH)
               if (gamepadData.getRow() &&
                   rowId !== gamepadData.getRow()) {
-                console.debug(
-                  'eWCFD:' +
-                  `${JSON.stringify(
-                       gamepadData.getDataObject(),
-                       null,
-                       '  '
-                   )}`
-                )
-                objNewWidget.data.push(gamepadData.getDataObject())
+                try {
+                  console.debug(
+                    'eWCFD:' +
+                    `${JSON.stringify(
+                         gamepadData.getDataObject(),
+                         null,
+                         '  '
+                     )}`
+                  )
+                  objNewWidget.data.push(gamepadData.getDataObject())
+                } catch (error) {
+                  console.warn(
+                  `${error.name}:${error.message}` +
+                  ` on ${gamepadData.getRow()}`
+                  )
+                }
                 gamepadData = new GamepadData()
               }
 
@@ -469,7 +476,14 @@ const extractWidgetConfigurationFromDialog = function () {
    */
   if (gamepadData &&
       gamepadData.getRow()) {
-    objNewWidget.data.push(gamepadData.getDataObject())
+    try {
+      objNewWidget.data.push(gamepadData.getDataObject())
+    } catch (error) {
+      console.warn(
+        `${error.name}:${error.message}` +
+        ` on ${gamepadData.getRow()}`
+      )
+    }
     gamepadData = null
   }
 

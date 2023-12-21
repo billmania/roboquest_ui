@@ -4,17 +4,20 @@
 /**
  * A widget to represent a single gamepad. Only one gamepad
  * is managed.
- * Unlike other widgets, this widget itself is mostly a
- * placeholder. Its button is used to enable and disable the
+ * Unlike other widgets, the jQuery widget itself is mostly a
+ * placeholder. Its button is used only to enable and disable the
  * gamepad. The UI widget is also how the gamepad is configured.
- * The widget itself doesn't generate any topic attribute
- * values to send to the backend.
+ * The widget itself doesn't generate any topic or service
+ * attribute values to send to the backend.
  * Also unlike other widgets, the gamepad isn't constrained
  * to a single topic or service.
  */
 
 const BUTTON_PREFIX = 'b'
 const AXIS_PREFIX = 'a'
+const PAD_LENGTH = 2
+const ROW_ID_LENGTH = PAD_LENGTH + BUTTON_PREFIX.length
+
 /*
  * The gamepad widget configuration dialog data section has a
  * form containing a table which includes rows with the following
@@ -79,13 +82,13 @@ class GamepadData { // eslint-disable-line no-unused-vars
    * Add an element to the data object. If elementValue can be
    * cast to a number, it will be. The mapping from elementNames
    * to properties is as follows. All element names in the same
-   * row must begin with the same two characters.
+   * row must begin with the same ROW_ID_LENGTH characters.
    *
    *    elementName     -> propertyName
    *    -----------       ------------
    * for all elements:
    *
-   *    description     -> first two name characters to row
+   *    description     -> first ROW_ID_LENGTH name characters to row
    *    description     -> value to name
    *
    * when destinationType is 'service'
@@ -101,13 +104,13 @@ class GamepadData { // eslint-disable-line no-unused-vars
    *    attributes      -> value to topicAttribute
    *    scaling         -> value cast to number then to topicScale
    *
-   * @param {string} elementName - the first two characters are used
-   *                               to identify the row
+   * @param {string} elementName - the first ROW_ID_LENGTH characters are
+   *                               used to identify the row
    * @param {string} elementValue - the value of this element.
    */
   addElement (elementName, elementValue) {
-    const rowId = elementName.slice(0, 2)
-    const element = elementName.slice(2)
+    const rowId = elementName.slice(0, ROW_ID_LENGTH)
+    const element = elementName.slice(ROW_ID_LENGTH)
 
     if (this._dataObject.row === null) {
       this._dataObject.row = rowId
@@ -332,7 +335,10 @@ class Gamepad {
         if (!configuringWidget) {
           console.debug(`_pollGamepad: Routing button ${bIndex} value ${value} to valuesHandler`)
         } else {
-          this._highlightConfigRow(BUTTON_PREFIX, bIndex)
+          this._highlightConfigRow(
+            BUTTON_PREFIX,
+            bIndex.toString().padStart(PAD_LENGTH, '0')
+          )
         }
       }
     }
@@ -348,7 +354,10 @@ class Gamepad {
         if (!configuringWidget) {
           console.debug(`_pollGamepad: Routing axis ${aIndex} value ${value} to valuesHandler`)
         } else {
-          this._highlightConfigRow(AXIS_PREFIX, aIndex)
+          this._highlightConfigRow(
+            AXIS_PREFIX,
+            aIndex.toString().padStart(PAD_LENGTH, '0')
+          )
         }
       }
     }
@@ -403,7 +412,6 @@ class Gamepad {
     }
     columnHeadings += '</tr>'
 
-    let index
     let row
     const gamepadInputsTable = jQuery('#gamepadInputsTable')
     gamepadInputsTable.children('tr').remove()
@@ -424,18 +432,19 @@ class Gamepad {
     for (const section of sectionDetails) {
       gamepadInputsTable.append(`<tr><td><label>${section.type}</label></td></tr>`)
       for (
-        index = 0;
+        let index = 0;
         index < section.rows;
         index++
       ) {
+        const indexId = index.toString().padStart(PAD_LENGTH, '0')
         row = '<tr>'
-        row += `<td><label id="${section.prefix}${index}">`
-        row += `<span id="${section.prefix}${index}span">`
-        row += `${section.prefix}${index}`
+        row += `<td><label id="${section.prefix}${indexId}">`
+        row += `<span id="${section.prefix}${indexId}span">`
+        row += `${section.prefix}${indexId}`
         row += '</span>'
         row += '</label></td>'
         for (const field of ACTION_FIELDS) {
-          row += `<td><input type="text" data-section="data" value="" name="${section.prefix}${index}${field}"></td>`
+          row += `<td><input type="text" data-section="data" value="" name="${section.prefix}${indexId}${field}"></td>`
         }
         row += '</tr>'
         gamepadInputsTable.append(row)
@@ -446,7 +455,7 @@ class Gamepad {
   /**
    * Handle the gamepad connect event, where the details are
    * in event.gamepad. This method is called each time the gamepad
-   * is connected, which can occur in either of two scenarioes:
+   * is connected, which can occur in either of two scenarios:
    *
    * 1. no gamepad is configured
    * 2. a gamepad configuration already exists
@@ -565,7 +574,7 @@ const gamepad = new Gamepad()
 /*
  * The data option for the gamepad widget is different from the
  * button, label, value, indicator, and joystick widgets. Instead
- * of it being a single object, it's an Array of data objects.
+ * of it being a single data object, it's an Array of data objects.
  */
 jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.GAMEPAD', {
   options: {
