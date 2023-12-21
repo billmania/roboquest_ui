@@ -16,11 +16,236 @@
 const BUTTON_PREFIX = 'b'
 const AXIS_PREFIX = 'a'
 /*
+ * The gamepad widget configuration dialog data section has a
+ * form containing a table which includes rows with the following
+ * fields.
+ * These names are hard-coded into the GamepadData class.
+ */
+const ACTION_FIELDS = [
+  'description', // meaningful to the user
+  'destinationType', // topic or service
+  'destinationName', // name of topic or service
+  'interface', // interface type
+  'attributes', // semi-colon delimited list with colon-delimited constants
+  'scaling' // signed, floating point
+]
+/*
  * What to display on the gamepad widget button when the gamepad
  * is in each state. The button toggles the state.
  */
 const ENABLED_TEXT = 'Disable'
 const DISABLED_TEXT = 'Enable'
+
+class WrongRowId extends Error {
+  constructor (message) {
+    super(message)
+    this.name = 'WrongRowId'
+  }
+}
+
+class ValidationError extends Error {
+  constructor (message) {
+    super(message)
+    this.name = 'ValidationError'
+  }
+}
+
+class WrongDestinationType extends Error {
+  constructor (message) {
+    super(message)
+    this.name = 'WrongDestinationType'
+  }
+}
+
+class UnknownElement extends Error {
+  constructor (message) {
+    super(message)
+    this.name = 'UnknownElement'
+  }
+}
+
+/**
+ * Extract the data configuration from the data-section input
+ * elements and assemble them into a data object suitable for
+ * the configuration file 'data' list.
+ */
+class GamepadData { // eslint-disable-line no-unused-vars
+  constructor () {
+    this._dataObject = {}
+    this._dataObject.row = null
+  }
+
+  /**
+   * Add an element to the data object. If elementValue can be
+   * cast to a number, it will be. The mapping from elementNames
+   * to properties is as follows. All element names in the same
+   * row must begin with the same two characters.
+   *
+   *    elementName     -> propertyName
+   *    -----------       ------------
+   * for all elements:
+   *
+   *    description     -> first two name characters to row
+   *    description     -> value to name
+   *
+   * when destinationType is 'service'
+   *
+   *    destinationName -> value to service
+   *    interface       -> value to serviceType
+   *    attributes      -> value to serviceAttribute
+   *
+   * when destinationType is 'topic'
+   *                    -> 'publish' to topicDirection
+   *    destinationName -> value to topic
+   *    interface       -> value to topicType
+   *    attributes      -> value to topicAttribute
+   *    scaling         -> value cast to number then to topicScale
+   *
+   * @param {string} elementName - the first two characters are used
+   *                               to identify the row
+   * @param {string} elementValue - the value of this element.
+   */
+  addElement (elementName, elementValue) {
+    const rowId = elementName.slice(0, 2)
+    const element = elementName.slice(2)
+
+    if (this._dataObject.row === null) {
+      this._dataObject.row = rowId
+      this._dataObject.name = null
+    } else if (rowId !== this._dataObject.row) {
+      throw WrongRowId(
+        `Element ${this._dataObject.row} got a value for ${rowId}`
+      )
+    }
+
+    switch (element) {
+      case 'scaling': {
+        // TODO: Cast and parse into Array
+        const parsed = [1]
+        if (this._dataObject.topicDirection) {
+          this._dataObject.scale = parsed
+        } else {
+          throw WrongDestinationType(
+            `${elementName} only relevant to a topic`
+          )
+        }
+        break
+      }
+
+      case 'attributes': {
+        // TODO: Parse into Array
+        const parsed = ['test_attribute']
+        if (this._dataObject.topicDirection) {
+          this._dataObject.topicAttribute = parsed
+        } else {
+          this._dataObject.serviceAttribute = parsed
+        }
+        break
+      }
+
+      case 'interface': {
+        if (this._dataObject.topicDirection) {
+          this._dataObject.topicType = elementValue
+        } else {
+          this._dataObject.serviceType = elementValue
+        }
+        break
+      }
+
+      case 'destinationType': {
+        switch (elementValue) {
+          case 'topic': {
+            this._dataObject.topicDirection = 'publish'
+            break
+          }
+
+          case 'service': {
+            /*
+             * Nothing special to do, other than verify the value
+             * of destinationType.
+             */
+            break
+          }
+
+          default: {
+            throw WrongDestinationType(
+              `${elementName} must be 'topic' or 'service'`
+            )
+          }
+        }
+        break
+      }
+
+      case 'destinationName': {
+        if (this._dataObject.topicDirection) {
+          this._dataObject.topic = elementValue
+        } else {
+          this._dataObject.service = elementValue
+        }
+        break
+      }
+
+      case 'description': {
+        this._dataObject.name = elementValue
+        break
+      }
+
+      default: {
+        throw UnknownElement(`${elementName} not recognized`)
+      }
+    }
+  }
+
+  /**
+   * Return the rowId.
+   *
+   * @returns {string}
+   */
+  getRow () {
+    return this._dataObject.row
+  }
+
+  /**
+   * Return the configuration data as an object suitable for
+   * configuration.json. Perform some validation first.
+   */
+  getDataObject () {
+    try {
+      if (this._dataObject.row.length > 0) {
+        if (this._dataObject.name.length > 0) {
+          if (this._dataObject.topic) {
+            if (this._dataObject.topic.length > 0) {
+              if (this._dataObject.topicDirection === 'publish') {
+                if (Array.isArray(this._dataObject.topicAttribute) &&
+                    this._dataObject.topicAttribute.length > 0) {
+                  if (Array.isArray(this._dataObject.scale) &&
+                      this._dataObject.scale.length > 0) {
+                    if (this._dataObject.topicType.length > 0) {
+                      return this._dataObject
+                    }
+                  }
+                }
+              }
+            }
+          } else if (this._dataObject.service) {
+            if (this._dataObject.service.length > 0) {
+              if (Array.isArray(this._dataObject.serviceAttribute) &&
+                  this._dataObject.serviceAttribute.length > 0) {
+                if (this._dataObject.serviceType.length > 0) {
+                  return this._dataObject
+                }
+              }
+            }
+          }
+        }
+      }
+    } catch (error) {
+      throw new ValidationError(error.name + ' ' + error.message)
+    }
+
+    throw new ValidationError(`failed ${JSON.stringify(this._dataObject)}`)
+  }
+}
 
 class Gamepad {
   /**
@@ -165,21 +390,16 @@ class Gamepad {
 
   /**
    * Enumerate the buttons and axes from the gamepad and build the
-   * configuration input form.
+   * configuration input form. The gamepad widget can publish to zero or
+   * more topics and call zero or more services. gamepad actions are
+   * button presses and axis moves. A single topic or service can be
+   * assigned to multiple actions.
    */
   _setupConfigForm () {
     jQuery('#gamepadId').html(this._gamepad.id)
-    const attributes = [
-      'actionName',
-      'destinationType',
-      'destinationName',
-      'interface',
-      'attributes',
-      'scaling'
-    ]
-    let columnHeadings = '<tr><th>ID</th>'
-    for (const attribute of attributes) {
-      columnHeadings += `<th>${attribute}</th>`
+    let columnHeadings = '<tr><th>actionId</th>'
+    for (const field of ACTION_FIELDS) {
+      columnHeadings += `<th>${field}</th>`
     }
     columnHeadings += '</tr>'
 
@@ -214,8 +434,8 @@ class Gamepad {
         row += `${section.prefix}${index}`
         row += '</span>'
         row += '</label></td>'
-        for (const attribute of attributes) {
-          row += `<td><input type="text" data-section="data" value="" name="${section.prefix}${index}${attribute}"></td>`
+        for (const field of ACTION_FIELDS) {
+          row += `<td><input type="text" data-section="data" value="" name="${section.prefix}${index}${field}"></td>`
         }
         row += '</tr>'
         gamepadInputsTable.append(row)

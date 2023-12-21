@@ -1,6 +1,7 @@
 'use strict'
 
-/* global jQuery RQ_PARAMS keyControl gamepad */
+/* global jQuery RQ_PARAMS keyControl */
+/* global gamepad GamepadData */
 
 /*
  * A socket object is required to create a widget, so we need to define
@@ -209,7 +210,10 @@ const openConfigureWidgetDialog = function (widget) {
         jQuery(this).dialog('close')
       },
       Done: function () {
-        reconfigureWidget(oldWidgetConfig, extractWidgetConfigurationFromDialog())
+        reconfigureWidget(
+          oldWidgetConfig,
+          extractWidgetConfigurationFromDialog()
+        )
         jQuery(this).dialog('close')
       }
     },
@@ -297,9 +301,9 @@ const setNewWidgetDialogType = function (widgetType) {
  */
 const populateWidgetConfigurationDialog = function (widgetConfig) {
   jQuery('#newWidget').find('[data-section]').each((i, element) => {
-    const strPropSection = jQuery(element).data('section')
+    const dataSection = jQuery(element).data('section')
 
-    if (strPropSection === 'root') {
+    if (dataSection === 'root') {
       if (Object.hasOwn(widgetConfig, element.name)) {
         if (element.name === 'type') {
           jQuery('#newWidgetType').val(widgetConfig[element.name]).selectmenu('refresh')
@@ -310,15 +314,15 @@ const populateWidgetConfigurationDialog = function (widgetConfig) {
       }
     }
 
-    if (strPropSection === 'format') {
-      if (Object.hasOwn(widgetConfig[strPropSection], element.name)) {
-        element.value = widgetConfig[strPropSection][element.name]
+    if (dataSection === 'format') {
+      if (Object.hasOwn(widgetConfig[dataSection], element.name)) {
+        element.value = widgetConfig[dataSection][element.name]
       }
     }
 
-    if (strPropSection === 'data') {
-      if (Object.hasOwn(widgetConfig[strPropSection], element.name)) {
-        const configValue = widgetConfig[strPropSection][element.name]
+    if (dataSection === 'data') {
+      if (Object.hasOwn(widgetConfig[dataSection], element.name)) {
+        const configValue = widgetConfig[dataSection][element.name]
         if (typeof (configValue) === 'object' && Array.isArray(configValue)) {
           element.value = configValue.join(RQ_PARAMS.ATTR_DELIMIT)
         } else {
@@ -332,7 +336,17 @@ const populateWidgetConfigurationDialog = function (widgetConfig) {
 /*
 * Reads all the populated fields of the configuration dialog into an object
 *
-* @returns {object} - returns a configuration object assembled from the dialog's current state
+* The data-sections of the input elements contained by the
+* #configureNewWidget element are expected to be in order as
+* root, position, format, and data. The data elements for a gamepad
+* are expected to be in order as description, destinationType,
+* destinationName, interface, attributes, and scaling. Input elements
+* are processed only when their value is none of: null, false, '', or
+* undefined. Any gamepad data-section entry which is not completely
+* defined will be logged and then ignored.
+*
+* @returns {object} - returns a configuration object assembled from the
+*                     dialog's current state
 */
 const extractWidgetConfigurationFromDialog = function () {
   const objNewWidget = {
@@ -340,46 +354,124 @@ const extractWidgetConfigurationFromDialog = function () {
     format: {},
     data: {}
   }
+  let gamepadData = null
+  let rowId = null
   jQuery('#newWidget')
     .find(
-      '#configureNewWidget input:visible, #configureNewWidget select:visible, #newWidgetType'
+      '#configureNewWidget input:visible' +
+      ', #configureNewWidget select:visible' +
+      ', #newWidgetType'
     )
     .each((i, element) => {
-      // TODO: Provide a reasonable default value for element.value
+      /*
+       * The 'root' data-section elements must be found
+       * before any 'data' data-section elements, so the widget
+       * type will already be known when the first 'data' element
+       * is processed.
+       */
       if (element.value) {
-        const strPropSection = jQuery(element).data('section')
-        console.debug(strPropSection, element.name, element.value)
-        if (strPropSection === 'root') {
-          objNewWidget[element.name] = element.value
-        }
-        if (strPropSection === 'format') {
-          /*
+        const dataSection = jQuery(element).data('section')
+        console.debug(dataSection, element.name, element.value)
+
+        switch (dataSection) {
+          case 'root': {
+            objNewWidget[element.name] = element.value
+            if (objNewWidget.type === 'gamepad') {
+              if (!Array.isArray(objNewWidget.data)) {
+                console.debug('converting data property to Array')
+                objNewWidget.data = []
+              }
+            }
+            break
+          }
+
+          case 'position': {
+            /*
+             * Defined in index.htm but not currently used.
+             */
+            break
+          }
+
+          case 'format': {
+            /*
              * Some format values are integers.
              */
-          const value = parseInt(element.value)
-          if (isNaN(value)) {
-            objNewWidget[strPropSection][element.name] = element.value
-          } else {
-            objNewWidget[strPropSection][element.name] = value
+            const value = parseInt(element.value)
+            if (isNaN(value)) {
+              objNewWidget[dataSection][element.name] = element.value
+            } else {
+              objNewWidget[dataSection][element.name] = value
+            }
+            break
           }
-        }
-        if (strPropSection === 'data') {
-          /*
-             * Elements, such as topicAttribute and scale, may contain
-             * multiple items. When found, assemble them into an Array
-             * of strings.
-             */
-          if (element.value.indexOf(RQ_PARAMS.ATTR_DELIMIT) > -1) {
-            const attributes = element.value
-              .replaceAll(' ', '')
-              .split(RQ_PARAMS.ATTR_DELIMIT)
-            objNewWidget[strPropSection][element.name] = attributes
-          } else {
-            objNewWidget[strPropSection][element.name] = element.value
+
+          case 'data': {
+            if (objNewWidget.type !== 'gamepad') {
+              /*
+                 * Elements, such as topicAttribute and scale, may contain
+                 * multiple items. When found, assemble them into an Array
+                 * of strings.
+                 */
+              if (element.value.indexOf(RQ_PARAMS.ATTR_DELIMIT) > -1) {
+                const attributes = element.value
+                  .replaceAll(' ', '')
+                  .split(RQ_PARAMS.ATTR_DELIMIT)
+                objNewWidget[dataSection][element.name] = attributes
+              } else {
+                objNewWidget[dataSection][element.name] = element.value
+              }
+            } else {
+              /*
+               * gamepad 'data' consists of multiple sets of inputs.
+               * They're grouped by the first two characters of the input
+               * name. They're assembled and added to the objNewWidget.data
+               * property as an Array of "data" objects instead of a single
+               * "data" object.
+               */
+              if (!gamepadData) {
+                gamepadData = new GamepadData()
+                objNewWidget.data = []
+              }
+
+              rowId = element.name.slice(0, 2)
+              if (gamepadData.getRow() &&
+                  rowId !== gamepadData.getRow()) {
+                console.debug(
+                  'eWCFD:' +
+                  `${JSON.stringify(
+                       gamepadData.getDataObject(),
+                       null,
+                       '  '
+                   )}`
+                )
+                objNewWidget.data.push(gamepadData.getDataObject())
+                gamepadData = new GamepadData()
+              }
+
+              try {
+                gamepadData.addElement(element.name, element.value)
+              } catch (error) {
+                console.warn(
+                  'extractWidgetConfigurationFromDialog:' +
+                  ` ${error.name}` +
+                  ` ${error.message}`
+                )
+              }
+            }
+            break
           }
         }
       }
     })
+
+  /*
+   * Take care of the last data object.
+   */
+  if (gamepadData &&
+      gamepadData.getRow()) {
+    objNewWidget.data.push(gamepadData.getDataObject())
+    gamepadData = null
+  }
 
   // these are one off logic to string concat the values, not a nice 1-1 mapping
   objNewWidget.position.my = `${jQuery('#widgetPositionMyX').val()} ${jQuery('#widgetPositionMyY').val()}`

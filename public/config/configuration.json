@@ -472,6 +472,9 @@
           "row": "b1",
           "topicDirection": "publish",
           "topic": "servos",
+          "scale": [
+            0.2
+          ],
           "topicType": "rq_msgs/msg/Servos",
           "topicAttribute": [
             "servo0.angle_deg:90",
@@ -486,7 +489,9 @@
           "topicDirection": "publish",
           "topic": "servos",
           "topicType": "rq_msgs/msg/Servos",
-          "topicScale": 0.2,
+          "scale": [
+            0.2
+          ],
           "topicAttribute": [
             "servo0.angle_deg",
             "servo0.command_type:3"
@@ -498,7 +503,9 @@
           "topicDirection": "publish",
           "topic": "servos",
           "topicType": "rq_msgs/msg/Servos",
-          "topicScale": 0.3,
+          "scale": [
+            0.2
+          ],
           "topicAttribute": [
             "servo1.angle_deg",
             "servo0.command_type:3"
