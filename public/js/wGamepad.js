@@ -32,6 +32,12 @@ const ACTION_FIELDS = [
   'attributes', // semi-colon delimited list with colon-delimited constants
   'scaling' // signed, floating point
 ]
+
+const PREFIX_MAP = {
+  b: 'buttons',
+  a: 'axes'
+}
+
 /*
  * What to display on the gamepad widget button when the gamepad
  * is in each state. The button toggles the state.
@@ -258,12 +264,46 @@ class Gamepad {
     this._gamepadIndex = null
     this._gamepad = null
     this._gamepadEnabled = false
+    this._actionMap = {}
     this._pollIntervalId = null
     this._lastPoll = 0
 
     this._haveEvents = false
     this._haveWebkitEvents = false
     this._setupEvents()
+  }
+
+  /**
+   * Make a map from the row ID of each configured button and axis
+   * to the corresponding configuration object. This is done to
+   * save _pollGamepad() from having to check every button and every
+   * axis.
+   *
+   * _actionMap is an object with only those gamepad actions (buttons
+   * or axes) which have been configured. _pollGamepad identifies
+   * actions by a combination of their type (button or axis) and their
+   * numerical index within the type.
+   *
+   * @param {Array} dataConfigs - a list of data configuration objects
+   */
+  setupActionMap (dataConfigs) {
+    let actionType
+    let actionIndex
+    for (const prefix in PREFIX_MAP) {
+      this._actionMap[PREFIX_MAP[prefix]] = {}
+    }
+    for (const dataConfig of dataConfigs) {
+      /*
+       * Retrieve the first ROW_ID_LENGTH characters.
+       * From that get the PREFIX part and the numerical
+       * part. Reassemble them into a string with the
+       * PREFIX and the unpadded number.
+       */
+      actionType = dataConfig.row.slice(0, BUTTON_PREFIX.length)
+      actionIndex = parseInt(
+        dataConfig.row.slice(BUTTON_PREFIX.length)).toString()
+      this._actionMap[PREFIX_MAP[actionType]][actionIndex] = dataConfig
+    }
   }
 
   /**
@@ -303,7 +343,8 @@ class Gamepad {
   }
 
   /**
-   * Check the gamepad object for changes.
+   * Check the gamepad object for inputs. More than one button
+   * and more than one axis can be activated per poll.
    */
   _pollGamepad () {
     if (!this._gamepadEnabled ||
@@ -598,6 +639,7 @@ jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.GAMEPAD', {
     gamepadElement.on('click', () => {
       gamepad.changeGamepadState()
     })
+    gamepad.setupActionMap(this.options.data)
   },
 
   _triggerSocketEvent: function (dataToEmit) {
