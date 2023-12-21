@@ -437,14 +437,6 @@ const extractWidgetConfigurationFromDialog = function () {
               if (gamepadData.getRow() &&
                   rowId !== gamepadData.getRow()) {
                 try {
-                  console.debug(
-                    'eWCFD:' +
-                    `${JSON.stringify(
-                         gamepadData.getDataObject(),
-                         null,
-                         '  '
-                     )}`
-                  )
                   objNewWidget.data.push(gamepadData.getDataObject())
                 } catch (error) {
                   console.warn(

@@ -129,21 +129,35 @@ class GamepadData { // eslint-disable-line no-unused-vars
 
     switch (element) {
       case 'scaling': {
-        // TODO: Cast and parse into Array
-        const parsed = [1]
+        let parsed
+        if (elementValue.indexOf(RQ_PARAMS.ATTR_DELIMIT) > -1) {
+          const attributes = elementValue
+            .replaceAll(' ', '')
+            .split(RQ_PARAMS.ATTR_DELIMIT)
+          parsed = attributes
+        } else {
+          parsed = [elementValue]
+        }
         if (this._dataObject.topicDirection) {
           this._dataObject.scale = parsed
         } else {
-          throw WrongDestinationType(
-            `${elementName} only relevant to a topic`
+          console.warn(
+            `${elementName} services don't use scaling`
           )
         }
         break
       }
 
       case 'attributes': {
-        // TODO: Parse into Array
-        const parsed = ['test_attribute']
+        let parsed
+        if (elementValue.indexOf(RQ_PARAMS.ATTR_DELIMIT) > -1) {
+          const attributes = elementValue
+            .replaceAll(' ', '')
+            .split(RQ_PARAMS.ATTR_DELIMIT)
+          parsed = attributes
+        } else {
+          parsed = [elementValue]
+        }
         if (this._dataObject.topicDirection) {
           this._dataObject.topicAttribute = parsed
         } else {
@@ -249,7 +263,13 @@ class GamepadData { // eslint-disable-line no-unused-vars
         }
       }
     } catch (error) {
-      throw new ValidationError(error.name + ' ' + error.message)
+      throw new ValidationError(
+        error.name +
+        ':' +
+        error.message +
+        ', ' +
+        JSON.stringify(this._dataObject)
+      )
     }
 
     throw new ValidationError(`failed ${JSON.stringify(this._dataObject)}`)
