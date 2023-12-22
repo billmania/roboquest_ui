@@ -33,10 +33,12 @@ const ACTION_FIELDS = [
   'scaling' // signed, floating point
 ]
 
-const PREFIX_MAP = {
-  b: 'buttons',
-  a: 'axes'
-}
+/*
+ * 'buttons' and 'axes' come from the Gamepad object.
+ */
+const PREFIX_MAP = {}
+PREFIX_MAP[BUTTON_PREFIX] = 'buttons'
+PREFIX_MAP[AXIS_PREFIX] = 'axes'
 
 /*
  * What to display on the gamepad widget button when the gamepad
@@ -136,7 +138,7 @@ class GamepadData { // eslint-disable-line no-unused-vars
             .split(RQ_PARAMS.ATTR_DELIMIT)
           parsed = attributes
         } else {
-          parsed = [elementValue]
+          parsed = [parseInt(elementValue)]
         }
         if (this._dataObject.topicDirection) {
           this._dataObject.scale = parsed
@@ -355,16 +357,24 @@ class Gamepad {
    */
   _highlightConfigRow (rowPrefix, rowIndex) {
     const HighLightRowClass = 'highlight-row'
-    console.debug(`_highlightConfigRow: ${rowPrefix}, ${rowIndex}`)
+    const paddedIndex = rowIndex.toString().padStart(PAD_LENGTH, '0')
+    console.debug(`_highlightConfigRow: ${rowPrefix}, ${paddedIndex}`)
 
-    const configRow = jQuery(`#${rowPrefix}${rowIndex}span`)
+    const configRow = jQuery(`#${rowPrefix}${paddedIndex}span`)
     jQuery('.' + HighLightRowClass).removeClass(HighLightRowClass)
     configRow.addClass(HighLightRowClass)
   }
 
   /**
    * Check the gamepad object for inputs. More than one button
-   * and more than one axis can be activated per poll.
+   * and more than one axis can be activated per poll. This
+   * method is used for two purposes. The first is when configuring
+   * the gamepad and all action state changes are captured. The
+   * second is when not configuring. During that scenario,
+   * this._actionMap is used to determine which gamepad actions to
+   * examine and pass along to the gamepad widget for further
+   * processing. The global variable configuringWidget indicates
+   * which purpose.
    */
   _pollGamepad () {
     if (!this._gamepadEnabled ||
@@ -376,6 +386,12 @@ class Gamepad {
       return
     }
 
+    /*
+     * An object for conveying the states of those actions
+     * specified in this._actionMap. The property is the action
+     * identifier and the property's value is the action's value.
+     */
+    const actions = []
     let bIndex
     for (
       bIndex = 0;
@@ -390,15 +406,21 @@ class Gamepad {
        * button can produce a range of values, like the trigger buttons,
        * then value will have a positive, floating point value between
        * 0 and 1.0
+       * TODO: Otherwise no value?
        */
-      if (this._gamepad.buttons[bIndex].pressed) {
-        const value = this._gamepad.buttons[bIndex].value
-        if (!configuringWidget) {
-          console.debug(`_pollGamepad: Routing button ${bIndex} value ${value} to valuesHandler`)
-        } else {
+      if (!configuringWidget) {
+        if (bIndex in this._actionMap[PREFIX_MAP[BUTTON_PREFIX]]) {
+          const value = this._gamepad.buttons[bIndex].value
+          actions.push({
+            value,
+            data: this._actionMap[PREFIX_MAP[BUTTON_PREFIX]][bIndex]
+          })
+        }
+      } else {
+        if (this._gamepad.buttons[bIndex].pressed) {
           this._highlightConfigRow(
             BUTTON_PREFIX,
-            bIndex.toString().padStart(PAD_LENGTH, '0')
+            bIndex
           )
         }
       }
@@ -410,17 +432,29 @@ class Gamepad {
       aIndex < this._gamepad.axes.length;
       aIndex++
     ) {
-      const value = this._gamepad.axes[aIndex]
-      if (value !== 0) {
-        if (!configuringWidget) {
-          console.debug(`_pollGamepad: Routing axis ${aIndex} value ${value} to valuesHandler`)
-        } else {
+      if (!configuringWidget) {
+        if (aIndex in this._actionMap[PREFIX_MAP[AXIS_PREFIX]]) {
+          const value = this._gamepad.axes[aIndex]
+          actions.push({
+            value,
+            data: this._actionMap[PREFIX_MAP[AXIS_PREFIX]][aIndex]
+          })
+        }
+      } else {
+        if (this._gamepad.axes[aIndex]) {
           this._highlightConfigRow(
             AXIS_PREFIX,
-            aIndex.toString().padStart(PAD_LENGTH, '0')
+            aIndex
           )
         }
       }
+    }
+
+    if (!configuringWidget) {
+      console.debug(
+        '_pollGamepad: actions' +
+        ` ${JSON.stringify(actions)}`
+      )
     }
 
     this._lastPoll = performance.now()
