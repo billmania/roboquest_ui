@@ -1,9 +1,11 @@
 'use strict'
 /* global jQuery, RQ_PARAMS, configuringWidget */
+/* global DONT_SCALE, DEFAULT_VALUE */
+/* global assignValue */
 
 /**
- * A widget to represent a single gamepad. Only one gamepad
- * is managed.
+ * A widget to represent a single gamepad. Only the most
+ * recently connected gamepad is managed.
  * Unlike other widgets, the jQuery widget itself is mostly a
  * placeholder. Its button is used only to enable and disable the
  * gamepad. The UI widget is also how the gamepad is configured.
@@ -296,10 +298,22 @@ class Gamepad {
   }
 
   /**
+   * Record a reference to the gamepad widget's valuesHandler
+   * method so it can be used by _pollGamepad.
+   *
+   * @param {function} valuesHandler - the gamepad widget's
+   *                                   valuesHandler function
+   */
+  setupValuesHandler (valuesHandler) {
+    this._valuesHandler = valuesHandler
+  }
+
+  /**
    * Make a map from the row ID of each configured button and axis
    * to the corresponding configuration object. This is done to
    * save _pollGamepad() from having to check every button and every
-   * axis.
+   * axis. button presses and axis value changes are referred to as
+   * "actions". actionType indicated "button" or "axis".
    *
    * _actionMap is an object with only those gamepad actions (buttons
    * or axes) which have been configured. _pollGamepad identifies
@@ -366,15 +380,23 @@ class Gamepad {
   }
 
   /**
-   * Check the gamepad object for inputs. More than one button
-   * and more than one axis can be activated per poll. This
-   * method is used for two purposes. The first is when configuring
-   * the gamepad and all action state changes are captured. The
-   * second is when not configuring. During that scenario,
-   * this._actionMap is used to determine which gamepad actions to
-   * examine and pass along to the gamepad widget for further
-   * processing. The global variable configuringWidget indicates
-   * which purpose.
+   * Check the gamepad object for action changes. More than one
+   * button and more than one axis can change per poll. This
+   * method is used for two purposes.
+   * The first is when configuring the gamepad. All action state
+   * changes are captured and used to aid the user in configuring
+   * a specific action. Actions are mapped to a specific configuration
+   * row.
+   * The second is when the gamepad is enable but not being configured.
+   * During this scenario, this._actionMap is used to determine which
+   * gamepad actions to examine and pass along to the gamepad widget
+   * for further processing.
+   * The global variable configuringWidget indicates which purpose.
+   *
+   * The current state of an action included in this._actionMap is sent
+   * to the widget's valuesHandler() every RQ_PARAMS.POLL_PERIOD_MS,
+   * regardless of change. Any action not included in _actionMap is
+   * ignored.
    */
   _pollGamepad () {
     if (!this._gamepadEnabled ||
@@ -406,7 +428,6 @@ class Gamepad {
        * button can produce a range of values, like the trigger buttons,
        * then value will have a positive, floating point value between
        * 0 and 1.0
-       * TODO: Otherwise no value?
        */
       if (!configuringWidget) {
         if (bIndex in this._actionMap[PREFIX_MAP[BUTTON_PREFIX]]) {
@@ -451,10 +472,7 @@ class Gamepad {
     }
 
     if (!configuringWidget) {
-      console.debug(
-        '_pollGamepad: actions' +
-        ` ${JSON.stringify(actions)}`
-      )
+      this._valuesHandler(actions)
     }
 
     this._lastPoll = performance.now()
@@ -694,15 +712,136 @@ jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.GAMEPAD', {
       gamepad.changeGamepadState()
     })
     gamepad.setupActionMap(this.options.data)
+    gamepad.setupValuesHandler(this.valuesHandler.bind(this))
   },
 
-  _triggerSocketEvent: function (dataToEmit) {
-    if (this.options.socket) {
+  /**
+   * Receive the actions from _pollGamepad and convert them
+   * to one or more socket emits. Each object in actions
+   * has two properties: the value from the action and the
+   * associated data configuration for that action.
+   *
+   * @param {Array} actions - a collection of objects
+   */
+  valuesHandler: function (actions) {
+    console.time('gamepad.valuesHandler')
+    const payloads = {}
+
+    for (const action of actions) {
+      if (action.data.topic) {
+        if (payloads[action.data.topic] === undefined) {
+          payloads[action.data.topic] = {}
+        }
+        this._handleTopic(payloads[action.data.topic], action)
+      } else {
+        if (payloads[action.data.service] === undefined) {
+          payloads[action.data.service] = {}
+        }
+        this._handleService(payloads[action.data.service], action)
+      }
+    }
+
+    for (const payloadName of Object.keys(payloads)) {
+      if (payloads[payloadName] === {}) {
+        continue
+      }
+
+      this._triggerSocketEvent(payloadName, payloads[payloadName])
+    }
+
+    console.timeLog('gamepad.valuesHandler')
+    console.timeEnd('gamepad.valuesHandler')
+  },
+
+  /**
+   * Use the value in action and the configuration in action.data
+   * to assemble a payload for _triggerSocketEvent().
+   * If this topic is assigned to a button, ie. the first
+   * attribute includes a constant, only build the payload
+   * if action.value is non-zero.
+   * Otherwise always build the payload for any action.value.
+   *
+   * @param {object} payload - where to put the assigned values
+   * @param {object} action - the value and data configuration
+   */
+  _handleTopic: function (payload, action) {
+    if (action.data.topicAttribute.length > 0) {
+      if (action.data.topicAttribute[0]
+        .indexOf(RQ_PARAMS.VALUE_DELIMIT) !== -1 &&
+        action.value === 0) {
+        /*
+         * The button isn't pressed.
+         */
+        return
+      }
+
+      assignValue(
+        payload,
+        action.data.topicAttribute[0],
+        action.data.scale[0],
+        action.value
+      )
+    }
+    if (action.data.topicAttribute.length > 1) {
+      for (const attr of action.data.topicAttribute.slice(1)) {
+        assignValue(
+          payload,
+          attr,
+          DONT_SCALE,
+          DEFAULT_VALUE
+        )
+      }
+    }
+  },
+
+  /**
+   * Use the value in action and the configuration in action.data
+   * to assemble a payload for _triggerSocketEvent(). All
+   * serviceAttributes must include a constant value. This means
+   * the value from an action is never assigned to any service
+   * attribute.
+   *
+   * Services can only be assigned to buttons.
+   *
+   * @param {object} payload - where to put the assigned values
+   * @param {object} action - the value and data configuration
+   */
+  _handleService: function (payload, action) {
+    if (action.value === 0) {
       /*
-       * Parse dataToEmit, extracting the service(s) and/or topic(s)
-       * with their associated attribute values, assemble them into
-       * payloads, and emit them.
+       * The button isn't pressed.
        */
+      return
+    }
+
+    if (action.data.serviceAttribute.length > 0) {
+      for (const attr of action.data.serviceAttribute) {
+        assignValue(
+          payload,
+          attr,
+          DONT_SCALE,
+          DEFAULT_VALUE
+        )
+      }
+    }
+  },
+
+  /**
+   * Emit the payload with the eventName. This function is
+   * never called directly by the UI widget, so its signature
+   * is different than other widget _triggerSocketEvent functions.
+   */
+  _triggerSocketEvent: function (eventName, payload) {
+    console.debug(
+      'gamepad._triggerSocketEvent:' +
+      ` ${eventName}` +
+      `, ${JSON.stringify(payload)}`
+    )
+    if (this.options.socket) {
+      this.options.socket.emit(
+        eventName,
+        JSON.stringify(payload)
+      )
     }
   }
 })

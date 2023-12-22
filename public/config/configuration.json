@@ -468,19 +468,12 @@
           ]
         },
         {
-          "name": "CenterCamera",
+          "name": "ServosOff",
           "row": "b1",
-          "topicDirection": "publish",
-          "topic": "servos",
-          "scale": [
-            0.2
-          ],
-          "topicType": "rq_msgs/msg/Servos",
-          "topicAttribute": [
-            "servo0.angle_deg:90",
-            "servo0.command_type:1",
-            "servo1.angle_deg:100",
-            "servo1.command_type:1"
+          "service": "control_hat",
+          "serviceType": "rq_msgs.srv/Control",
+          "serviceAttribute": [
+            "set_servos:OFF"
           ]
         },
         {
@@ -490,10 +483,10 @@
           "topic": "servos",
           "topicType": "rq_msgs/msg/Servos",
           "scale": [
-            0.2
+            20.0
           ],
           "topicAttribute": [
-            "servo0.angle_deg",
+            "servo0.speed_dps",
             "servo0.command_type:3"
           ]
         },
@@ -504,11 +497,11 @@
           "topic": "servos",
           "topicType": "rq_msgs/msg/Servos",
           "scale": [
-            0.2
+            20.0
           ],
           "topicAttribute": [
-            "servo1.angle_deg",
-            "servo0.command_type:3"
+            "servo1.speed_dps",
+            "servo1.command_type:3"
           ]
         }
       ]
