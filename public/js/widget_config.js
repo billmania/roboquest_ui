@@ -198,7 +198,6 @@ const openConfigureWidgetDialog = function (widget) {
   populateWidgetConfigurationDialog(oldWidgetConfig)
 
   showConfigDefaults = false
-  configuringWidget = true
   jQuery('#newWidget').dialog({
     title: 'Configure Widget',
     buttons: {
@@ -215,6 +214,8 @@ const openConfigureWidgetDialog = function (widget) {
     },
     open: function (event, ui) {
       keyControl.disableKeys()
+      configuringWidget = true
+      gamepad.enableGamepad()
     },
     close: function (event, ui) {
       /*
@@ -543,7 +544,6 @@ const initWidgetConfig = function (objSocket) { // eslint-disable-line no-unused
     buttons: {
       Create: addWidget,
       Done: function () {
-        gamepad.disableGamepad()
         console.debug('Done newWidget dialog')
         jQuery(this).dialog('close')
       }
@@ -575,8 +575,6 @@ const initWidgetConfig = function (objSocket) { // eslint-disable-line no-unused
       buttons: {
         Create: addWidget,
         Done: function () {
-          gamepad.disableGamepad()
-          console.debug('Done newWidget2 dialog')
           jQuery(this).dialog('close')
         }
       },
@@ -584,6 +582,7 @@ const initWidgetConfig = function (objSocket) { // eslint-disable-line no-unused
         keyControl.disableKeys()
         setWidgetConfigDefaults()
         configuringWidget = true
+        gamepad.enableGamepad()
       },
       close: function (event, ui) {
         gamepad.disableGamepad()
