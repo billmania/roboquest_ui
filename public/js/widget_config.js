@@ -300,37 +300,66 @@ const setNewWidgetDialogType = function (widgetType) {
  *                                default values.
  */
 const populateWidgetConfigurationDialog = function (widgetConfig) {
-  jQuery('#newWidget').find('[data-section]').each((i, element) => {
-    const dataSection = jQuery(element).data('section')
+  console.debug(
+    'populateWidgetConfigurationDialog:' +
+    ` ${JSON.stringify(widgetConfig, null, '  ')}`
+  )
+  if (widgetConfig.type === 'gamepad') {
+    gamepad.parseConfig(widgetConfig)
+  }
 
-    if (dataSection === 'root') {
-      if (Object.hasOwn(widgetConfig, element.name)) {
-        if (element.name === 'type') {
-          jQuery('#newWidgetType').val(widgetConfig[element.name]).selectmenu('refresh')
-          setNewWidgetDialogType(widgetConfig[element.name])
-        } else {
-          element.value = widgetConfig[element.name]
+  /*
+   * The following two .find() calls limit the elements to only the data
+   * section AND for only the data section.
+   *
+   *  .find('#' + widgetConfig.type)
+   */
+  jQuery('#newWidget')
+    .find('[data-section]')
+    .each((i, element) => {
+      const dataSection = jQuery(element).data('section')
+
+      switch (dataSection) {
+        case 'root': {
+          if (Object.hasOwn(widgetConfig, element.name)) {
+            if (element.name === 'type') {
+              jQuery('#newWidgetType')
+                .val(widgetConfig[element.name])
+                .selectmenu('refresh')
+              setNewWidgetDialogType(widgetConfig[element.name])
+            } else {
+              element.value = widgetConfig[element.name]
+            }
+          }
+          break
+        }
+
+        case 'format': {
+          if (Object.hasOwn(widgetConfig[dataSection], element.name)) {
+            element.value = widgetConfig[dataSection][element.name]
+          }
+          break
+        }
+
+        case 'data': {
+          if (widgetConfig.type !== 'gamepad') {
+            if (Object.hasOwn(widgetConfig[dataSection], element.name)) {
+              const configValue = widgetConfig[dataSection][element.name]
+              if (typeof (configValue) === 'object' &&
+                  Array.isArray(configValue)) {
+                element.value = configValue.join(RQ_PARAMS.ATTR_DELIMIT)
+              } else {
+                element.value = configValue
+              }
+            }
+          } else {
+            element.value = gamepad.getElementValue(element.name)
+          }
+
+          break
         }
       }
-    }
-
-    if (dataSection === 'format') {
-      if (Object.hasOwn(widgetConfig[dataSection], element.name)) {
-        element.value = widgetConfig[dataSection][element.name]
-      }
-    }
-
-    if (dataSection === 'data') {
-      if (Object.hasOwn(widgetConfig[dataSection], element.name)) {
-        const configValue = widgetConfig[dataSection][element.name]
-        if (typeof (configValue) === 'object' && Array.isArray(configValue)) {
-          element.value = configValue.join(RQ_PARAMS.ATTR_DELIMIT)
-        } else {
-          element.value = configValue
-        }
-      }
-    }
-  })
+    })
 }
 
 /*
@@ -423,10 +452,10 @@ const extractWidgetConfigurationFromDialog = function () {
             } else {
               /*
                * gamepad 'data' consists of multiple sets of inputs.
-               * They're grouped by the first two characters of the input
-               * name. They're assembled and added to the objNewWidget.data
-               * property as an Array of "data" objects instead of a single
-               * "data" object.
+               * They're grouped by the first ROW_ID_LENGTH characters of
+               * the input name. They're assembled and added to the
+               * objNewWidget.data property as an Array of "data" objects
+               * instead of a single "data" object.
                */
               if (!gamepadData) {
                 gamepadData = new GamepadData()

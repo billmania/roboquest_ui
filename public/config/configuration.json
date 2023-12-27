@@ -460,7 +460,7 @@
       "data": [
         {
           "name": "ServosOn",
-          "row": "b0",
+          "row": "b00",
           "service": "control_hat",
           "serviceType": "rq_msgs.srv/Control",
           "serviceAttribute": [
@@ -469,7 +469,7 @@
         },
         {
           "name": "ServosOff",
-          "row": "b1",
+          "row": "b01",
           "service": "control_hat",
           "serviceType": "rq_msgs.srv/Control",
           "serviceAttribute": [
@@ -478,7 +478,7 @@
         },
         {
           "name": "PanCamera",
-          "row": "a0",
+          "row": "a00",
           "topicDirection": "publish",
           "topic": "servos",
           "topicType": "rq_msgs/msg/Servos",
@@ -492,7 +492,7 @@
         },
         {
           "name": "TiltCamera",
-          "row": "a1",
+          "row": "a01",
           "topicDirection": "publish",
           "topic": "servos",
           "topicType": "rq_msgs/msg/Servos",

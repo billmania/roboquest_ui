@@ -288,6 +288,7 @@ class Gamepad {
     this._gamepadIndex = null
     this._gamepad = null
     this._gamepadEnabled = false
+    this._widgetConfig = null
     this._actionMap = {}
     this._pollIntervalId = null
     this._lastPoll = 0
@@ -361,7 +362,7 @@ class Gamepad {
   }
 
   /**
-   * Highlight a specific row the the table of axes and buttons
+   * Highlight a specific row in the table of axes and buttons
    * configuration. All other highlights will be removed.
    *
    * @param {string} rowPrefix - the prefix part of the HTML element
@@ -563,6 +564,102 @@ class Gamepad {
         gamepadInputsTable.append(row)
       }
     }
+  }
+
+  /**
+   * Extract the configuration details for a gamepad widget,
+   * to prepare for the calling of getElementValue(). Basically, parseConfig
+   * creates a map from a rowId to the object with that row's
+   * configuration.
+   *
+   * See the description of GamepadData.addElement() for the mapping
+   * of widgetConfig rows to input fields.
+   *
+   * @param {object} widgetConfig - the gamepad widget's configuration
+   */
+  parseConfig (widgetConfig) {
+    this._widgetConfig = {}
+
+    if (widgetConfig.type !== 'gamepad') {
+      console.error(
+        'parseConfig' +
+        ' Only useful for a gamepad config'
+      )
+    }
+    for (const configRow of widgetConfig.data) {
+      const rowId = configRow.row
+      if (!Object.hasOwn(this._widgetConfig, rowId)) {
+        this._widgetConfig[rowId] = {}
+      }
+      this._widgetConfig[rowId].description = configRow.name
+
+      if (Object.hasOwn(configRow, 'topicDirection')) {
+        // This is a topic config.
+        this._widgetConfig[rowId].destinationType = 'topic'
+        this._widgetConfig[rowId].destinationName = configRow.topic
+        this._widgetConfig[rowId].interface = configRow.topicType
+        if (configRow.topicAttribute.length > 0) {
+          this._widgetConfig[rowId].attributes = configRow.topicAttribute[0]
+        }
+        if (configRow.topicAttribute.length > 1) {
+          for (const attr of configRow.topicAttribute.slice(1)) {
+            this._widgetConfig[rowId].attributes += (';' + attr)
+          }
+        }
+        if (configRow.scale.length > 0) {
+          this._widgetConfig[rowId].scaling = configRow.scale[0]
+        }
+        if (configRow.scale.length > 1) {
+          for (const scale of configRow.scale[1]) {
+            this._widgetConfig[rowId].scaling += (';' + scale)
+          }
+        }
+      } else {
+        // This is a service config
+        this._widgetConfig[rowId].destinationType = 'service'
+        this._widgetConfig[rowId].destinationName = configRow.service
+        this._widgetConfig[rowId].interface = configRow.serviceType
+        this._widgetConfig[rowId].attributes = ''
+        if (configRow.serviceAttribute.length > 0) {
+          this._widgetConfig[rowId].attributes = configRow.serviceAttribute[0]
+        }
+        if (configRow.serviceAttribute.length > 1) {
+          for (const attr of configRow.serviceAttribute.slice(1)) {
+            this._widgetConfig[rowId].attributes += (';' + attr)
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * In order to change the configuration of an existing gamepad
+   * widget, its current configuration is first loaded into the
+   * configuration form.
+   * This method depends on _setupConfigForm() having already been
+   * called. It also requires parseConfig() called before it.
+   * In the event the existing widget configuration is from
+   * a model of gamepad different than the one currently connected,
+   * getElementValue() will silently ignore any discrepancies.
+   *
+   * @param {string} elementName - the first ROW_ID_LENGTH characters are
+   *                               used as the rowId
+   * @returns {string} - the value for the element
+   */
+  getElementValue (elementName) {
+    if (this._widgetConfig === null) {
+      return ''
+    }
+
+    const rowId = elementName.slice(0, ROW_ID_LENGTH)
+    const element = elementName.slice(ROW_ID_LENGTH)
+
+    if (Object.hasOwn(this._widgetConfig, rowId) &&
+        Object.hasOwn(this._widgetConfig[rowId], element)) {
+      return this._widgetConfig[rowId][element]
+    }
+
+    return ''
   }
 
   /**
@@ -797,7 +894,7 @@ jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.GAMEPAD', {
   /**
    * Use the value in action and the configuration in action.data
    * to assemble a payload for _triggerSocketEvent(). All
-   * serviceAttributes must include a constant value. This means
+   * serviceAttribute-s must include a constant value. This means
    * the value from an action is never assigned to any service
    * attribute.
    *
