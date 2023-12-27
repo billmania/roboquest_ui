@@ -139,7 +139,7 @@ const createWidget = function (objWidget) { // eslint-disable-line no-unused-var
    */
   jQuery(widgetContainer).data(RQ_PARAMS.WIDGET_NAMESPACE, objWidget)
 
-  console.debug(`${JSON.stringify(objWidget)}`)
+  console.debug(`createWidget: ${JSON.stringify(objWidget)}`)
 
   jQuery(widgetContainer)[widgetTypeUpper](
     { ...objWidget, socket }
@@ -148,10 +148,6 @@ const createWidget = function (objWidget) { // eslint-disable-line no-unused-var
   ).draggable({
     handle: '.widget-header',
     snap: true,
-    start: function (event, ui) {
-      const widgetId = event.currentTarget.id
-      console.debug(`drag started on ${widgetId}`)
-    },
     stop: function (event, ui) {
       const widgetId = event.target.id
       const widgetData = jQuery('#' + widgetId).getWidgetConfiguration()
@@ -221,6 +217,11 @@ const openConfigureWidgetDialog = function (widget) {
       keyControl.disableKeys()
     },
     close: function (event, ui) {
+      /*
+       * Executed by clicking the X or Cancel on the (re)Configure Widget
+       * dialog, regardless of widget type. Also by calling dialog.close().
+       */
+      gamepad.disableGamepad()
       configuringWidget = false
     }
   }).dialog('open')
@@ -300,10 +301,6 @@ const setNewWidgetDialogType = function (widgetType) {
  *                                default values.
  */
 const populateWidgetConfigurationDialog = function (widgetConfig) {
-  console.debug(
-    'populateWidgetConfigurationDialog:' +
-    ` ${JSON.stringify(widgetConfig, null, '  ')}`
-  )
   if (widgetConfig.type === 'gamepad') {
     gamepad.parseConfig(widgetConfig)
   }
@@ -400,14 +397,12 @@ const extractWidgetConfigurationFromDialog = function () {
        */
       if (element.value) {
         const dataSection = jQuery(element).data('section')
-        console.debug(dataSection, element.name, element.value)
 
         switch (dataSection) {
           case 'root': {
             objNewWidget[element.name] = element.value
             if (objNewWidget.type === 'gamepad') {
               if (!Array.isArray(objNewWidget.data)) {
-                console.debug('converting data property to Array')
                 objNewWidget.data = []
               }
             }
@@ -548,11 +543,16 @@ const initWidgetConfig = function (objSocket) { // eslint-disable-line no-unused
     buttons: {
       Create: addWidget,
       Done: function () {
+        gamepad.disableGamepad()
+        console.debug('Done newWidget dialog')
         jQuery(this).dialog('close')
       }
     },
     open: function (event, ui) {
       jQuery('#menuDialog').dialog('close')
+    },
+    close: function (event, ui) {
+      gamepad.disableGamepad()
     }
   })
 
@@ -575,6 +575,8 @@ const initWidgetConfig = function (objSocket) { // eslint-disable-line no-unused
       buttons: {
         Create: addWidget,
         Done: function () {
+          gamepad.disableGamepad()
+          console.debug('Done newWidget2 dialog')
           jQuery(this).dialog('close')
         }
       },
@@ -582,6 +584,9 @@ const initWidgetConfig = function (objSocket) { // eslint-disable-line no-unused
         keyControl.disableKeys()
         setWidgetConfigDefaults()
         configuringWidget = true
+      },
+      close: function (event, ui) {
+        gamepad.disableGamepad()
       }
     }).dialog('open')
   })

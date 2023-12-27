@@ -373,7 +373,6 @@ class Gamepad {
   _highlightConfigRow (rowPrefix, rowIndex) {
     const HighLightRowClass = 'highlight-row'
     const paddedIndex = rowIndex.toString().padStart(PAD_LENGTH, '0')
-    console.debug(`_highlightConfigRow: ${rowPrefix}, ${paddedIndex}`)
 
     const configRow = jQuery(`#${rowPrefix}${paddedIndex}span`)
     jQuery('.' + HighLightRowClass).removeClass(HighLightRowClass)
@@ -495,7 +494,6 @@ class Gamepad {
         'gamepaddisconnected',
         this._handleDisconnect.bind(this)
       )
-      console.debug('_setupEvents: Plain gamepad support')
     } else if (this._haveWebkitEvents) {
       window.addEventListener(
         'webkitgamepadconnected',
@@ -505,7 +503,6 @@ class Gamepad {
         'webkitgamepaddisconnected',
         this._handleDisconnect.bind(this)
       )
-      console.debug('_setupEvents: Webkit gamepad support')
     } else {
       console.warn('_setupEvents: No gamepad support from this browser')
     }
@@ -704,13 +701,12 @@ class Gamepad {
    * Ensure the gamepad is disabled.
    */
   disableGamepad () {
-    console.debug('disableGamepad: called')
-
     if (this._pollIntervalId) {
       clearInterval(this._pollIntervalId)
       this._pollIntervalId = null
     }
     this._gamepadEnabled = false
+    jQuery(`#${this.widgetId} .ui-button`).text(DISABLED_TEXT)
   }
 
   /**
@@ -719,9 +715,8 @@ class Gamepad {
    * as gamepad configuration.
    */
   enableGamepad () {
-    console.debug('enableGamepad: called')
     if (!this.gamepadConnected()) {
-      console.debug('enableGamepad: no gamepad')
+      console.warn('enableGamepad: no gamepad to enable')
       return
     }
 
@@ -731,7 +726,7 @@ class Gamepad {
       RQ_PARAMS.POLL_PERIOD_MS
     )
     this._gamepadEnabled = true
-    console.debug('enableGamepad: enabled')
+    jQuery(`#${this.widgetId} .ui-button`).text(ENABLED_TEXT)
   }
 
   /**
@@ -739,20 +734,15 @@ class Gamepad {
    * state in advance.
    */
   changeGamepadState () {
-    if (!this.gamepadConnected()) {
-      console.debug('changeGamepadState: no gamepad to enable')
+    if (!this.gamepadConnected() ||
+        this._gamepadEnabled) {
+      this.disableGamepad()
+      console.info('changeGamepadState: disabled')
       return
     }
 
-    if (this._gamepadEnabled) {
-      this.disableGamepad()
-      jQuery(`#${this.widgetId} .ui-button`).text(DISABLED_TEXT)
-      console.debug('changeGamepadState: disabled')
-    } else {
-      this.enableGamepad()
-      jQuery(`#${this.widgetId} .ui-button`).text(ENABLED_TEXT)
-      console.debug('changeGamepadState: enabled')
-    }
+    this.enableGamepad()
+    console.info('changeGamepadState: enabled')
   }
 
   /**
@@ -766,11 +756,10 @@ class Gamepad {
       return
     }
 
-    console.debug(`_queryGamepads: id ${this._gamepad.id}`)
     const gamepads = navigator.getGamepads()
     this._gamepad = gamepads[this._gamepadIndex]
     if (this._gamepad === undefined) {
-      console.debug('_queryGamepads: navigator.getGamepads() found no gamepads')
+      console.warn('_queryGamepads: navigator.getGamepads() found no gamepads')
     }
   }
 }
@@ -821,7 +810,6 @@ jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.GAMEPAD', {
    * @param {Array} actions - a collection of objects
    */
   valuesHandler: function (actions) {
-    console.time('gamepad.valuesHandler')
     const payloads = {}
 
     for (const action of actions) {
@@ -845,9 +833,6 @@ jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.GAMEPAD', {
 
       this._triggerSocketEvent(payloadName, payloads[payloadName])
     }
-
-    console.timeLog('gamepad.valuesHandler')
-    console.timeEnd('gamepad.valuesHandler')
   },
 
   /**
@@ -929,11 +914,6 @@ jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.GAMEPAD', {
    * is different than other widget _triggerSocketEvent functions.
    */
   _triggerSocketEvent: function (eventName, payload) {
-    console.debug(
-      'gamepad._triggerSocketEvent:' +
-      ` ${eventName}` +
-      `, ${JSON.stringify(payload)}`
-    )
     if (this.options.socket) {
       this.options.socket.emit(
         eventName,
