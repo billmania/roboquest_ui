@@ -10,6 +10,7 @@
 
 console.info(`rq_ui version ${RQ_PARAMS.VERSION} starting`)
 console.info(`rq_ui config format version ${RQ_PARAMS.CONFIG_FORMAT_VERSION}`)
+console.info(`isSecureContext ${isSecureContext}`)
 
 const keyControl = new KeyControl('#keyControl')
 const servoConfig = new ServoConfig()
