@@ -47,8 +47,25 @@ const initSocket = function () {
   })
 
   objSocket.on('mainImage', (bufImage) => {
-    const strImage = btoa(String.fromCharCode(...new Uint8Array(bufImage)))
-    document.getElementById('mainImage').src = `data:image/jpeg;base64,${strImage}`
+    try {
+      const uint8Buffer = new Uint8Array(bufImage)
+      let strBuffer = ''
+      /*
+       * This brute-forcing the conversion is due to Chromium's problem
+       * with too many arguments on the stack when using the ... operator.
+       */
+      for (let i = 0; i < uint8Buffer.byteLength; i++) {
+        strBuffer += String.fromCharCode(uint8Buffer[i])
+      }
+      const strImage = btoa(strBuffer)
+      document.getElementById('mainImage').src = `data:image/jpeg;base64,${strImage}`
+    } catch (error) {
+      console.warn(
+        'mainImage:' +
+        ` ${error.name}|${error.message}` +
+        `, bytes| ${bufImage.byteLength}`
+      )
+    }
   })
 
   return objSocket

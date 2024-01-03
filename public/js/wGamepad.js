@@ -20,6 +20,11 @@ const AXIS_PREFIX = 'a'
 const PAD_LENGTH = 2
 const ROW_ID_LENGTH = PAD_LENGTH + BUTTON_PREFIX.length
 
+const FIREFOX = 'firefox'
+const CHROMIUM = 'chrome'
+const LINUX = 'linux'
+const WINDOWS = 'windows'
+
 /*
  * The gamepad widget configuration dialog data section has a
  * form containing a table which includes rows with the following
@@ -292,9 +297,12 @@ class Gamepad {
     this._actionMap = {}
     this._pollIntervalId = null
     this._lastPoll = 0
+    this._userAgent = null
+    this._operatingSystem = null
 
     this._haveEvents = false
     this._haveWebkitEvents = false
+    this._getBrowserType()
     this._setupEvents()
   }
 
@@ -408,6 +416,11 @@ class Gamepad {
       return
     }
 
+    if (this._userAgent === CHROMIUM) {
+      const gamepads = navigator.getGamepads()
+      this._gamepad = gamepads[0]
+    }
+
     /*
      * An object for conveying the states of those actions
      * specified in this._actionMap. The property is the action
@@ -479,6 +492,35 @@ class Gamepad {
   }
 
   /**
+   * Determine the OS and browser.
+   */
+  _getBrowserType () {
+    if (navigator.userAgent.toLowerCase().indexOf(LINUX) !== -1) {
+      this._operatingSystem = LINUX
+    } else if (navigator.userAgent.toLowerCase().indexOf(WINDOWS) !== -1) {
+      this._operatingSystem = WINDOWS
+    } else {
+      this._operatingSystem = 'unknown'
+      console.info(
+        '_getBrowserType:' +
+        ` userAgent: ${navigator.userAgent}`
+      )
+    }
+
+    if (navigator.userAgent.toLowerCase().indexOf(FIREFOX) !== -1) {
+      this._userAgent = FIREFOX
+    } else if (navigator.userAgent.toLowerCase().indexOf(CHROMIUM) !== -1) {
+      this._userAgent = CHROMIUM
+    } else {
+      this._userAgent = 'unknown'
+      console.info(
+        '_getBrowserType:' +
+        ` userAgent: ${navigator.userAgent}`
+      )
+    }
+  }
+
+  /**
    * Setup to detect the gamepad.
    */
   _setupEvents () {
@@ -486,6 +528,7 @@ class Gamepad {
     this._haveWebkitEvents = 'WebKitGamepadEvent' in window
 
     if (this._haveEvents) {
+      console.debug('GamepadEvent')
       window.addEventListener(
         'gamepadconnected',
         this._handleConnect.bind(this)
@@ -495,6 +538,7 @@ class Gamepad {
         this._handleDisconnect.bind(this)
       )
     } else if (this._haveWebkitEvents) {
+      console.debug('WebKitGamepadEvent')
       window.addEventListener(
         'webkitgamepadconnected',
         this._handleConnect.bind(this)
@@ -743,24 +787,6 @@ class Gamepad {
 
     this.enableGamepad()
     console.info('changeGamepadState: enabled')
-  }
-
-  /**
-   * Queries the gamepad(s) to get their latest state. This doesn't
-   * work the way I expect it to work - it doesn't find a connected
-   * gamepad.
-   */
-  _queryGamepads () {
-    if (this._gamepadIndex === null) {
-      console.warn('_queryGamepads: No gamepad index')
-      return
-    }
-
-    const gamepads = navigator.getGamepads()
-    this._gamepad = gamepads[this._gamepadIndex]
-    if (this._gamepad === undefined) {
-      console.warn('_queryGamepads: navigator.getGamepads() found no gamepads')
-    }
   }
 }
 
