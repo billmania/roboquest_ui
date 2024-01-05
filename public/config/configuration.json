@@ -445,7 +445,67 @@
       "type": "slider",
       "label": "MotorSpeed",
       "id": 21
+    },
+    {
+      "id": 22,
+      "type": "gamepad",
+      "label": "arm1",
+      "position": {
+        "my": "left top",
+        "at": "left top"
+      },
+      "format": {
+        "gamepadId": "0x1234:CheapGamePadKnockoff"
+      },
+      "data": [
+        {
+          "name": "ServosOn",
+          "row": "b00",
+          "service": "control_hat",
+          "serviceType": "rq_msgs.srv/Control",
+          "serviceAttribute": [
+            "set_servos:ON"
+          ]
+        },
+        {
+          "name": "ServosOff",
+          "row": "b01",
+          "service": "control_hat",
+          "serviceType": "rq_msgs.srv/Control",
+          "serviceAttribute": [
+            "set_servos:OFF"
+          ]
+        },
+        {
+          "name": "PanCamera",
+          "row": "a00",
+          "topicDirection": "publish",
+          "topic": "servos",
+          "topicType": "rq_msgs/msg/Servos",
+          "scale": [
+            20.0
+          ],
+          "topicAttribute": [
+            "servo0.speed_dps",
+            "servo0.command_type:3"
+          ]
+        },
+        {
+          "name": "TiltCamera",
+          "row": "a01",
+          "topicDirection": "publish",
+          "topic": "servos",
+          "topicType": "rq_msgs/msg/Servos",
+          "scale": [
+            20.0
+          ],
+          "topicAttribute": [
+            "servo1.speed_dps",
+            "servo1.command_type:3"
+          ]
+        }
+      ]
     }
   ],
-  "version": "7"
+  "version": "8"
 }

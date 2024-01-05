@@ -249,6 +249,13 @@ input, select{
     )
 }
 
+.highlight-row {
+        display: inline-block;
+        padding: .25em 0;
+        background: #FFC107;
+        color: #ffffff;
+}
+
 /* 
  * jQuery adds this class to the #trash element when a widget is hovering
  * over the trash. The important flag is used to overwrite the background

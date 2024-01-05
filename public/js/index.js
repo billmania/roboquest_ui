@@ -10,6 +10,7 @@
 
 console.info(`rq_ui version ${RQ_PARAMS.VERSION} starting`)
 console.info(`rq_ui config format version ${RQ_PARAMS.CONFIG_FORMAT_VERSION}`)
+console.info(`isSecureContext ${isSecureContext}`)
 
 const keyControl = new KeyControl('#keyControl')
 const servoConfig = new ServoConfig()
@@ -37,7 +38,6 @@ const initSocket = function () {
     console.error('Error connecting to robot. ', objError)
   })
 
-  // need to have the image loaded before disconnect or else we cant request it when disconnected
   const imgDisconnected = new Image()
   imgDisconnected.src = RQ_PARAMS.DISCONNECTED_IMAGE
 
@@ -47,8 +47,25 @@ const initSocket = function () {
   })
 
   objSocket.on('mainImage', (bufImage) => {
-    const strImage = btoa(String.fromCharCode(...new Uint8Array(bufImage)))
-    document.getElementById('mainImage').src = `data:image/jpeg;base64,${strImage}`
+    try {
+      const uint8Buffer = new Uint8Array(bufImage)
+      let strBuffer = ''
+      /*
+       * This brute-forcing the conversion is due to Chromium's problem
+       * with too many arguments on the stack when using the ... operator.
+       */
+      for (let i = 0; i < uint8Buffer.byteLength; i++) {
+        strBuffer += String.fromCharCode(uint8Buffer[i])
+      }
+      const strImage = btoa(strBuffer)
+      document.getElementById('mainImage').src = `data:image/jpeg;base64,${strImage}`
+    } catch (error) {
+      console.warn(
+        'mainImage:' +
+        ` ${error.name}|${error.message}` +
+        `, bytes| ${bufImage.byteLength}`
+      )
+    }
   })
 
   return objSocket

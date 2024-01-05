@@ -343,6 +343,66 @@ class RobotComms {
   }
 
   /**
+   * Parse a widget configuration data object, extracting the topic
+   * or service.
+   *
+   * @param {object} widgetData - the widget's data configuration
+   */
+  _parseWidgetConfigData (widgetData) {
+    if (widgetData.topic) {
+      switch (widgetData.topicDirection) {
+        case 'subscribe': {
+          if (!this.subscribers[widgetData.topic]) {
+            this.subscribers[widgetData.topic] = this.create_subscriber(
+              widgetData.topic,
+              widgetData.topicType)
+            this.logger.debug('Added subscriber for ' + widgetData.topic)
+          }
+          return
+        }
+
+        case 'publish': {
+          if (!this.publishers[widgetData.topic]) {
+            this.publishers[widgetData.topic] = this.create_publisher(
+              widgetData.topic,
+              widgetData.topicType)
+            this.publishedTopics[widgetData.topic] = widgetData.topicType
+            this.logger.debug('Added publisher for ' + widgetData.topic)
+          }
+          return
+        }
+
+        default: {
+          this.logger.warn(
+            ' topic ' + widgetData.topic + ' had no direction')
+          return
+        }
+      }
+    }
+
+    if (widgetData.service) {
+      if (this.serviceClients[widgetData.service]) {
+        /*
+         * Services can be called by multiple UI components. The response
+         * to a service call is ignored.
+         * */
+        return
+      }
+
+      const serviceClient = this.create_service_client(
+        widgetData.serviceType,
+        widgetData.service)
+      if (serviceClient) {
+        this.serviceClients[widgetData.service] = serviceClient
+        this.services.push(widgetData.service)
+        this.logger.debug('Added serviceClient for ' + widgetData.service)
+      } else {
+        this.logger.warn(`Service ${widgetData.service} not available`)
+      }
+    }
+  }
+
+  /**
    * Setup the connections to the ROS graph. This includes the
    * creation of topic subscribers and publishers as well as service
    * clients.
@@ -352,64 +412,19 @@ class RobotComms {
    *                                 publisher, subscriber, or service client.
    */
   setup_ROS (widgetsConfig) {
-    this.logger.info(`${this.nodeName} started`)
-
     this.choose_camera(DEFAULT_CAMERA)
 
     for (const widgetConfig of widgetsConfig) {
-      this.logger.debug('Parsing widget ' + widgetConfig.type + ' ' + widgetConfig.label)
-      if (widgetConfig.data.topic) {
-        switch (widgetConfig.data.topicDirection) {
-          case 'subscribe': {
-            if (!this.subscribers[widgetConfig.data.topic]) {
-              this.subscribers[widgetConfig.data.topic] = this.create_subscriber(
-                widgetConfig.data.topic,
-                widgetConfig.data.topicType)
-              this.logger.debug('Added subscriber for ' + widgetConfig.data.topic)
-            }
-            continue
-          }
-
-          case 'publish': {
-            if (!this.publishers[widgetConfig.data.topic]) {
-              this.publishers[widgetConfig.data.topic] = this.create_publisher(
-                widgetConfig.data.topic,
-                widgetConfig.data.topicType)
-              this.publishedTopics[widgetConfig.data.topic] = widgetConfig.data.topicType
-              this.logger.debug('Added publisher for ' + widgetConfig.data.topic)
-            }
-            continue
-          }
-
-          default: {
-            this.logger.warn(
-              'widget ' + widgetConfig.id + ' had' +
-              ' topic ' + widgetConfig.data.topic + ' but no direction')
-            continue
-          }
+      this.logger.debug(
+        'Parsing widget ' +
+        widgetConfig.type + ' ' + widgetConfig.label
+      )
+      if (Array.isArray(widgetConfig.data)) {
+        for (const widgetDataRow of widgetConfig.data) {
+          this._parseWidgetConfigData(widgetDataRow)
         }
-      }
-
-      if (widgetConfig.data.service) {
-        if (this.serviceClients[widgetConfig.data.service]) {
-          /*
-           * Services can be called by multiple UI components. The response
-           * to a service call is ignored.
-           * */
-          continue
-        }
-
-        const serviceClient = this.create_service_client(
-          widgetConfig.data.serviceType,
-          widgetConfig.data.service)
-        if (serviceClient) {
-          this.serviceClients[widgetConfig.data.service] = serviceClient
-          this.services.push(widgetConfig.data.service)
-          this.logger.debug('Added serviceClient for ' + widgetConfig.data.service)
-        } else {
-          this.logger.warn(`Service ${widgetConfig.data.service} not available`)
-        }
-        continue
+      } else {
+        this._parseWidgetConfigData(widgetConfig.data)
       }
     }
   }

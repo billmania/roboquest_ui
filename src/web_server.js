@@ -7,9 +7,14 @@
 
 const RQ_PARAMS = require('./params.js')
 const express = require('express')
-const http = require('http')
+const https = require('https')
 const fs = require('fs')
 const ClientComms = require('./client_comms.js')
+
+const options = {
+  key: fs.readFileSync(RQ_PARAMS.KEY),
+  cert: fs.readFileSync(RQ_PARAMS.CERT)
+}
 
 class WebServer {
   constructor (clientName, configFile) {
@@ -19,7 +24,7 @@ class WebServer {
     this.send_to_robot = null
 
     this.express_app = express()
-    this.express_server = http.createServer(this.express_app)
+    this.express_server = https.createServer(options, this.express_app)
     this.setup_express()
 
     this.express_server.listen(RQ_PARAMS.SERVER_PORT_NUMBER)

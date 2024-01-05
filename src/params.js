@@ -8,7 +8,7 @@
 const path = require('path')
 
 const RQ_PARAMS = {}
-RQ_PARAMS.VERSION = '28'
+RQ_PARAMS.VERSION = '29'
 
 RQ_PARAMS.CONFIG_FORMAT_VERSION = '8'
 RQ_PARAMS.SERVER_STATIC_DIR = path.join(
@@ -19,7 +19,11 @@ RQ_PARAMS.CONFIG_FILE = path.join(
   __dirname, '../public/persist/configuration.json')
 RQ_PARAMS.SERVO_FILE = path.join(
   __dirname, '../public/persist/servos_config.json')
-RQ_PARAMS.SERVER_PORT_NUMBER = 80
+RQ_PARAMS.KEY = path.join(
+  __dirname, '../certs/server.key')
+RQ_PARAMS.CERT = path.join(
+  __dirname, '../certs/server.cert')
+RQ_PARAMS.SERVER_PORT_NUMBER = 443
 
 /*
  * The interval for emitting the _counters statistics.

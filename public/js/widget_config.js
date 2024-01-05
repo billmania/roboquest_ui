@@ -1,6 +1,7 @@
 'use strict'
 
 /* global jQuery RQ_PARAMS keyControl */
+/* global gamepad GamepadData ROW_ID_LENGTH */
 
 /*
  * A socket object is required to create a widget, so we need to define
@@ -9,10 +10,16 @@
 let socket
 
 /*
- * Differentiate between using the widget configuration form for a
- * new widget and for re-configuring an existing widget.
+ * So the widget default configuration can be shown for a new
+ * widget but not for an existing widget.
  */
-let reconfiguringWidget = false
+let showConfigDefaults = true
+/*
+ * Used to tell other logic that the widget configuration process is
+ * active. An example is the Gamepad class, so it can determine what to
+ * do with gamepad events.
+ */
+let configuringWidget = false // eslint-disable-line no-unused-vars
 
 /**
  * Extends jQuery. To be called on a jQuery element of class 'widget'.
@@ -132,7 +139,7 @@ const createWidget = function (objWidget) { // eslint-disable-line no-unused-var
    */
   jQuery(widgetContainer).data(RQ_PARAMS.WIDGET_NAMESPACE, objWidget)
 
-  console.debug(`${JSON.stringify(objWidget)}`)
+  console.debug(`createWidget: ${JSON.stringify(objWidget)}`)
 
   jQuery(widgetContainer)[widgetTypeUpper](
     { ...objWidget, socket }
@@ -141,10 +148,6 @@ const createWidget = function (objWidget) { // eslint-disable-line no-unused-var
   ).draggable({
     handle: '.widget-header',
     snap: true,
-    start: function (event, ui) {
-      const widgetId = event.currentTarget.id
-      console.debug(`drag started on ${widgetId}`)
-    },
     stop: function (event, ui) {
       const widgetId = event.target.id
       const widgetData = jQuery('#' + widgetId).getWidgetConfiguration()
@@ -194,7 +197,7 @@ const openConfigureWidgetDialog = function (widget) {
 
   populateWidgetConfigurationDialog(oldWidgetConfig)
 
-  reconfiguringWidget = true
+  showConfigDefaults = false
   jQuery('#newWidget').dialog({
     title: 'Configure Widget',
     buttons: {
@@ -202,12 +205,25 @@ const openConfigureWidgetDialog = function (widget) {
         jQuery(this).dialog('close')
       },
       Done: function () {
-        reconfigureWidget(oldWidgetConfig, extractWidgetConfigurationFromDialog())
+        reconfigureWidget(
+          oldWidgetConfig,
+          extractWidgetConfigurationFromDialog()
+        )
         jQuery(this).dialog('close')
       }
     },
     open: function (event, ui) {
       keyControl.disableKeys()
+      configuringWidget = true
+      gamepad.enableGamepad()
+    },
+    close: function (event, ui) {
+      /*
+       * Executed by clicking the X or Cancel on the (re)Configure Widget
+       * dialog, regardless of widget type. Also by calling dialog.close().
+       */
+      gamepad.disableGamepad()
+      configuringWidget = false
     }
   }).dialog('open')
 }
@@ -247,17 +263,16 @@ const reconfigureWidget = function (oldWidgetConfig, newWidgetConfig) {
 /**
  * In the widget configuration dialog, set the input element default
  * values based on the selected widget type.
- * The global variable reconfiguringWidget prevents over-writing an
+ * The global variable showConfigDefaults prevents over-writing an
  * existing configuration with the defaults.
  */
 const setWidgetConfigDefaults = function () {
-  if (reconfiguringWidget) {
-    reconfiguringWidget = false
+  if (showConfigDefaults) {
+    const widgetType = jQuery('#newWidget #newWidgetType').find('option:selected').val()
+    populateWidgetConfigurationDialog(widgetDefaults[widgetType])
     return
   }
-
-  const widgetType = jQuery('#newWidget #newWidgetType').find('option:selected').val()
-  populateWidgetConfigurationDialog(widgetDefaults[widgetType])
+  showConfigDefaults = true
 }
 
 /**
@@ -266,14 +281,18 @@ const setWidgetConfigDefaults = function () {
  * using the object of defaults for the widget type.
  *
  * @param {string} widgetType - the type of widget from [Button, Value,
- *                              Slider, Indicator, Joystick]
+ *                              Slider, Indicator, Joystick, Gamepad]
  */
 const setNewWidgetDialogType = function (widgetType) {
   jQuery('#newWidget .newWidgetType').hide()
   jQuery(`#newWidget #${widgetType}`).show()
-
-  // TODO: Don't believe it's necessary to call positionWidgets() here
-  // positionWidgets()
+  if (widgetType === 'gamepad') {
+    if (gamepad.gamepadConnected()) {
+      gamepad.enableGamepad()
+    } else {
+      console.warn('setNewWidgetDialogType: No gamepad connected')
+    }
+  }
 }
 
 /**
@@ -283,43 +302,78 @@ const setNewWidgetDialogType = function (widgetType) {
  *                                default values.
  */
 const populateWidgetConfigurationDialog = function (widgetConfig) {
-  jQuery('#newWidget').find('[data-section]').each((i, element) => {
-    const strPropSection = jQuery(element).data('section')
+  if (widgetConfig.type === 'gamepad') {
+    gamepad.parseConfig(widgetConfig)
+  }
 
-    if (strPropSection === 'root') {
-      if (Object.hasOwn(widgetConfig, element.name)) {
-        if (element.name === 'type') {
-          jQuery('#newWidgetType').val(widgetConfig[element.name]).selectmenu('refresh')
-          setNewWidgetDialogType(widgetConfig[element.name])
-        } else {
-          element.value = widgetConfig[element.name]
+  /*
+   * The following two .find() calls limit the elements to only the data
+   * section AND for only the data section.
+   *
+   *  .find('#' + widgetConfig.type)
+   */
+  jQuery('#newWidget')
+    .find('[data-section]')
+    .each((i, element) => {
+      const dataSection = jQuery(element).data('section')
+
+      switch (dataSection) {
+        case 'root': {
+          if (Object.hasOwn(widgetConfig, element.name)) {
+            if (element.name === 'type') {
+              jQuery('#newWidgetType')
+                .val(widgetConfig[element.name])
+                .selectmenu('refresh')
+              setNewWidgetDialogType(widgetConfig[element.name])
+            } else {
+              element.value = widgetConfig[element.name]
+            }
+          }
+          break
+        }
+
+        case 'format': {
+          if (Object.hasOwn(widgetConfig[dataSection], element.name)) {
+            element.value = widgetConfig[dataSection][element.name]
+          }
+          break
+        }
+
+        case 'data': {
+          if (widgetConfig.type !== 'gamepad') {
+            if (Object.hasOwn(widgetConfig[dataSection], element.name)) {
+              const configValue = widgetConfig[dataSection][element.name]
+              if (typeof (configValue) === 'object' &&
+                  Array.isArray(configValue)) {
+                element.value = configValue.join(RQ_PARAMS.ATTR_DELIMIT)
+              } else {
+                element.value = configValue
+              }
+            }
+          } else {
+            element.value = gamepad.getElementValue(element.name)
+          }
+
+          break
         }
       }
-    }
-
-    if (strPropSection === 'format') {
-      if (Object.hasOwn(widgetConfig[strPropSection], element.name)) {
-        element.value = widgetConfig[strPropSection][element.name]
-      }
-    }
-
-    if (strPropSection === 'data') {
-      if (Object.hasOwn(widgetConfig[strPropSection], element.name)) {
-        const configValue = widgetConfig[strPropSection][element.name]
-        if (typeof (configValue) === 'object' && Array.isArray(configValue)) {
-          element.value = configValue.join(RQ_PARAMS.ATTR_DELIMIT)
-        } else {
-          element.value = configValue
-        }
-      }
-    }
-  })
+    })
 }
 
 /*
 * Reads all the populated fields of the configuration dialog into an object
 *
-* @returns {object} - returns a configuration object assembled from the dialog's current state
+* The data-sections of the input elements contained by the
+* #configureNewWidget element are expected to be in order as
+* root, position, format, and data. The data elements for a gamepad
+* are expected to be in order as description, destinationType,
+* destinationName, interface, attributes, and scaling. Input elements
+* are processed only when their value is none of: null, false, '', or
+* undefined. Any gamepad data-section entry which is not completely
+* defined will be logged and then ignored.
+*
+* @returns {object} - returns a configuration object assembled from the
+*                     dialog's current state
 */
 const extractWidgetConfigurationFromDialog = function () {
   const objNewWidget = {
@@ -327,46 +381,128 @@ const extractWidgetConfigurationFromDialog = function () {
     format: {},
     data: {}
   }
+  let gamepadData = null
+  let rowId = null
   jQuery('#newWidget')
     .find(
-      '#configureNewWidget input:visible, #configureNewWidget select:visible, #newWidgetType'
+      '#configureNewWidget input:visible' +
+      ', #configureNewWidget select:visible' +
+      ', #newWidgetType'
     )
     .each((i, element) => {
-      // TODO: Provide a reasonable default value for element.value
+      /*
+       * The 'root' data-section elements must be found
+       * before any 'data' data-section elements, so the widget
+       * type will already be known when the first 'data' element
+       * is processed.
+       */
       if (element.value) {
-        const strPropSection = jQuery(element).data('section')
-        console.debug(strPropSection, element.name, element.value)
-        if (strPropSection === 'root') {
-          objNewWidget[element.name] = element.value
-        }
-        if (strPropSection === 'format') {
-          /*
+        const dataSection = jQuery(element).data('section')
+
+        switch (dataSection) {
+          case 'root': {
+            objNewWidget[element.name] = element.value
+            if (objNewWidget.type === 'gamepad') {
+              if (!Array.isArray(objNewWidget.data)) {
+                objNewWidget.data = []
+              }
+            }
+            break
+          }
+
+          case 'position': {
+            /*
+             * Defined in index.htm but not currently used.
+             */
+            break
+          }
+
+          case 'format': {
+            /*
              * Some format values are integers.
              */
-          const value = parseInt(element.value)
-          if (isNaN(value)) {
-            objNewWidget[strPropSection][element.name] = element.value
-          } else {
-            objNewWidget[strPropSection][element.name] = value
+            const value = parseInt(element.value)
+            if (isNaN(value)) {
+              objNewWidget[dataSection][element.name] = element.value
+            } else {
+              objNewWidget[dataSection][element.name] = value
+            }
+            break
           }
-        }
-        if (strPropSection === 'data') {
-          /*
-             * Elements, such as topicAttribute and scale, may contain
-             * multiple items. When found, assemble them into an Array
-             * of strings.
-             */
-          if (element.value.indexOf(RQ_PARAMS.ATTR_DELIMIT) > -1) {
-            const attributes = element.value
-              .replaceAll(' ', '')
-              .split(RQ_PARAMS.ATTR_DELIMIT)
-            objNewWidget[strPropSection][element.name] = attributes
-          } else {
-            objNewWidget[strPropSection][element.name] = element.value
+
+          case 'data': {
+            if (objNewWidget.type !== 'gamepad') {
+              /*
+                 * Elements, such as topicAttribute and scale, may contain
+                 * multiple items. When found, assemble them into an Array
+                 * of strings.
+                 */
+              if (element.value.indexOf(RQ_PARAMS.ATTR_DELIMIT) > -1) {
+                const attributes = element.value
+                  .replaceAll(' ', '')
+                  .split(RQ_PARAMS.ATTR_DELIMIT)
+                objNewWidget[dataSection][element.name] = attributes
+              } else {
+                objNewWidget[dataSection][element.name] = element.value
+              }
+            } else {
+              /*
+               * gamepad 'data' consists of multiple sets of inputs.
+               * They're grouped by the first ROW_ID_LENGTH characters of
+               * the input name. They're assembled and added to the
+               * objNewWidget.data property as an Array of "data" objects
+               * instead of a single "data" object.
+               */
+              if (!gamepadData) {
+                gamepadData = new GamepadData()
+                objNewWidget.data = []
+              }
+
+              rowId = element.name.slice(0, ROW_ID_LENGTH)
+              if (gamepadData.getRow() &&
+                  rowId !== gamepadData.getRow()) {
+                try {
+                  objNewWidget.data.push(gamepadData.getDataObject())
+                } catch (error) {
+                  console.warn(
+                  `${error.name}:${error.message}` +
+                  ` on ${gamepadData.getRow()}`
+                  )
+                }
+                gamepadData = new GamepadData()
+              }
+
+              try {
+                gamepadData.addElement(element.name, element.value)
+              } catch (error) {
+                console.warn(
+                  'extractWidgetConfigurationFromDialog:' +
+                  ` ${error.name}` +
+                  ` ${error.message}`
+                )
+              }
+            }
+            break
           }
         }
       }
     })
+
+  /*
+   * Take care of the last data object.
+   */
+  if (gamepadData &&
+      gamepadData.getRow()) {
+    try {
+      objNewWidget.data.push(gamepadData.getDataObject())
+    } catch (error) {
+      console.warn(
+        `${error.name}:${error.message}` +
+        ` on ${gamepadData.getRow()}`
+      )
+    }
+    gamepadData = null
+  }
 
   // these are one off logic to string concat the values, not a nice 1-1 mapping
   objNewWidget.position.my = `${jQuery('#widgetPositionMyX').val()} ${jQuery('#widgetPositionMyY').val()}`
@@ -378,32 +514,45 @@ const extractWidgetConfigurationFromDialog = function () {
 const initWidgetConfig = function (objSocket) { // eslint-disable-line no-unused-vars
   socket = objSocket
   /**
-     * Use the details of a new widget, collected via the configuration menu, to
-     * instantiate and position a new widget.
-     * It's called by clicking the "Create" button in the "Configure a New Widget"
-     * form which implies this function needs a better name.
-     */
+   * Use the details of a new widget, collected via the configuration menu, to
+   * instantiate and position a new widget.
+   * It's called by clicking the "Create" button in the "Configure a New Widget"
+   * form which implies this function needs a better name.
+   */
   // TODO: Give this function a more intuitive name based on its use and effect
   const addWidget = function () {
     const objNewWidget = extractWidgetConfigurationFromDialog()
 
+    if (objNewWidget.type === 'gamepad') {
+      gamepad.disableGamepad()
+    }
     objNewWidget.id = getNextId()
 
     createWidget(objNewWidget)
+    configuringWidget = false
     positionWidgets()
   }
 
+  /*
+   * TODO:
+   * Why is this newWidget dialog defined here and then redefined
+   * when the addWidget button is clicked?
+   */
   jQuery('#newWidget').dialog({
     width: 500,
     autoOpen: false,
     buttons: {
       Create: addWidget,
       Done: function () {
+        console.debug('Done newWidget dialog')
         jQuery(this).dialog('close')
       }
     },
     open: function (event, ui) {
       jQuery('#menuDialog').dialog('close')
+    },
+    close: function (event, ui) {
+      gamepad.disableGamepad()
     }
   })
 
@@ -417,6 +566,10 @@ const initWidgetConfig = function (objSocket) { // eslint-disable-line no-unused
   })
 
   jQuery('#addWidget').on('click', function () {
+    /*
+     * The #newWidget dialog is used to define a new widget, which
+     * doesn't yet exist in the widget configuration file.
+     */
     jQuery('#newWidget').dialog({
       title: 'Configure a New Widget',
       buttons: {
@@ -428,6 +581,11 @@ const initWidgetConfig = function (objSocket) { // eslint-disable-line no-unused
       open: function (event, ui) {
         keyControl.disableKeys()
         setWidgetConfigDefaults()
+        configuringWidget = true
+        gamepad.enableGamepad()
+      },
+      close: function (event, ui) {
+        gamepad.disableGamepad()
       }
     }).dialog('open')
   })
@@ -511,5 +669,10 @@ const widgetDefaults = {
       topicType: 'geometry_msgs/msg/TwistStamped',
       topicAttribute: 'twist.angular.z;twist.linear.x'
     }
+  },
+  gamepad: {
+    label: 'gamepadX',
+    format: {},
+    data: {}
   }
 }

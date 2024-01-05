@@ -31,6 +31,7 @@ install(DIRECTORY
   config
   dist
   public
+  certs
   launch
   node_modules
   DESTINATION share/${PROJECT_NAME}/
