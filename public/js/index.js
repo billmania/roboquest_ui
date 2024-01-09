@@ -3,6 +3,7 @@
 /* global jQuery io RQ_PARAMS KeyControl ServoConfig */
 /* global positionWidgets createWidget initWidgetConfig */
 /* global RQUpdateHelp */
+/* global setMsgDialogOpen setMsgDialogClosed */
 
 /**
  * The main control for the RoboQuest front-end UI.
@@ -282,6 +283,16 @@ jQuery(function () {
     }
   })
 
+  jQuery('#msgDialog').dialog({
+    width: 200,
+    autoOpen: false,
+    open: function (event, ui) {
+      setMsgDialogOpen()
+    },
+    close: function (event, ui) {
+      setMsgDialogClosed()
+    }
+  })
   jQuery('#menuDialog').dialog({
     width: 500,
     autoOpen: false,

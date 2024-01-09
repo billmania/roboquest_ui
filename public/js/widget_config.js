@@ -243,7 +243,8 @@ const openConfigureWidgetDialog = function (widget) {
 }
 
 /**
- * Replace all jQuery selector special characters with underscores.
+ * Remove all jQuery selector special characters.
+ * Replace all SPACE and COMMA characters with underscores.
  *
  * @param {string} label - the original label
  *

@@ -1,10 +1,12 @@
+'use strict'
+
 /**
  * Support using keyboard events as an additional way of interacting
  * with browser UI widgets.
  */
 
-'use strict'
 /* global jQuery RQ_PARAMS RQKeysHelp */
+/* global showMsg getSafeLabel */
 
 /*
  * PROPERTY_SEP separates multiple property-value pairs
@@ -54,7 +56,7 @@ class KeyControl { // eslint-disable-line no-unused-vars
     jQuery(window).on('keydown', (eventData) => {
       jQuery(window).off('keydown')
       if (jQuery(`#${keycodeId}`).data('keycode') !== eventData.which) {
-        if (this._isKeyAssigned(eventData.which)) {
+        if (this._isKeyAssigned(eventData.which, eventData.code)) {
           console.warn(
             'changeAssignedKeycode:' +
             ` ${eventData.code} already assigned`
@@ -110,13 +112,14 @@ class KeyControl { // eslint-disable-line no-unused-vars
    * Return true if a key is already assigned. A brute-force search through
    * the collection of keyable widgets.
    *
-   * @param {string} keycode - the numerical keycode
+   * @param {number} keycode - the numerical keycode
+   * @param {string} keyname - the name of the key
    *
    * @returns {boolean} - whether that keycode is assigned anywhere else
    */
-  _isKeyAssigned (keycode) {
+  _isKeyAssigned (keycode, keyname) {
     for (const widget of this._keyableWidgets) {
-      if (this._configureWidgetObj.label === widget.id) {
+      if (getSafeLabel(this._configureWidgetObj.label) === widget.id) {
         continue
       }
 
@@ -137,6 +140,7 @@ class KeyControl { // eslint-disable-line no-unused-vars
       }
 
       if (widgetKeys.includes(String(keycode))) {
+        showMsg(`Key ${keyname} already assigned to ${widgetData.label}`)
         return true
       }
     }

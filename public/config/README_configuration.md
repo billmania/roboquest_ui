@@ -1,5 +1,9 @@
 # configuration.json
 
+## Version
+
+rq_ui v30
+
 ## Description
 
 The file configuration.json is used by both the backend and
@@ -23,7 +27,6 @@ If they're different, the file in persist is replaced with the
 file from config. This may necessitate a reconfiguration of the
 UI.
 
-
 /public/persist is a reference to a directory on the host OS
 filesystem and is the means for making a modified configuration
 available for both new container instances and new images. It
@@ -37,7 +40,7 @@ properties "widgets" and "version"
 
 ### version
 
-This document describes version 3 of the configuration file.
+This document describes version 8 of the configuration file.
 
 ### widgets
 
@@ -69,6 +72,9 @@ The five widget types are:
         joystick: the means for publishing pairs of numerical
                   values continuously onto a ROS topic
 
+        gamepad: manages the configuration of a hardware gamepad. see
+                 the gamepad documentation for details
+
 #### widget properties
 
 [CSS reference](https://www.w3schools.com/cssref/index.php)
@@ -84,11 +90,12 @@ the widget properties have the following sections:
         format: properties for formatting the display of the widget content
         data: topics and services associated with the widget
 
-* id: unique integer for each widget
+* id: unique integer for each widget, assigned automatically.
 * type: string defining the widget type, from the set [value,
     indicator, button, slider, joystick]
 * label: string displayed on the widget header and used to uniquely identify
-         the widget
+         the widget. Quotation marks and apostrophes aren't allowed. The label
+         must be unique across the entire collection of widgets.
 
 * position.my: string defining x,y of widget's position relative to the parent
 * position.at: string defining x,y of parent's position
