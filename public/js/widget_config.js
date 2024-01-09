@@ -110,9 +110,23 @@ const createWidget = function (objWidget) { // eslint-disable-line no-unused-var
   // TODO: rq widget namespace.
   const widgetTypeUpper = objWidget.type.toUpperCase()
 
+  if (objWidget.id === undefined ||
+      objWidget.id === '' ||
+      objWidget.label === undefined ||
+      objWidget.label === '') {
+    console.warn(
+      'createWidget:' +
+      ` widget ${JSON.stringify(objWidget)} must have both` +
+      ' a unique id and a unique, non-blank label'
+    )
+
+    return
+  }
+
+  const safeLabel = getSafeLabel(objWidget.label)
   // TODO: Figure out how to replace the string 'widget' with a constant
   const widgetContainer = jQuery(
-    `<div class="widget ${widgetTypeUpper}" id="${objWidget.label}"></div>`
+    `<div class="widget ${widgetTypeUpper}" id="${safeLabel}"></div>`
   )
   const widgetHeader = jQuery(
     '<div class="widget-header">' + objWidget.label + '</div>'
@@ -228,24 +242,78 @@ const openConfigureWidgetDialog = function (widget) {
   }).dialog('open')
 }
 
-/*
-* @returns {object} - the dragable jQuery widget element
-*/
-// TODO: Find better way to identify widgets than using their label
-const getjQueryWidgetFromConfig = function (widgetConfig) {
-  return jQuery('#' + widgetConfig.label)
+/**
+ * Replace all jQuery selector special characters with underscores.
+ *
+ * @param {string} label - the original label
+ *
+ * @returns {string} - the safe version of the label
+ */
+const getSafeLabel = function (label) {
+  return (
+    label
+      .replace(/[ ,]{1,}/g, '_')
+      .replace(/['"#.!?]{1,}/g, '')
+  )
+}
+
+/**
+ * Look through the collection of widget configurations for
+ * newLabel, ignoring widgetId. If newLabel is assigned to some
+ * other widget, return true.
+ *
+ * @param {number} changedWidgetId - the id of the widget being changed
+ * @param {string} newLabel - the requested new widget label
+ *
+ * @returns {boolean} - true if newLabel is already assigned
+ */
+const labelNotUnique = function (changedWidgetId, newLabel) {
+  const widgets = jQuery('.widget')
+  for (const widget of widgets) {
+    const widgetConfig = jQuery(widget).getWidgetConfiguration()
+    if (widgetConfig.id !== changedWidgetId &&
+        widgetConfig.label === newLabel) {
+      return true
+    }
+  }
+
+  return false
 }
 
 /*
- * Simply delete the widget and re-create it with the new config settings
+ * If the updated widget doesn't have a label which is already in use,
+ * re-use the same id, position, and keys. Delete the old widget and
+ * re-create it using the updated configuration. No checking is done
+ * to determine if anything actually changed.
  */
-// TODO: Call an "update" method on the widget before defaulting to this method
 const reconfigureWidget = function (oldWidgetConfig, newWidgetConfig) {
-  const oldDragableWidget = getjQueryWidgetFromConfig(oldWidgetConfig)
+  newWidgetConfig.label = newWidgetConfig.label.replace(/['"]g/, '')
 
+  const oldDragableWidget = jQuery('#' + getSafeLabel(oldWidgetConfig.label))
+  if (labelNotUnique(oldWidgetConfig.id, newWidgetConfig.label)) {
+    console.warn(
+      'reconfigureWidget:' +
+      ` label ${newWidgetConfig.label} already in use.` +
+      ' Rejecting the change'
+    )
+    return
+  }
+
+  if (newWidgetConfig.label === undefined ||
+      newWidgetConfig.label === '') {
+    console.warn(
+      'reconfigureWidget:' +
+      ` widget ${JSON.stringify(newWidgetConfig)} must have` +
+      ' a unique, non-blank label.' +
+      ' Rejecting the change'
+    )
+
+    return
+  }
   oldDragableWidget.remove()
   positionWidgets()
 
+  newWidgetConfig.id = oldWidgetConfig.id
   newWidgetConfig.position = oldWidgetConfig.position
   createWidget(newWidgetConfig)
   if (Object.hasOwn(oldWidgetConfig, 'keys')) {
@@ -522,6 +590,7 @@ const initWidgetConfig = function (objSocket) { // eslint-disable-line no-unused
   // TODO: Give this function a more intuitive name based on its use and effect
   const addWidget = function () {
     const objNewWidget = extractWidgetConfigurationFromDialog()
+    objNewWidget.label = objNewWidget.label.replace(/['"]/g, '')
 
     if (objNewWidget.type === 'gamepad') {
       gamepad.disableGamepad()
