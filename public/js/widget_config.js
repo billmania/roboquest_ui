@@ -2,6 +2,7 @@
 
 /* global jQuery RQ_PARAMS keyControl */
 /* global gamepad GamepadData ROW_ID_LENGTH */
+/* global showMsg */
 
 /*
  * A socket object is required to create a widget, so we need to define
@@ -117,6 +118,10 @@ const createWidget = function (objWidget) { // eslint-disable-line no-unused-var
     console.warn(
       'createWidget:' +
       ` widget ${JSON.stringify(objWidget)} must have both` +
+      ' a unique id and a unique, non-blank label'
+    )
+    showMsg(
+      'Widgets must have both' +
       ' a unique id and a unique, non-blank label'
     )
 
@@ -243,7 +248,9 @@ const openConfigureWidgetDialog = function (widget) {
 }
 
 /**
- * Replace all jQuery selector special characters with underscores.
+ * Remove all jQuery selector special characters.
+ * Replace all SPACE and COMMA characters with underscores.
+
  *
  * @param {string} label - the original label
  *
@@ -287,6 +294,11 @@ const labelNotUnique = function (changedWidgetId, newLabel) {
  * to determine if anything actually changed.
  */
 const reconfigureWidget = function (oldWidgetConfig, newWidgetConfig) {
+  if (newWidgetConfig.label === undefined) {
+    showMsg('Widget must have a label')
+    return
+  }
+
   newWidgetConfig.label = newWidgetConfig.label.replace(/['"]g/, '')
 
   const oldDragableWidget = jQuery('#' + getSafeLabel(oldWidgetConfig.label))
@@ -296,6 +308,7 @@ const reconfigureWidget = function (oldWidgetConfig, newWidgetConfig) {
       ` label ${newWidgetConfig.label} already in use.` +
       ' Rejecting the change'
     )
+    showMsg(`Label ${newWidgetConfig.label} already in use`)
     return
   }
 
@@ -307,6 +320,11 @@ const reconfigureWidget = function (oldWidgetConfig, newWidgetConfig) {
       ' a unique, non-blank label.' +
       ' Rejecting the change'
     )
+    showMsg(
+      `${newWidgetConfig.id} must have` +
+      ' a unique, non-blank label.'
+    )
+
 
     return
   }
@@ -358,6 +376,7 @@ const setNewWidgetDialogType = function (widgetType) {
     if (gamepad.gamepadConnected()) {
       gamepad.enableGamepad()
     } else {
+      showMsg('No gamepad connected')
       console.warn('setNewWidgetDialogType: No gamepad connected')
     }
   }
