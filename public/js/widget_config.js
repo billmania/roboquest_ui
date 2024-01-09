@@ -250,6 +250,7 @@ const openConfigureWidgetDialog = function (widget) {
 /**
  * Remove all jQuery selector special characters.
  * Replace all SPACE and COMMA characters with underscores.
+
  *
  * @param {string} label - the original label
  *
@@ -323,6 +324,7 @@ const reconfigureWidget = function (oldWidgetConfig, newWidgetConfig) {
       `${newWidgetConfig.id} must have` +
       ' a unique, non-blank label.'
     )
+
 
     return
   }
