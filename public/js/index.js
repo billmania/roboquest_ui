@@ -2,8 +2,9 @@
 
 /* global jQuery io RQ_PARAMS KeyControl ServoConfig */
 /* global positionWidgets createWidget initWidgetConfig */
-/* global RQUpdateHelp */
+/* global RQUpdateHelp RQRebootHelp RQShutdownHelp */
 /* global setMsgDialogOpen setMsgDialogClosed */
+/* global showMsg */
 
 /**
  * The main control for the RoboQuest front-end UI.
@@ -16,6 +17,8 @@ console.info(`isSecureContext ${isSecureContext}`)
 const keyControl = new KeyControl('#keyControl')
 const servoConfig = new ServoConfig()
 let updating = null
+let rebooting = null
+let stopping = null
 
 jQuery(window).on('resize', function () {
   positionWidgets()
@@ -147,14 +150,16 @@ jQuery(function () {
   }
 
   /**
-   * Add the software update steps to the list in
-   * populateUpdateSoftwareList. Reads the ordered list of steps
-   * from RQUpdateHelp.steps.
+   * Add the help steps to the list.
+   *
+   * @param {string} listId - HTML element ID for the list
+   * @param {Array} helpSteps - array of the help steps
    */
-  const populateUpdateSoftwareList = function () {
-    jQuery('#updateSoftwareList').empty()
-    for (const step of RQUpdateHelp.steps) {
-      jQuery('#updateSoftwareList').append(
+  const populateHelpList = function (listId, helpSteps) {
+    const listSelector = '#' + listId
+    jQuery(listSelector).empty()
+    for (const step of helpSteps) {
+      jQuery(listSelector).append(
         jQuery('<li>').append(
           step
         )
@@ -169,7 +174,7 @@ jQuery(function () {
     buttons: {
       Update: function () {
         if (updating) {
-          console.warn('Software update already started')
+          showMsg('Update already started')
           return
         }
 
@@ -185,6 +190,60 @@ jQuery(function () {
         } else {
           console.error(
             'Not connected to the robot so an UPDATE is not possible. Check the robot.'
+          )
+        }
+      }
+    }
+  })
+  jQuery('#rebootRobotDialog').dialog({
+    title: 'Reboot robot',
+    width: 400,
+    autoOpen: false,
+    buttons: {
+      Reboot: function () {
+        if (rebooting) {
+          showMsg('Reboot already started')
+          return
+        }
+
+        if (objSocket.connected) {
+          rebooting = true
+
+          const intTimeS = Math.round(Date.now() / 1000)
+          objSocket.emit(
+            'update',
+            `{"timestamp":"${intTimeS}", "version":"${RQ_PARAMS.UPDATE_FORMAT_VERSION}", "action":"REBOOT", "args":"UI"}`
+          )
+        } else {
+          showMsg(
+            'Not connected to the robot so an UPDATE is not possible. Check the robot.'
+          )
+        }
+      }
+    }
+  })
+  jQuery('#shutdownRobotDialog').dialog({
+    title: 'Shutdown robot',
+    width: 400,
+    autoOpen: false,
+    buttons: {
+      Shutdown: function () {
+        if (stopping) {
+          showMsg('Shutdown already started')
+          return
+        }
+
+        if (objSocket.connected) {
+          stopping = true
+
+          const intTimeS = Math.round(Date.now() / 1000)
+          objSocket.emit(
+            'update',
+            `{"timestamp":"${intTimeS}", "version":"${RQ_PARAMS.UPDATE_FORMAT_VERSION}", "action":"SHUTDOWN", "args":"UI"}`
+          )
+        } else {
+          showMsg(
+            'Not connected to the robot so a SHUTDOWN is not possible. Check the robot.'
           )
         }
       }
@@ -309,8 +368,18 @@ jQuery(function () {
 
   jQuery('#updateSoftware').on('click', function () {
     jQuery('#menuDialog').dialog('close')
-    populateUpdateSoftwareList()
+    populateHelpList('updateSoftwareList', RQUpdateHelp.steps)
     jQuery('#updateSoftwareDialog').dialog('open')
+  })
+  jQuery('#rebootRobot').on('click', function () {
+    jQuery('#menuDialog').dialog('close')
+    populateHelpList('rebootRobotList', RQRebootHelp.steps)
+    jQuery('#rebootRobotDialog').dialog('open')
+  })
+  jQuery('#shutdownRobot').on('click', function () {
+    jQuery('#menuDialog').dialog('close')
+    populateHelpList('shutdownRobotList', RQShutdownHelp.steps)
+    jQuery('#shutdownRobotDialog').dialog('open')
   })
 
   jQuery('#trash').droppable({
