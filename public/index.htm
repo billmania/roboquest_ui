@@ -32,8 +32,9 @@
     </div>
     <div id="menuDialog" title="Configuration Settings">
         <form id="menuForm">
-            <div class="menuButton" id="updateSoftware">update robot software</div>
-            <div class="menuButton" id="saveConfig">save config</div>
+            <div class="menuButton" id="updateSoftware">update software</div>
+            <div class="menuButton" id="rebootRobot">reboot</div>
+            <div class="menuButton" id="shutdownRobot">shutdown</div>
             <div class="menuButton" id="addWidget">add widget</div>
             <div class="menuButton" id="configKeys">config keys</div>
             <div class="menuButton" id="configServos">config servos</div>
@@ -47,6 +48,18 @@
     <div id="updateSoftwareDialog">
       <div id="updateSoftwareText">
         <ol id="updateSoftwareList" type="1">
+        </ol>
+      </div>
+    </div>
+    <div id="rebootRobotDialog">
+      <div id="rebootRobotText">
+        <ol id="rebootRobotList" type="1">
+        </ol>
+      </div>
+    </div>
+    <div id="shutdownRobotDialog">
+      <div id="shutdownRobotText">
+        <ol id="shutdownRobotList" type="1">
         </ol>
       </div>
     </div>
@@ -217,6 +230,7 @@
 <script src="./js/wGamepad.js"></script>
 <script src="./js/key_help.js"></script>
 <script src="./js/update_help.js"></script>
+<script src="./js/robot_help.js"></script>
 <script src="./js/key_control.js"></script>
 <script src="./js/servo_config.js"></script>
 <script src="./js/widget_config.js"></script>
