@@ -1,5 +1,5 @@
 'use strict'
-/* global jQuery, RQ_PARAMS, configuringWidget */
+/* global jQuery, RQ_PARAMS, configuringWidget, gamepadMaps */
 /* global DONT_SCALE, DEFAULT_VALUE */
 /* global assignValue */
 
@@ -15,6 +15,10 @@
  * to a single topic or service.
  */
 
+/**
+ * BUTTON_PREFIX and AXIS_PREFIX must match the property names in the
+ * gamepadMaps object.
+ */
 const BUTTON_PREFIX = 'b'
 const AXIS_PREFIX = 'a'
 const PAD_LENGTH = 2
@@ -292,11 +296,11 @@ class Gamepad {
     this.widgetId = null
     this._gamepadIndex = null
     this._gamepad = null
+    this._gamepadId = null
     this._gamepadEnabled = false
     this._widgetConfig = null
     this._actionMap = {}
     this._pollIntervalId = null
-    this._lastPoll = 0
     this._userAgent = null
     this._operatingSystem = null
 
@@ -388,18 +392,21 @@ class Gamepad {
   }
 
   /**
-   * Check the gamepad object for action changes. More than one
-   * button and more than one axis can change per poll. This
-   * method is used for two purposes.
-   * The first is when configuring the gamepad. All action state
-   * changes are captured and used to aid the user in configuring
-   * a specific action. Actions are mapped to a specific configuration
-   * row.
-   * The second is when the gamepad is enable but not being configured.
+   * Check the gamepad object for activated buttons and axes. More
+   * than one button and more than one axis can be active per poll.
+   * This _pollGamepad method is used for two purposes.
+   *
+   * The first is when configuring the gamepad. Each active (pressed)
+   * button and each active axis causes its corresponding Gamepad widget
+   * configuration row to be highlight. Only one row at a time can be
+   * highlighted, so the last active button/axis row wins. Buttons are
+   * examined first and axes second.
+   *
+   * The second is when the gamepad is enabled and not being configured
+   * (using the global variable configuringWidget for the latter).
    * During this scenario, this._actionMap is used to determine which
    * gamepad actions to examine and pass along to the gamepad widget
    * for further processing.
-   * The global variable configuringWidget indicates which purpose.
    *
    * The current state of an action included in this._actionMap is sent
    * to the widget's valuesHandler() every RQ_PARAMS.POLL_PERIOD_MS,
@@ -413,20 +420,24 @@ class Gamepad {
     }
 
     if (!this._gamepad.connected) {
+      if (configuringWidget) {
+        console.warn(
+          'gamepad not connected, cannot configure'
+        )
+      }
       return
     }
 
-    if (this._userAgent === CHROMIUM) {
-      const gamepads = navigator.getGamepads()
-      this._gamepad = gamepads[0]
-    }
+    this._gamepad = navigator.getGamepads()[this._gamepadIndex]
 
     /*
-     * An object for conveying the states of those actions
-     * specified in this._actionMap. The property is the action
-     * identifier and the property's value is the action's value.
+     * actions is an object for conveying the states of those actions
+     * (buttons and axes) specified in this._actionMap. The property
+     * is the action * identifier and the property's value is the
+     * action's value.
      */
     const actions = []
+
     let bIndex
     for (
       bIndex = 0;
@@ -487,8 +498,6 @@ class Gamepad {
     if (!configuringWidget) {
       this._valuesHandler(actions)
     }
-
-    this._lastPoll = performance.now()
   }
 
   /**
@@ -553,7 +562,9 @@ class Gamepad {
   }
 
   /**
-   * Enumerate the buttons and axes from the gamepad and build the
+   * This method can't be called until a gamepad is connected.
+   *
+   * Enumerate the buttons and axes from GamepadMaps and build the
    * configuration input form. The gamepad widget can publish to zero or
    * more topics and call zero or more services. gamepad actions are
    * button presses and axis moves. A single topic or service can be
@@ -567,19 +578,24 @@ class Gamepad {
     }
     columnHeadings += '</tr>'
 
-    let row
+    let row = ''
     const gamepadInputsTable = jQuery('#gamepadInputsTable')
     gamepadInputsTable.children('tr').remove()
     gamepadInputsTable.append(columnHeadings)
 
+    if (!(this._gamepadId in gamepadMaps)) {
+      console.warn(this._gamepadId + ' not defined in gamepadMaps')
+      return
+    }
+
     const sectionDetails = [
       {
-        rows: this._gamepad.buttons.length,
+        rows: gamepadMaps[this._gamepadId][BUTTON_PREFIX].length,
         prefix: BUTTON_PREFIX,
         type: 'Buttons'
       },
       {
-        rows: this._gamepad.axes.length,
+        rows: gamepadMaps[this._gamepadId][AXIS_PREFIX].length,
         prefix: AXIS_PREFIX,
         type: 'Axes'
       }
@@ -595,7 +611,11 @@ class Gamepad {
         row = '<tr>'
         row += `<td><label id="${section.prefix}${indexId}">`
         row += `<span id="${section.prefix}${indexId}span">`
-        row += `${section.prefix}${indexId}`
+        if (!(Array.isArray(gamepadMaps[this._gamepadId][section.prefix][index]))) {
+          row += gamepadMaps[this._gamepadId][section.prefix][index]
+        } else {
+          row += gamepadMaps[this._gamepadId][section.prefix][index][0]
+        }
         row += '</span>'
         row += '</label></td>'
         for (const field of ACTION_FIELDS) {
@@ -716,11 +736,12 @@ class Gamepad {
   _handleConnect (event) {
     this._gamepadIndex = event.gamepad.index
     this._gamepad = event.gamepad
+    this._gamepadId = this._gamepad.id
 
     console.debug(
       '_handleConnect:' +
       ` index: ${this._gamepadIndex}` +
-      ` ID: ${this._gamepad.id}`
+      ` ID: ${this._gamepadId}`
     )
     this._setupConfigForm()
   }
