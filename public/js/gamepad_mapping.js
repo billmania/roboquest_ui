@@ -18,7 +18,34 @@ const gamepadMaps = { // eslint-disable-line no-unused-vars
   },
   '046d-c21d-Logitech Gamepad F310': { // Firefox
   },
-  'Logitech Gamepad F310 (STANDARD GAMEPAD Vendor: 046d Product: c21d)': { // Chrome
+  'Logitech Gamepad F310 (STANDARD GAMEPAD Vendor: 046d Product: c21d)': { // Chrome/ubuntu
+    b: [
+      'A',
+      'B',
+      'X',
+      'Y',
+      'Left index',
+      'Right index',
+      ['Left trigger', 0.0, 0.0],
+      ['Right trigger', 0.0, 0.0],
+      'Back',
+      'Start',
+      'Left joy press',
+      'Right joy press',
+      'Up HAT',
+      'Down HAT',
+      'Left HAT',
+      'Right HAT',
+      'Big'
+    ],
+    a: [
+      ['Left joy horiz', 0.0, -1.0],
+      ['Left joy vert', 0.0, -1.0],
+      ['Right joy horiz', 0.0, -1.0],
+      ['Right joy vert', 0.0, -1.0]
+    ]
+  },
+  'Xbox 360 Controller (XInput STANDARD GAMEPAD)': { // Chrome/Windows
     b: [
       'A',
       'B',

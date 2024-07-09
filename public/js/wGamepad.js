@@ -374,39 +374,13 @@ class Gamepad {
   }
 
   /**
-   * Highlight a specific row in the table of axes and buttons
-   * configuration. All other highlights will be removed.
-   *
-   * @param {string} rowPrefix - the prefix part of the HTML element
-   *                             ID which identifies the row
-   * @param {number} rowIndex - the index part of the HTML element
-   *                            ID which identifies the row
-   */
-  _highlightConfigRow (rowPrefix, rowIndex) {
-    const HighLightRowClass = 'highlight-row'
-    const paddedIndex = rowIndex.toString().padStart(PAD_LENGTH, '0')
-
-    const configRow = jQuery(`#${rowPrefix}${paddedIndex}span`)
-    jQuery('.' + HighLightRowClass).removeClass(HighLightRowClass)
-    configRow.addClass(HighLightRowClass)
-  }
-
-  /**
    * Check the gamepad object for activated buttons and axes. More
    * than one button and more than one axis can be active per poll.
-   * This _pollGamepad method is used for two purposes.
    *
-   * The first is when configuring the gamepad. Each active (pressed)
-   * button and each active axis causes its corresponding Gamepad widget
-   * configuration row to be highlight. Only one row at a time can be
-   * highlighted, so the last active button/axis row wins. Buttons are
-   * examined first and axes second.
-   *
-   * The second is when the gamepad is enabled and not being configured
-   * (using the global variable configuringWidget for the latter).
-   * During this scenario, this._actionMap is used to determine which
-   * gamepad actions to examine and pass along to the gamepad widget
-   * for further processing.
+   * When the gamepad is enabled and not being configured
+   * (using the global variable configuringWidget for the latter),
+   * this._actionMap is used to determine which gamepad actions to examine
+   * and pass along to the gamepad widget for further processing.
    *
    * The current state of an action included in this._actionMap is sent
    * to the widget's valuesHandler() every RQ_PARAMS.POLL_PERIOD_MS,
@@ -461,13 +435,6 @@ class Gamepad {
             data: this._actionMap[PREFIX_MAP[BUTTON_PREFIX]][bIndex]
           })
         }
-      } else {
-        if (this._gamepad.buttons[bIndex].pressed) {
-          this._highlightConfigRow(
-            BUTTON_PREFIX,
-            bIndex
-          )
-        }
       }
     }
 
@@ -484,13 +451,6 @@ class Gamepad {
             value,
             data: this._actionMap[PREFIX_MAP[AXIS_PREFIX]][aIndex]
           })
-        }
-      } else {
-        if (this._gamepad.axes[aIndex]) {
-          this._highlightConfigRow(
-            AXIS_PREFIX,
-            aIndex
-          )
         }
       }
     }
@@ -562,7 +522,8 @@ class Gamepad {
   }
 
   /**
-   * This method can't be called until a gamepad is connected.
+   * This method can't be called until a gamepad is connected, because
+   * the ID of the gamepad is required.
    *
    * Enumerate the buttons and axes from GamepadMaps and build the
    * configuration input form. The gamepad widget can publish to zero or

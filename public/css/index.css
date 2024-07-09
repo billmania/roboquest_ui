@@ -249,6 +249,10 @@ input, select{
     )
 }
 
+/*
+ * This is obsolete, since it's no longer necessary to highlight
+ * gamepad configuration rows.
+ */
 .highlight-row {
         display: inline-block;
         padding: .25em 0;
