@@ -234,15 +234,15 @@ const openConfigureWidgetDialog = function (widget) {
     open: function (event, ui) {
       keyControl.disableKeys()
       configuringWidget = true
-      gamepad.enableGamepad()
+      console.debug('configuringWidget is true')
     },
     close: function (event, ui) {
       /*
        * Executed by clicking the X or Cancel on the (re)Configure Widget
        * dialog, regardless of widget type. Also by calling dialog.close().
        */
-      gamepad.disableGamepad()
       configuringWidget = false
+      console.debug('configuringWidget is false')
     }
   }).dialog('open')
 }
@@ -324,7 +324,6 @@ const reconfigureWidget = function (oldWidgetConfig, newWidgetConfig) {
       `${newWidgetConfig.id} must have` +
       ' a unique, non-blank label.'
     )
-
 
     return
   }
@@ -618,6 +617,7 @@ const initWidgetConfig = function (objSocket) { // eslint-disable-line no-unused
 
     createWidget(objNewWidget)
     configuringWidget = false
+    console.debug('configuringWidget is false')
     positionWidgets()
   }
 
@@ -670,7 +670,7 @@ const initWidgetConfig = function (objSocket) { // eslint-disable-line no-unused
         keyControl.disableKeys()
         setWidgetConfigDefaults()
         configuringWidget = true
-        gamepad.enableGamepad()
+        console.debug('configuringWidget is true')
       },
       close: function (event, ui) {
         gamepad.disableGamepad()
