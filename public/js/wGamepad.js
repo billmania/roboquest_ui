@@ -743,10 +743,20 @@ class Gamepad {
   enableGamepad () {
     if (!this.gamepadConnected()) {
       console.warn('enableGamepad: no gamepad to enable')
+      this.disableGamepad()
       return
     }
 
-    this.disableGamepad()
+    if (this._gamepadEnabled) {
+      console.warn('enableGamepad: gamepad already enabled')
+      return
+    }
+
+    if (this._pollIntervalId) {
+      clearInterval(this._pollIntervalId)
+      this._pollIntervalId = null
+    }
+
     this._pollIntervalId = setInterval(
       this._pollGamepad.bind(this),
       RQ_PARAMS.POLL_PERIOD_MS
