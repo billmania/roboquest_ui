@@ -33,15 +33,17 @@ const WINDOWS = 'windows'
  * The gamepad widget configuration dialog data section has a
  * form containing a table which includes rows with the following
  * fields.
- * These names are hard-coded into the GamepadData class.
+ * The first element of each entry is the field name and is hard-coded
+ * into the GamepadData class.
+ * The second is a list of default values for a pulldown menu.
  */
 const ACTION_FIELDS = [
-  'description', // meaningful to the user
-  'destinationType', // topic or service
-  'destinationName', // name of topic or service
-  'interface', // interface type
-  'attributes', // semi-colon delimited list with colon-delimited constants
-  'scaling' // signed, floating point
+  ['description', []], // meaningful to the user
+  ['destinationType', ['topic', 'service']], // topic or service
+  ['destinationName', []], // name of topic or service
+  ['interface', []], // interface type
+  ['attributes', []], // semi-colon delimited list with colon-delimited constants
+  ['scaling', ['1.0']] // signed, floating point
 ]
 
 /*
@@ -535,7 +537,7 @@ class Gamepad {
     jQuery('#gamepadId').html(this._gamepad.id)
     let columnHeadings = '<tr><th>actionId</th>'
     for (const field of ACTION_FIELDS) {
-      columnHeadings += `<th>${field}</th>`
+      columnHeadings += `<th>${field[0]}</th>`
     }
     columnHeadings += '</tr>'
 
@@ -580,7 +582,7 @@ class Gamepad {
         row += '</span>'
         row += '</label></td>'
         for (const field of ACTION_FIELDS) {
-          row += `<td><input type="text" data-section="data" value="" name="${section.prefix}${indexId}${field}"></td>`
+          row += `<td><input type="text" data-section="data" value="" name="${section.prefix}${indexId}${field[0]}"></td>`
         }
         row += '</tr>'
         gamepadInputsTable.append(row)

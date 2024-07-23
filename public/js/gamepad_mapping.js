@@ -15,8 +15,62 @@
  */
 const gamepadMaps = { // eslint-disable-line no-unused-vars
   '©Microsoft Corporation Controller (STANDARD GAMEPAD Vendor: 045e Product: 028e)': {
+    b: [
+      'A',
+      'B',
+      'Y',
+      'X',
+      'Left index',
+      'Right index',
+      'na',
+      'na',
+      'Back',
+      'Start',
+      'Left joy press',
+      'Right joy press',
+      'Up D-PAD',
+      'Down D-PAD',
+      'Left D-PAD',
+      'Right D-PAD',
+      'Big'
+    ],
+    a: [
+      ['Left joy horiz', 0.0, -1.0],
+      ['Left joy vert', 0.0, -1.0],
+      ['Right joy horiz', 0.0, -1.0],
+      ['Right joy vert', 0.0, -1.0],
+      ['Left trigger', -1.0, -1.0],
+      ['Right trigger', -1.0, -1.0]
+    ]
   },
-  '046d-c21d-Logitech Gamepad F310': { // Firefox
+  '046d-c21d-Logitech Gamepad F310': { // Firefox/ubuntu
+    b: [
+      'A',
+      'B',
+      'Y',
+      'X',
+      'Left index',
+      'Right index',
+      'na',
+      'na',
+      'Back',
+      'Start',
+      'Left joy press',
+      'Right joy press',
+      'Up D-PAD',
+      'Down D-PAD',
+      'Left D-PAD',
+      'Right D-PAD',
+      'Big'
+    ],
+    a: [
+      ['Left joy horiz', 0.0, -1.0],
+      ['Left joy vert', 0.0, -1.0],
+      ['Right joy horiz', 0.0, -1.0],
+      ['Right joy vert', 0.0, -1.0],
+      ['Left trigger', -1.0, -1.0],
+      ['Right trigger', -1.0, -1.0]
+    ]
   },
   'Logitech Gamepad F310 (STANDARD GAMEPAD Vendor: 046d Product: c21d)': { // Chrome/ubuntu
     b: [
@@ -32,10 +86,10 @@ const gamepadMaps = { // eslint-disable-line no-unused-vars
       'Start',
       'Left joy press',
       'Right joy press',
-      'Up HAT',
-      'Down HAT',
-      'Left HAT',
-      'Right HAT',
+      'Up D-PAD',
+      'Down D-PAD',
+      'Left D-PAD',
+      'Right D-PAD',
       'Big'
     ],
     a: [
@@ -59,10 +113,10 @@ const gamepadMaps = { // eslint-disable-line no-unused-vars
       'Start',
       'Left joy press',
       'Right joy press',
-      'Up HAT',
-      'Down HAT',
-      'Left HAT',
-      'Right HAT',
+      'Up D-PAD',
+      'Down D-PAD',
+      'Left D-PAD',
+      'Right D-PAD',
       'Big'
     ],
     a: [
