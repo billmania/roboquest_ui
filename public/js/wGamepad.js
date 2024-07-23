@@ -36,15 +36,19 @@ const WINDOWS = 'windows'
  * The first element of each entry is the field name and is hard-coded
  * into the GamepadData class.
  * The second is a list of default values for a pulldown menu.
+ * The third is a default value for the field, without a pulldown.
  */
 const ACTION_FIELDS = [
-  ['description', []], // meaningful to the user
-  ['destinationType', ['topic', 'service']], // topic or service
-  ['destinationName', []], // name of topic or service
-  ['interface', []], // interface type
-  ['attributes', []], // semi-colon delimited list with colon-delimited constants
-  ['scaling', ['1.0']] // signed, floating point
+  ['description', [], ''], // meaningful to the user
+  ['destinationType', ['topic', 'service'], ''], // topic or service
+  ['destinationName', [], ''], // name of topic or service
+  ['interface', [], ''], // interface type
+  ['attributes', [], ''], // semi-colon delimited list with colon-delimited constants
+  ['scaling', [], '1.0'] // signed, floating point
 ]
+const FIELD_NAME = 0
+const FIELD_PULLDOWN = 1
+const FIELD_DEFAULT = 2
 
 /*
  * 'buttons' and 'axes' come from the Gamepad object.
@@ -582,7 +586,18 @@ class Gamepad {
         row += '</span>'
         row += '</label></td>'
         for (const field of ACTION_FIELDS) {
-          row += `<td><input type="text" data-section="data" value="" name="${section.prefix}${indexId}${field[0]}"></td>`
+          if (field.length > 1 &&
+              Array.isArray(field[FIELD_PULLDOWN]) &&
+              field[FIELD_PULLDOWN].length > 0) {
+            row += `<td><select data-section="data" value="" name="${section.prefix}${indexId}${field[0]}">`
+            row += '<option value=""></option>'
+            for (const value of field[FIELD_PULLDOWN]) {
+              row += `<option value="${value}">${value}</option>`
+            }
+            row += '</select></td>'
+          } else {
+            row += `<td><input type="text" data-section="data" value="" name="${section.prefix}${indexId}${field[0]}"></td>`
+          }
         }
         row += '</tr>'
         gamepadInputsTable.append(row)
