@@ -528,6 +528,16 @@ class Gamepad {
   }
 
   /**
+   * This method can be called each time the value of the destinationType column
+   * is changed. It uses the current value of the associated destinationType to
+   * choose either _servicesList or _topicsList and then use the contents of one
+   * of those lists to populate the pulldown menu for the destinationName column.
+   */
+  fillDestinationNamePulldown (sourceElement) {
+    console.debug(`fillDestinationNamePulldown: ${sourceElement.name}=>${sourceElement.value}`)
+  }
+
+  /**
    * This method can't be called until a gamepad is connected, because
    * the ID of the gamepad is required.
    *
@@ -541,7 +551,7 @@ class Gamepad {
     jQuery('#gamepadId').html(this._gamepad.id)
     let columnHeadings = '<tr><th>actionId</th>'
     for (const field of ACTION_FIELDS) {
-      columnHeadings += `<th>${field[0]}</th>`
+      columnHeadings += `<th>${field[FIELD_NAME]}</th>`
     }
     columnHeadings += '</tr>'
 
@@ -589,7 +599,7 @@ class Gamepad {
           if (field.length > 1 &&
               Array.isArray(field[FIELD_PULLDOWN]) &&
               field[FIELD_PULLDOWN].length > 0) {
-            row += `<td><select data-section="data" value="" name="${section.prefix}${indexId}${field[0]}">`
+            row += `<td><select data-section="data" value="" name="${section.prefix}${indexId}${field[FIELD_NAME]}" onchange="gamepad.fillDestinationNamePulldown(this)">`
             row += '<option value=""></option>'
             for (const value of field[FIELD_PULLDOWN]) {
               row += `<option value="${value}">${value}</option>`
