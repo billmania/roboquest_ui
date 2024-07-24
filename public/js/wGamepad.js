@@ -753,6 +753,20 @@ class Gamepad {
   }
 
   /**
+   * The process for configuring a gamepad requires the list of available
+   * services and topics. Some logic outside this object retrieves the lists
+   * and then passes them into the object using this callback method.
+   */
+  setServicesTopics (servicesTopicsString) {
+    console.debug(`setServicesTopics: ${servicesTopicsString}`)
+
+    const servicesTopics = JSON.parse(servicesTopicsString)
+
+    this._servicesList = servicesTopics.services
+    this._topicsList = servicesTopics.topics
+  }
+
+  /**
    * Try to enable the gamepad. Used for scenarios where
    * the gamepad is needed, without explicit user action, such
    * as gamepad configuration.

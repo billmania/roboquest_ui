@@ -20,7 +20,7 @@ class WebServer {
   constructor (clientName, configFile) {
     this.clientName = clientName
     this.configFile = configFile
-    this.incomingEvents = ['update', 'restart', 'choose_camera']
+    this.incomingEvents = ['update', 'restart', 'choose_camera', 'services_topics']
     this.send_to_robot = null
 
     this.express_app = express()
