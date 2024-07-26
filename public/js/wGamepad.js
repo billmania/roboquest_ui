@@ -32,7 +32,11 @@ const WINDOWS = 'windows'
 /*
  * The gamepad widget configuration dialog data section has a
  * form containing a table which includes rows with the following
- * fields.
+ * fields. The ACTION_FIELDS Array looks like it can be used as a
+ * general-purpose configuration object, but don't be fooled. There are
+ * too many other places in this source file where these same strings
+ * are defined separately.
+ *
  * The first element of each entry is the field name and is hard-coded
  * into the GamepadData class.
  * The second is a list of default values for a pulldown menu.
@@ -40,7 +44,7 @@ const WINDOWS = 'windows'
  */
 const ACTION_FIELDS = [
   ['description', [], ''], // meaningful to the user
-  ['destinationType', ['topic', 'service'], ''], // topic or service
+  ['destinationType', ['topic', 'service'], ''],
   ['destinationName', [], ''], // name of topic or service
   ['interface', [], ''], // interface type
   ['attributes', [], ''], // semi-colon delimited list with colon-delimited constants
@@ -528,13 +532,33 @@ class Gamepad {
   }
 
   /**
-   * This method can be called each time the value of the destinationType column
-   * is changed. It uses the current value of the associated destinationType to
-   * choose either _servicesList or _topicsList and then use the contents of one
-   * of those lists to populate the pulldown menu for the destinationName column.
+   * This method can be called each time the value of an element in the
+   * destinationType column is changed. It uses the current value of the
+   * element to choose either _servicesList or _topicsList and then use the
+   * contents of one of those lists to populate the pulldown menu for the
+   * destinationName column.
+   *
+   * Example of name is "b04destinationType". value has the current value of the
+   * select element, from the set ['service', 'topic'].
    */
   fillDestinationNamePulldown (sourceElement) {
     console.debug(`fillDestinationNamePulldown: ${sourceElement.name}=>${sourceElement.value}`)
+    /*
+     * The value must be from the set at FIELD_PULLDOWN in the
+     * ACTION_FIELDS Array, destinationType.
+     */
+    if (!['service', 'topic'].includes(sourceElement.value)) {
+      console.warn(`fillDestinationNamePulldown: type "${sourceElement.value}" not recognized`)
+      /*
+       * Change the destinationName column element to a simple input element.
+       */
+      // TODO: Implement
+      return
+    }
+
+    for (const topic of this._servicesTopics[sourceElement.value]) {
+      console.debug(topic)
+    }
   }
 
   /**
@@ -606,7 +630,7 @@ class Gamepad {
             }
             row += '</select></td>'
           } else {
-            row += `<td><input type="text" data-section="data" value="" name="${section.prefix}${indexId}${field[0]}"></td>`
+            row += `<td><input type="text" data-section="data" value="${field[FIELD_DEFAULT]}" name="${section.prefix}${indexId}${field[FIELD_NAME]}"></td>`
           }
         }
         row += '</tr>'
@@ -772,8 +796,9 @@ class Gamepad {
 
     const servicesTopics = JSON.parse(servicesTopicsString)
 
-    this._servicesList = servicesTopics.services
-    this._topicsList = servicesTopics.topics
+    this._servicesTopics = {}
+    this._servicesTopics.service = servicesTopics.services.sort()
+    this._servicesTopics.topic = servicesTopics.topics.sort()
   }
 
   /**
