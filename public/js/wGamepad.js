@@ -43,12 +43,12 @@ const WINDOWS = 'windows'
  * The third is a default value for the field, without a pulldown.
  */
 const ACTION_FIELDS = [
-  ['description', [], ''], // meaningful to the user
+  ['description', [], ''],
   ['destinationType', ['topic', 'service'], ''],
-  ['destinationName', [], ''], // name of topic or service
-  ['interface', [], ''], // interface type
-  ['attributes', [], ''], // semi-colon delimited list with colon-delimited constants
-  ['scaling', [], '1.0'] // signed, floating point
+  ['destinationName', [], ''],
+  ['interface', [], ''],
+  ['attributes', [], ''],
+  ['scaling', [], '1.0']
 ]
 const FIELD_NAME = 0
 const FIELD_PULLDOWN = 1
@@ -531,24 +531,13 @@ class Gamepad {
     }
   }
 
-  /**
-   * This method can be called each time the value of an element in the
-   * destinationType column is changed. It uses the current value of the
-   * element to choose either _servicesList or _topicsList and then use the
-   * contents of one of those lists to populate the pulldown menu for the
-   * destinationName column.
-   *
-   * Example of name is "b04destinationType". value has the current value of the
-   * select element, from the set ['service', 'topic'].
-   */
-  fillDestinationNamePulldown (sourceElement) {
-    console.debug(`fillDestinationNamePulldown: ${sourceElement.name}=>${sourceElement.value}`)
+  fillDestinationNamePulldown (configRow, value) {
     /*
      * The value must be from the set at FIELD_PULLDOWN in the
      * ACTION_FIELDS Array, destinationType.
      */
-    if (!['service', 'topic'].includes(sourceElement.value)) {
-      console.warn(`fillDestinationNamePulldown: type "${sourceElement.value}" not recognized`)
+    if (!['service', 'topic'].includes(value)) {
+      console.warn(`fillDestinationNamePulldown: type "${value}" not recognized`)
       /*
        * Change the destinationName column element to a simple input element.
        */
@@ -556,8 +545,45 @@ class Gamepad {
       return
     }
 
-    for (const topic of this._servicesTopics[sourceElement.value]) {
-      console.debug(topic)
+    /*
+     * Find the element with the name configRow+destinationName
+     * and replace it with a SELECT element with the appropriate OPTIONs.
+     */
+    const elementName = '[name=' + configRow + 'destinationName' + ']'
+    const oldInputElement = jQuery(elementName)
+    oldInputElement.replaceWith(`<select data-section="data" value="" name="${configRow}destinationName" onchange="gamepad.fillNextPulldown(this)"></select>`)
+
+    const newSelectElement = jQuery(elementName)
+
+    for (const destinationDetails of this._servicesTopics[value]) {
+      const destinationName = destinationDetails.split(':')[0]
+      newSelectElement.append(`<option value="${destinationName}">${destinationName}</option>`)
+    }
+  }
+
+  /**
+   * This method is called each time the value of an element in the
+   * a configuration column is changed. It uses the current value of the
+   * element and the ID of the element to determine which pulldown menu to fill
+   * and with what to fill it. Some of the relevant details are defined in the
+   * ACTION_FIELDS Array.
+   *
+   * Example of name is "b04destinationType". value has the current value of the
+   * select element, from the set ['service', 'topic'].
+   */
+  fillNextPulldown (sourceElement) {
+    console.debug(`fillNextPulldown: ${sourceElement.name}=>${sourceElement.value}`)
+
+    const configRow = sourceElement.name.slice(0, ROW_ID_LENGTH)
+    const columnName = sourceElement.name.slice(ROW_ID_LENGTH)
+
+    switch (columnName) {
+      case 'destinationType':
+        this.fillDestinationNamePulldown(configRow, sourceElement.value)
+        break
+
+      default:
+        break
     }
   }
 
@@ -623,7 +649,7 @@ class Gamepad {
           if (field.length > 1 &&
               Array.isArray(field[FIELD_PULLDOWN]) &&
               field[FIELD_PULLDOWN].length > 0) {
-            row += `<td><select data-section="data" value="" name="${section.prefix}${indexId}${field[FIELD_NAME]}" onchange="gamepad.fillDestinationNamePulldown(this)">`
+            row += `<td><select data-section="data" value="" name="${section.prefix}${indexId}${field[FIELD_NAME]}" onchange="gamepad.fillNextPulldown(this)">`
             row += '<option value=""></option>'
             for (const value of field[FIELD_PULLDOWN]) {
               row += `<option value="${value}">${value}</option>`
