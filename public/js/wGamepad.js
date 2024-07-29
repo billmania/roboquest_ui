@@ -562,6 +562,25 @@ class Gamepad {
   }
 
   /**
+   * When the destinationName entry changes, use the name as an index into
+   * services or topics to find the interfaceName. Place that interfaceName
+   * into the interfaceName element.
+   */
+  fillInterface (configRow, value) {
+    const elementName = '[name=' + configRow + 'interface' + ']'
+    const interfaceElement = jQuery(elementName)
+    const destinationType = jQuery(`[name=${configRow}destinationType]`).val()
+
+    for (const destinationName of this._servicesTopics[destinationType]) {
+      const typeAndName = destinationName.split(':')
+      if (typeAndName[0] === value) {
+        interfaceElement.val(typeAndName[1])
+        break
+      }
+    }
+  }
+
+  /**
    * This method is called each time the value of an element in the
    * a configuration column is changed. It uses the current value of the
    * element and the ID of the element to determine which pulldown menu to fill
@@ -580,6 +599,10 @@ class Gamepad {
     switch (columnName) {
       case 'destinationType':
         this.fillDestinationNamePulldown(configRow, sourceElement.value)
+        break
+
+      case 'destinationName':
+        this.fillInterface(configRow, sourceElement.value)
         break
 
       default:
