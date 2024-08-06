@@ -534,17 +534,27 @@ class Gamepad {
     }
   }
 
-  fillDestinationNamePulldown (configRow, value) {
+  fillDestinationNamePulldown (configRow, destinationType) {
+    let elementName = '[name=' + configRow + 'scaling' + ']'
+
     /*
      * The value must be from the set at FIELD_PULLDOWN in the
      * ACTION_FIELDS Array, destinationType.
      */
-    if (!['service', 'topic'].includes(value)) {
-      console.warn(`fillDestinationNamePulldown: type "${value}" not recognized`)
+    if (destinationType === 'service') {
+      jQuery(elementName).val('')
+    } else if (destinationType === 'topic') {
+      for (const field of ACTION_FIELDS) {
+        if (field[FIELD_NAME] === 'scaling') {
+          jQuery(elementName).val(field[FIELD_DEFAULT])
+          break
+        }
+      }
+    } else {
       /*
-       * Change the destinationName column element to a simple input element.
+       * Erase all the elements in this row.
        */
-      // TODO: Implement
+      this.eraseRow(undefined, configRow)
       return
     }
 
@@ -552,13 +562,13 @@ class Gamepad {
      * Find the element with the name configRow+destinationName
      * and replace it with a SELECT element with the appropriate OPTIONs.
      */
-    const elementName = '[name=' + configRow + 'destinationName' + ']'
+    elementName = '[name=' + configRow + 'destinationName' + ']'
     const oldInputElement = jQuery(elementName)
     oldInputElement.replaceWith(`<select data-section="data" value="" name="${configRow}destinationName" onchange="gamepad.fillNextPulldown(this)"></select>`)
 
     const newSelectElement = jQuery(elementName)
 
-    for (const destinationDetails of this._servicesTopics[value]) {
+    for (const destinationDetails of this._servicesTopics[destinationType]) {
       const destinationName = destinationDetails.split(':')[0]
       newSelectElement.append(`<option value="${destinationName}">${destinationName}</option>`)
     }
@@ -614,30 +624,41 @@ class Gamepad {
   /**
    * Used to clear an entire configuration row when one column is erased.
    */
-  eraseRow (sourceElement) {
-    const columnName = sourceElement.name.slice(ROW_ID_LENGTH)
+  eraseRow (sourceElement, configRow) {
+    let columnName = null
+    let rowToErase = null
 
-    if (columnName === 'description') {
-      const description = jQuery(`[name=${sourceElement.name}]`).val()
-      if (description === '') {
-        /*
-         * Since the description column has been erased, empty all of
-         * the other columns in this row.
-         */
-        const configRow = sourceElement.name.slice(0, ROW_ID_LENGTH)
+    /*
+     * If a configRow is provided, erase all of the columns in that row.
+     * Otherwise, extract the sourceElement.columnName and the value of
+     * that column and decide how to proceed based on them.
+     */
 
-        const ERASE_COLUMNS = [
-          'destinationType',
-          'destinationName',
-          'interface',
-          'attributes',
-          'scaling'
-        ]
-        for (const column of ERASE_COLUMNS) {
-          const columnName = '[name=' + configRow + column + ']'
-          jQuery(columnName).val('')
+    if (configRow !== undefined) {
+      rowToErase = configRow
+    } else if (sourceElement !== undefined) {
+      columnName = sourceElement.name.slice(ROW_ID_LENGTH)
+      if (columnName === 'description') {
+        const description = jQuery(`[name=${sourceElement.name}]`).val()
+        if (description === '') {
+          rowToErase = sourceElement.name.slice(0, ROW_ID_LENGTH)
         }
       }
+    } else {
+      return
+    }
+
+    const ERASE_COLUMNS = [
+      'description',
+      'destinationType',
+      'destinationName',
+      'interface',
+      'attributes',
+      'scaling'
+    ]
+    for (const column of ERASE_COLUMNS) {
+      const columnName = '[name=' + rowToErase + column + ']'
+      jQuery(columnName).val('')
     }
   }
 
