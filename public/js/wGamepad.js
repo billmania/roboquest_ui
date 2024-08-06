@@ -41,18 +41,21 @@ const WINDOWS = 'windows'
  * into the GamepadData class.
  * The second is a list of default values for a pulldown menu.
  * The third is a default value for the field, without a pulldown.
+ * Fourth is the method to call onchange. There must be a method in the Gamepad
+ * class with this name.
  */
 const ACTION_FIELDS = [
-  ['description', [], ''],
-  ['destinationType', ['topic', 'service'], ''],
-  ['destinationName', [], ''],
-  ['interface', [], ''],
-  ['attributes', [], ''],
-  ['scaling', [], '1.0']
+  ['description', [], '', 'eraseRow'],
+  ['destinationType', ['topic', 'service'], '', 'fillNextPulldown'],
+  ['destinationName', [], '', 'fillNextPulldown'],
+  ['interface', [], '', ''],
+  ['attributes', [], '', ''],
+  ['scaling', [], '1.0', '']
 ]
 const FIELD_NAME = 0
 const FIELD_PULLDOWN = 1
 const FIELD_DEFAULT = 2
+const FIELD_CHANGE = 3
 
 /*
  * 'buttons' and 'axes' come from the Gamepad object.
@@ -591,8 +594,6 @@ class Gamepad {
    * select element, from the set ['service', 'topic'].
    */
   fillNextPulldown (sourceElement) {
-    console.debug(`fillNextPulldown: ${sourceElement.name}=>${sourceElement.value}`)
-
     const configRow = sourceElement.name.slice(0, ROW_ID_LENGTH)
     const columnName = sourceElement.name.slice(ROW_ID_LENGTH)
 
@@ -607,6 +608,36 @@ class Gamepad {
 
       default:
         break
+    }
+  }
+
+  /**
+   * Used to clear an entire configuration row when one column is erased.
+   */
+  eraseRow (sourceElement) {
+    const columnName = sourceElement.name.slice(ROW_ID_LENGTH)
+
+    if (columnName === 'description') {
+      const description = jQuery(`[name=${sourceElement.name}]`).val()
+      if (description === '') {
+        /*
+         * Since the description column has been erased, empty all of
+         * the other columns in this row.
+         */
+        const configRow = sourceElement.name.slice(0, ROW_ID_LENGTH)
+
+        const ERASE_COLUMNS = [
+          'destinationType',
+          'destinationName',
+          'interface',
+          'attributes',
+          'scaling'
+        ]
+        for (const column of ERASE_COLUMNS) {
+          const columnName = '[name=' + configRow + column + ']'
+          jQuery(columnName).val('')
+        }
+      }
     }
   }
 
@@ -672,14 +703,18 @@ class Gamepad {
           if (field.length > 1 &&
               Array.isArray(field[FIELD_PULLDOWN]) &&
               field[FIELD_PULLDOWN].length > 0) {
-            row += `<td><select data-section="data" value="" name="${section.prefix}${indexId}${field[FIELD_NAME]}" onchange="gamepad.fillNextPulldown(this)">`
+            row += `<td><select data-section="data" value="" name="${section.prefix}${indexId}${field[FIELD_NAME]}" onchange="gamepad.${field[FIELD_CHANGE]}(this)">`
             row += '<option value=""></option>'
             for (const value of field[FIELD_PULLDOWN]) {
               row += `<option value="${value}">${value}</option>`
             }
             row += '</select></td>'
           } else {
-            row += `<td><input type="text" data-section="data" value="${field[FIELD_DEFAULT]}" name="${section.prefix}${indexId}${field[FIELD_NAME]}"></td>`
+            let change = ''
+            if (field[FIELD_CHANGE] && field[FIELD_CHANGE] !== '') {
+              change = ` onchange="gamepad.${field[FIELD_CHANGE]}(this)"`
+            }
+            row += `<td><input type="text" data-section="data" value="${field[FIELD_DEFAULT]}" name="${section.prefix}${indexId}${field[FIELD_NAME]}"${change}></td>`
           }
         }
         row += '</tr>'
