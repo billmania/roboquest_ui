@@ -76,6 +76,10 @@ class RobotComms {
       'std_srvs/srv/Empty',
       'restart'
     )
+    this._servicesTopicsClient = this.create_service_client(
+      'rq_msgs/srv/ServicesTopics',
+      'services_topics'
+    )
     if (this._restartServiceClient !== undefined) {
       this.logger.debug('_restartServiceClient set')
     }
@@ -145,12 +149,6 @@ class RobotComms {
         }
       )
     } else if (name === 'restart') {
-      /*
-       * This is a special "system" service, not associated with a widget. In
-       * the future, there may be more of these services. If that comes,
-       * this logic will be replaced with a separate function capable of
-       * handling multiple system services.
-       */
       this._restartServiceClient.sendRequest(
         {},
         (response) => {
@@ -159,6 +157,13 @@ class RobotComms {
            * nothing to check, beyond the fact it returned.
            */
           this.logger.info('handle_payload: restart called')
+        }
+      )
+    } else if (name === 'services_topics') {
+      this._servicesTopicsClient.sendRequest(
+        {},
+        (response) => {
+          this.send_to_client_cb('services_topics', JSON.stringify(response))
         }
       )
     } else if (name === 'choose_camera') {

@@ -32,23 +32,30 @@ const WINDOWS = 'windows'
 /*
  * The gamepad widget configuration dialog data section has a
  * form containing a table which includes rows with the following
- * fields.
+ * fields. The ACTION_FIELDS Array looks like it can be used as a
+ * general-purpose configuration object, but don't be fooled. There are
+ * too many other places in this source file where these same strings
+ * are defined separately.
+ *
  * The first element of each entry is the field name and is hard-coded
  * into the GamepadData class.
  * The second is a list of default values for a pulldown menu.
  * The third is a default value for the field, without a pulldown.
+ * Fourth is the method to call onchange. There must be a method in the Gamepad
+ * class with this name.
  */
 const ACTION_FIELDS = [
-  ['description', [], ''], // meaningful to the user
-  ['destinationType', ['topic', 'service'], ''], // topic or service
-  ['destinationName', [], ''], // name of topic or service
-  ['interface', [], ''], // interface type
-  ['attributes', [], ''], // semi-colon delimited list with colon-delimited constants
-  ['scaling', [], '1.0'] // signed, floating point
+  ['description', [], '', 'eraseRow'],
+  ['destinationType', ['topic', 'service'], '', 'fillNextPulldown'],
+  ['destinationName', [], '', 'fillNextPulldown'],
+  ['interface', [], '', ''],
+  ['attributes', [], '', ''],
+  ['scaling', [], '1.0', '']
 ]
 const FIELD_NAME = 0
 const FIELD_PULLDOWN = 1
 const FIELD_DEFAULT = 2
+const FIELD_CHANGE = 3
 
 /*
  * 'buttons' and 'axes' come from the Gamepad object.
@@ -527,6 +534,134 @@ class Gamepad {
     }
   }
 
+  fillDestinationNamePulldown (configRow, destinationType) {
+    let elementName = '[name=' + configRow + 'scaling' + ']'
+
+    /*
+     * The value must be from the set at FIELD_PULLDOWN in the
+     * ACTION_FIELDS Array, destinationType.
+     */
+    if (destinationType === 'service') {
+      jQuery(elementName).val('')
+    } else if (destinationType === 'topic') {
+      for (const field of ACTION_FIELDS) {
+        if (field[FIELD_NAME] === 'scaling') {
+          jQuery(elementName).val(field[FIELD_DEFAULT])
+          break
+        }
+      }
+    } else {
+      /*
+       * Erase all the elements in this row.
+       */
+      this.eraseRow(undefined, configRow)
+      return
+    }
+
+    /*
+     * Find the element with the name configRow+destinationName
+     * and replace it with a SELECT element with the appropriate OPTIONs.
+     */
+    elementName = '[name=' + configRow + 'destinationName' + ']'
+    const oldInputElement = jQuery(elementName)
+    oldInputElement.replaceWith(`<select data-section="data" value="" name="${configRow}destinationName" onchange="gamepad.fillNextPulldown(this)"></select>`)
+
+    const newSelectElement = jQuery(elementName)
+
+    for (const destinationDetails of this._servicesTopics[destinationType]) {
+      const destinationName = destinationDetails.split(':')[0]
+      newSelectElement.append(`<option value="${destinationName}">${destinationName}</option>`)
+    }
+  }
+
+  /**
+   * When the destinationName entry changes, use the name as an index into
+   * services or topics to find the interfaceName. Place that interfaceName
+   * into the interfaceName element.
+   */
+  fillInterface (configRow, value) {
+    const elementName = '[name=' + configRow + 'interface' + ']'
+    const interfaceElement = jQuery(elementName)
+    const destinationType = jQuery(`[name=${configRow}destinationType]`).val()
+
+    for (const destinationName of this._servicesTopics[destinationType]) {
+      const typeAndName = destinationName.split(':')
+      if (typeAndName[0] === value) {
+        interfaceElement.val(typeAndName[1])
+        break
+      }
+    }
+  }
+
+  /**
+   * This method is called each time the value of an element in the
+   * a configuration column is changed. It uses the current value of the
+   * element and the ID of the element to determine which pulldown menu to fill
+   * and with what to fill it. Some of the relevant details are defined in the
+   * ACTION_FIELDS Array.
+   *
+   * Example of name is "b04destinationType". value has the current value of the
+   * select element, from the set ['service', 'topic'].
+   */
+  fillNextPulldown (sourceElement) {
+    const configRow = sourceElement.name.slice(0, ROW_ID_LENGTH)
+    const columnName = sourceElement.name.slice(ROW_ID_LENGTH)
+
+    switch (columnName) {
+      case 'destinationType':
+        this.fillDestinationNamePulldown(configRow, sourceElement.value)
+        break
+
+      case 'destinationName':
+        this.fillInterface(configRow, sourceElement.value)
+        break
+
+      default:
+        break
+    }
+  }
+
+  /**
+   * Used to clear an entire configuration row when one column is erased.
+   */
+  eraseRow (sourceElement, configRow) {
+    let columnName = null
+    let rowToErase = null
+
+    /*
+     * If a configRow is provided, erase all of the columns in that row.
+     * Otherwise, extract the sourceElement.columnName and the value of
+     * that column and decide how to proceed based on them.
+     */
+
+    if (configRow !== undefined) {
+      rowToErase = configRow
+    } else if (sourceElement !== undefined) {
+      columnName = sourceElement.name.slice(ROW_ID_LENGTH)
+      if (columnName === 'description') {
+        const description = jQuery(`[name=${sourceElement.name}]`).val()
+        if (description === '') {
+          rowToErase = sourceElement.name.slice(0, ROW_ID_LENGTH)
+        }
+      }
+    } else {
+      return
+    }
+
+    const ERASE_COLUMNS = [
+      'description',
+      'destinationType',
+      'destinationName',
+      'interface',
+      'attributes',
+      'scaling'
+    ]
+    for (const column of ERASE_COLUMNS) {
+      const columnName = '[name=' + rowToErase + column + ']'
+      jQuery(columnName).val('')
+    }
+  }
+
   /**
    * This method can't be called until a gamepad is connected, because
    * the ID of the gamepad is required.
@@ -541,7 +676,7 @@ class Gamepad {
     jQuery('#gamepadId').html(this._gamepad.id)
     let columnHeadings = '<tr><th>actionId</th>'
     for (const field of ACTION_FIELDS) {
-      columnHeadings += `<th>${field[0]}</th>`
+      columnHeadings += `<th>${field[FIELD_NAME]}</th>`
     }
     columnHeadings += '</tr>'
 
@@ -589,14 +724,18 @@ class Gamepad {
           if (field.length > 1 &&
               Array.isArray(field[FIELD_PULLDOWN]) &&
               field[FIELD_PULLDOWN].length > 0) {
-            row += `<td><select data-section="data" value="" name="${section.prefix}${indexId}${field[0]}">`
+            row += `<td><select data-section="data" value="" name="${section.prefix}${indexId}${field[FIELD_NAME]}" onchange="gamepad.${field[FIELD_CHANGE]}(this)">`
             row += '<option value=""></option>'
             for (const value of field[FIELD_PULLDOWN]) {
               row += `<option value="${value}">${value}</option>`
             }
             row += '</select></td>'
           } else {
-            row += `<td><input type="text" data-section="data" value="" name="${section.prefix}${indexId}${field[0]}"></td>`
+            let change = ''
+            if (field[FIELD_CHANGE] && field[FIELD_CHANGE] !== '') {
+              change = ` onchange="gamepad.${field[FIELD_CHANGE]}(this)"`
+            }
+            row += `<td><input type="text" data-section="data" value="${field[FIELD_DEFAULT]}" name="${section.prefix}${indexId}${field[FIELD_NAME]}"${change}></td>`
           }
         }
         row += '</tr>'
@@ -750,6 +889,21 @@ class Gamepad {
     }
     this._gamepadEnabled = false
     jQuery(`#${this.widgetId} .ui-button`).text(DISABLED_TEXT)
+  }
+
+  /**
+   * The process for configuring a gamepad requires the list of available
+   * services and topics. Some logic outside this object retrieves the lists
+   * and then passes them into the object using this callback method.
+   */
+  setServicesTopics (servicesTopicsString) {
+    console.debug(`setServicesTopics: ${servicesTopicsString}`)
+
+    const servicesTopics = JSON.parse(servicesTopicsString)
+
+    this._servicesTopics = {}
+    this._servicesTopics.service = servicesTopics.services.sort()
+    this._servicesTopics.topic = servicesTopics.topics.sort()
   }
 
   /**
