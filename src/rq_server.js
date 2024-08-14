@@ -5,9 +5,6 @@
  * WebServer and RobotComms and then acts as the broker between them.
  */
 
-const ros = require('./ros_interfaces.js')
-ros.checkMaps()
-
 const RQ_PARAMS = require('./params.js')
 const ConfigFile = require('./config_file.js')
 const configFile = new ConfigFile()

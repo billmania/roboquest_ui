@@ -303,5 +303,19 @@ module.exports = {
     }
 
     return true
-  }
+  },
+
+	/**
+	 * Get current wall time as a ROS header.stamp object.
+	 *
+	 * @returns {object}
+	 */
+	getRosTimestamp: function () {
+		const timestamp = Date.now()
+
+		return {
+			sec: Math.trunc(timestamp / 1000),
+			nanosec: Math.trunc(timestamp / 1000 % 1 * 1000000000)
+		}
+	}
 }

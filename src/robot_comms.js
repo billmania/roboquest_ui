@@ -4,34 +4,13 @@
  * The interface between the robot information and the UI.
  */
 
+const ros = require('./ros_interfaces.js')
+ros.checkMaps()
+
 const rclnodejs = require('rclnodejs')
 const set = require('lodash.set')
-const cloneDeep = require('lodash.clonedeep')
 
 const DEFAULT_CAMERA = '0'
-
-// TODO: Convert these to classes to get a new object every time
-const Control = {
-  set_charger: '',
-  set_fet1: '',
-  set_fet2: '',
-  set_motors: '',
-  set_servos: ''
-}
-
-/**
- * Get current wall time as a ROS header.stamp object.
- *
- * @returns {object}
- */
-function getRosTimestamp () {
-  const timestamp = Date.now()
-
-  return {
-    sec: Math.trunc(timestamp / 1000),
-    nanosec: Math.trunc(timestamp / 1000 % 1 * 1000000000)
-  }
-}
 
 /**
  * RobotComms reads the configuration file and uses its
@@ -56,7 +35,7 @@ class RobotComms {
     this.publishers = {}
     this.publishedTopics = {}
     this.serviceClients = {}
-    this.services = []
+    this.serviceTypes = {}
 
     this.image_sub = null
 
@@ -75,10 +54,6 @@ class RobotComms {
     this._restartServiceClient = this.create_service_client(
       'std_srvs/srv/Empty',
       'restart'
-    )
-    this._servicesTopicsClient = this.create_service_client(
-      'rq_msgs/srv/ServicesTopics',
-      'services_topics'
     )
     if (this._restartServiceClient !== undefined) {
       this.logger.debug('_restartServiceClient set')
@@ -112,7 +87,14 @@ class RobotComms {
    * @returns {Array} - the service names as strings
    */
   services_list () {
-    return this.services
+    const services = []
+    for (const service in this.serviceTypes) {
+      if (Object.hasOwn(this.serviceTypes, service)) {
+        services.push(service)
+      }
+    }
+
+    return services
   }
 
   /**
@@ -136,18 +118,30 @@ class RobotComms {
           `, Type:${error.name}` +
           `, Message:${error.message}`
         )
+        this.logger.warn(
+          `handle_payload: rosMessage: ${JSON.stringify(rosMessage)}}`
+        )
       }
-    } else if (this.services.includes(name)) {
+    } else if (Object.hasOwn(this.serviceTypes, name)) {
       const serviceRequest = this.buildServiceMessage(name, payload)
-      this.serviceClients[name].sendRequest(
-        serviceRequest,
-        (response) => {
-          if (!response.success) {
-            this.logger.warn(
-              `Service ${name} failed`)
+      this.logger.debug(`handle_payload: serviceRequest ${JSON.stringify(serviceRequest)}`)
+      try {
+        this.serviceClients[name].sendRequest(
+          serviceRequest,
+          (response) => {
+            if (!response.success) {
+              this.logger.warn(
+                `Service request ${name} failed`)
+            }
           }
-        }
-      )
+        )
+      } catch (error) {
+        this.logger.warn(
+          `handle_payload: ERROR Service request ${name}` +
+          `, ${error.name}` +
+          `:${error.message}`
+        )
+      }
     } else if (name === 'restart') {
       this._restartServiceClient.sendRequest(
         {},
@@ -157,13 +151,6 @@ class RobotComms {
            * nothing to check, beyond the fact it returned.
            */
           this.logger.info('handle_payload: restart called')
-        }
-      )
-    } else if (name === 'services_topics') {
-      this._servicesTopicsClient.sendRequest(
-        {},
-        (response) => {
-          this.send_to_client_cb('services_topics', JSON.stringify(response))
         }
       )
     } else if (name === 'choose_camera') {
@@ -192,22 +179,36 @@ class RobotComms {
    * @returns {ROS request message}
    */
   buildServiceMessage (serviceName, message) {
-    if (serviceName !== 'control_hat') {
-      this.logger.warn('Only control_hat implemented so far')
-      return null
-    }
-
-    const requestMessage = Control
+    const requestMessage = this.getRosMessage(serviceName)
     const requestAttributes = message
     /*
      * requestAttributes is an object with one or more of the properties defined
-     * for the Control message.
+     * for the service request.
      */
     for (const attribute in requestAttributes) {
       requestMessage[attribute] = requestAttributes[attribute]
     }
 
     return requestMessage
+  }
+
+  /**
+   * Return the ROS message object based on the destinationName. This is not
+   * a new object each time, so previous assignments persist.
+   */
+  getRosMessage (destinationName) {
+    let rosMessage
+
+    if (destinationName in ros.interfacesMap) {
+      rosMessage = ros.interfaceObjects[ros.interfacesMap[destinationName]]
+    } else {
+      this.logger.warn(
+        `getRosMessage: ${destinationName} not in interfacesMap`
+      )
+      throw new Error(`${destinationName} not in interfacesMap`)
+    }
+
+    return rosMessage
   }
 
   /**
@@ -233,23 +234,9 @@ class RobotComms {
    * @returns {ROS message object}
    */
   buildPublishMessage (topicName, message) {
-    const publishMessageClass = rclnodejs.createMessage(
-      this.publishedTopics[topicName]
-    )._refObject
-    /*
-     * TODO:
-     * This is admittedly ugly. It's based completely on not understanding
-     * two things:
-     * 1. how to get a new ROS message object from rclnodejs
-     * 2. why this implementation works
-     */
-    const publishMessage = JSON.parse(
-      JSON.stringify(
-        cloneDeep(publishMessageClass)
-      )
-    )
+    const publishMessage = this.getRosMessage(topicName)
 
-    set(publishMessage, 'header.stamp', getRosTimestamp())
+    set(publishMessage, 'header.stamp', ros.getRosTimestamp())
     set(publishMessage, 'header.frame_id', '')
     for (const attribute in message) {
       set(publishMessage, attribute, message[attribute])
@@ -399,7 +386,7 @@ class RobotComms {
         widgetData.service)
       if (serviceClient) {
         this.serviceClients[widgetData.service] = serviceClient
-        this.services.push(widgetData.service)
+        this.serviceTypes[widgetData.service] = widgetData.serviceType
         this.logger.debug('Added serviceClient for ' + widgetData.service)
       } else {
         this.logger.warn(`Service ${widgetData.service} not available`)
