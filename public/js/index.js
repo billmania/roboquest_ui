@@ -4,7 +4,7 @@
 /* global positionWidgets createWidget initWidgetConfig */
 /* global RQUpdateHelp RQRebootHelp RQShutdownHelp */
 /* global setMsgDialogOpen setMsgDialogClosed */
-/* global showMsg gamepad */
+/* global showMsg ros */
 
 /**
  * The main control for the RoboQuest front-end UI.
@@ -14,26 +14,17 @@ console.info(`rq_ui version ${RQ_PARAMS.VERSION} starting`)
 console.info(`rq_ui config format version ${RQ_PARAMS.CONFIG_FORMAT_VERSION}`)
 console.info(`isSecureContext ${isSecureContext}`)
 
+ros.checkMaps()
+
 const keyControl = new KeyControl('#keyControl')
 const servoConfig = new ServoConfig()
 let updating = null
 let rebooting = null
 let stopping = null
-let servicesTopicsInterval = null
 
 jQuery(window).on('resize', function () {
   positionWidgets()
 })
-
-/**
- * Run via an interval, to continually emit the services_topics events.
- * The callback for inbound service_topics events is expected to destroy
- * the interval.
- */
-const requestServicesTopics = function (webSocket) {
-  console.debug('emitting services_topics')
-  webSocket.emit('services_topics', '{}')
-}
 
 const initSocket = function () {
   const objSocket = io(`${window.location.hostname}:${window.location.port}`,
@@ -76,31 +67,9 @@ const initSocket = function () {
     }
   })
 
-  objSocket.on('services_topics', (servicesTopics) => {
-    /*
-     * Retrieve the list of available services and topics so they
-     * can be made available to the Gamepad object.
-     */
-    console.debug('services_topics received')
-    if (servicesTopicsInterval) {
-      clearInterval(servicesTopicsInterval)
-      servicesTopicsInterval = null
-    }
-    gamepad.setServicesTopics(servicesTopics)
-  })
-
   objSocket.on('connect', () => {
     console.info('Connection to the robot established.')
     updating = false
-
-    if (servicesTopicsInterval) {
-      clearInterval(servicesTopicsInterval)
-      servicesTopicsInterval = null
-    }
-    servicesTopicsInterval = setInterval(
-      requestServicesTopics(objSocket),
-      2000
-    )
   })
   objSocket.on('connect_error', (objError) => {
     console.error('Error connecting to robot. ', objError)

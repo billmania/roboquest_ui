@@ -246,6 +246,7 @@ module.exports = {
     ],
 
     'std_srvs/srv/Empty': [
+      'NA:NA'
     ]
   },
 
@@ -264,7 +265,7 @@ module.exports = {
 
   /**
    * A map to allow using the destinationType value as an index to the list
-   * of options for each destinationType.
+   * of destinationNames for each destinationType.
    */
   destinationMap: {
     topic: [
@@ -285,11 +286,8 @@ module.exports = {
    */
   checkMaps: function () {
     try {
-      console.debug(this.destinationMap)
-
       for (const destinationType in this.destinationMap) {
         console.debug(`destinationType: ${destinationType}`)
-        console.debug(` this.destinationMap[destinationType] is ${typeof this.destinationMap[destinationType]}`)
         for (const destinationName of this.destinationMap[destinationType]) {
           console.debug(`  ${destinationName}`)
           const interfaceName = this.interfacesMap[destinationName]
@@ -305,17 +303,17 @@ module.exports = {
     return true
   },
 
-	/**
-	 * Get current wall time as a ROS header.stamp object.
-	 *
-	 * @returns {object}
-	 */
-	getRosTimestamp: function () {
-		const timestamp = Date.now()
+  /**
+   * Get current wall time as a ROS header.stamp object.
+   *
+   * @returns {object}
+   */
+  getRosTimestamp: function () {
+    const timestamp = Date.now()
 
-		return {
-			sec: Math.trunc(timestamp / 1000),
-			nanosec: Math.trunc(timestamp / 1000 % 1 * 1000000000)
-		}
-	}
+    return {
+      sec: Math.trunc(timestamp / 1000),
+      nanosec: Math.trunc(timestamp / 1000 % 1 * 1000000000)
+    }
+  }
 }

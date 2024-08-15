@@ -1,7 +1,7 @@
 'use strict'
 /* global jQuery, RQ_PARAMS, configuringWidget, gamepadMaps */
 /* global DONT_SCALE, DEFAULT_VALUE */
-/* global assignValue */
+/* global assignValue ros */
 
 /**
  * A widget to represent a single gamepad. Only the most
@@ -534,26 +534,24 @@ class Gamepad {
     }
   }
 
+  /**
+   * If destinationType is neither 'service' nor 'topic, empty the entire row.
+   * Otherwise, fill the destinationName pulldown with the list of destinationNames
+   * corresponding to the destinationType.
+   */
   fillDestinationNamePulldown (configRow, destinationType) {
-    let elementName = '[name=' + configRow + 'scaling' + ']'
+    const scalingElementName = '[name=' + configRow + 'scaling' + ']'
 
-    /*
-     * The value must be from the set at FIELD_PULLDOWN in the
-     * ACTION_FIELDS Array, destinationType.
-     */
     if (destinationType === 'service') {
-      jQuery(elementName).val('')
+      jQuery(scalingElementName).val('')
     } else if (destinationType === 'topic') {
       for (const field of ACTION_FIELDS) {
         if (field[FIELD_NAME] === 'scaling') {
-          jQuery(elementName).val(field[FIELD_DEFAULT])
+          jQuery(scalingElementName).val(field[FIELD_DEFAULT])
           break
         }
       }
     } else {
-      /*
-       * Erase all the elements in this row.
-       */
       this.eraseRow(undefined, configRow)
       return
     }
@@ -562,35 +560,38 @@ class Gamepad {
      * Find the element with the name configRow+destinationName
      * and replace it with a SELECT element with the appropriate OPTIONs.
      */
-    elementName = '[name=' + configRow + 'destinationName' + ']'
-    const oldInputElement = jQuery(elementName)
-    oldInputElement.replaceWith(`<select data-section="data" value="" name="${configRow}destinationName" onchange="gamepad.fillNextPulldown(this)"></select>`)
+    const oldDestinationNameElement = jQuery('[name=' + configRow + 'destinationName' + ']')
+    oldDestinationNameElement.replaceWith(
+      `<select data-section="data" value="" name="${configRow}destinationName" onchange="gamepad.fillNextPulldown(this)"></select>`
+    )
 
-    const newSelectElement = jQuery(elementName)
+    const newDestinationNameElement = jQuery('[name=' + configRow + 'destinationName' + ']')
 
-    for (const destinationDetails of this._servicesTopics[destinationType]) {
-      const destinationName = destinationDetails.split(':')[0]
-      newSelectElement.append(`<option value="${destinationName}">${destinationName}</option>`)
+    for (const destinationName of ros.destinationMap[destinationType]) {
+      newDestinationNameElement.append(
+        `<option value="${destinationName}">${destinationName}</option>`
+      )
     }
   }
 
   /**
-   * When the destinationName entry changes, use the name as an index into
-   * services or topics to find the interfaceName. Place that interfaceName
-   * into the interfaceName element.
+   * Use configRow to retrieve the interface element and the destinationType. Use
+   * destinationNameValue to lookup the interface. Set the value of the interface
+   * element to the interface.
    */
-  fillInterface (configRow, value) {
-    const elementName = '[name=' + configRow + 'interface' + ']'
-    const interfaceElement = jQuery(elementName)
-    const destinationType = jQuery(`[name=${configRow}destinationType]`).val()
+  fillInterface (configRow, destinationNameValue) {
+    const destinationType = jQuery('[name=' + configRow + 'destinationType]').val()
 
-    for (const destinationName of this._servicesTopics[destinationType]) {
-      const typeAndName = destinationName.split(':')
-      if (typeAndName[0] === value) {
-        interfaceElement.val(typeAndName[1])
-        break
+    for (const destinationName of ros.destinationMap[destinationType]) {
+      if (destinationName === destinationNameValue) {
+        const interfaceElement = jQuery('[name=' + configRow + 'interface' + ']')
+        interfaceElement.val(ros.interfacesMap[destinationName])
+
+        return
       }
     }
+
+    console.warn(`fillInterface: ${destinationNameValue} not in destinationMap`)
   }
 
   /**
@@ -889,21 +890,6 @@ class Gamepad {
     }
     this._gamepadEnabled = false
     jQuery(`#${this.widgetId} .ui-button`).text(DISABLED_TEXT)
-  }
-
-  /**
-   * The process for configuring a gamepad requires the list of available
-   * services and topics. Some logic outside this object retrieves the lists
-   * and then passes them into the object using this callback method.
-   */
-  setServicesTopics (servicesTopicsString) {
-    console.debug(`setServicesTopics: ${servicesTopicsString}`)
-
-    const servicesTopics = JSON.parse(servicesTopicsString)
-
-    this._servicesTopics = {}
-    this._servicesTopics.service = servicesTopics.services.sort()
-    this._servicesTopics.topic = servicesTopics.topics.sort()
   }
 
   /**
