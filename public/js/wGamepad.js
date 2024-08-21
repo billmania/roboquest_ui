@@ -41,21 +41,23 @@ const WINDOWS = 'windows'
  * into the GamepadData class.
  * The second is a list of default values for a pulldown menu.
  * The third is a default value for the field, without a pulldown.
- * Fourth is the method to call onchange. There must be a method in the Gamepad
- * class with this name.
+ * Fourth is the function to call on the event. There must be a method in
+ * the Gamepad class with this name.
+ * Fifth is the browser event, from ['', 'onchange', 'onclick']
  */
 const ACTION_FIELDS = [
-  ['description', [], '', 'eraseRow'],
-  ['destinationType', ['topic', 'service'], '', 'fillNextPulldown'],
-  ['destinationName', [], '', 'fillNextPulldown'],
-  ['interface', [], '', ''],
-  ['attributes', [], '', ''],
-  ['scaling', [], '1.0', '']
+  ['description', [], '', 'eraseRow', 'onchange'],
+  ['destinationType', ['topic', 'service'], '', 'fillNextPulldown', 'onchange'],
+  ['destinationName', [], '', 'fillNextPulldown', 'onchange'],
+  ['interface', [], '', '', ''],
+  ['attributes', [], '', 'showAttributes', 'ondblclick'],
+  ['scaling', [], '1.0', '', '']
 ]
 const FIELD_NAME = 0
 const FIELD_PULLDOWN = 1
 const FIELD_DEFAULT = 2
-const FIELD_CHANGE = 3
+const FIELD_FUNC = 3
+const FIELD_EVENT = 4
 
 /*
  * 'buttons' and 'axes' come from the Gamepad object.
@@ -316,11 +318,32 @@ class Gamepad {
     this._pollIntervalId = null
     this._userAgent = null
     this._operatingSystem = null
+    this._attributesConfigRow = null
 
     this._haveEvents = false
     this._haveWebkitEvents = false
     this._getBrowserType()
     this._setupEvents()
+  }
+
+  /**
+   * Retrieve the attribute chosen in the select element and
+   * append it to the value of the attributes element.
+   */
+  appendAttribute () {
+    const selectedAttribute = jQuery('#attributeSelect').val()
+    if (selectedAttribute === undefined || selectedAttribute === '') {
+      return
+    }
+
+    const attributesElement = jQuery('[name=' + this._attributesConfigRow + 'attributes' + ']')
+    let attributes = attributesElement.val()
+
+    if (attributes !== '') {
+      attributes += ';'
+    }
+    attributes += selectedAttribute
+    attributesElement.val(attributes)
   }
 
   /**
@@ -567,6 +590,13 @@ class Gamepad {
 
     const newDestinationNameElement = jQuery('[name=' + configRow + 'destinationName' + ']')
 
+    /*
+     * Start the options with a blank one, to both force the onchange event and
+     * provide an easy way to erase the entry.
+     */
+    newDestinationNameElement.append(
+      '<option value=""></option>'
+    )
     for (const destinationName of ros.destinationMap[destinationType]) {
       newDestinationNameElement.append(
         `<option value="${destinationName}">${destinationName}</option>`
@@ -623,6 +653,29 @@ class Gamepad {
   }
 
   /**
+   * Show a dialog with a select of attributes for sourceElement.name.
+   */
+  showAttributes (sourceElement) {
+    const configRow = sourceElement.name.slice(0, ROW_ID_LENGTH)
+    const interfaceType = jQuery('[name=' + configRow + 'interface]').val()
+    if (interfaceType === undefined || interfaceType === '') {
+      return
+    }
+
+    const attributeSelect = jQuery('#attributeSelect')
+    attributeSelect.empty()
+    attributeSelect.append('<option value=""></option>')
+    for (const attribute of ros.attributesLists[interfaceType]) {
+      attributeSelect.append(`<option value="${attribute}">${attribute}</option>`)
+    }
+
+    this._attributesConfigRow = configRow
+    const configRowLabel = jQuery('#' + configRow + 'span').text()
+    jQuery('#attributePicker').dialog({ title: `${configRowLabel} attributes` })
+    jQuery('#attributePicker').dialog('open')
+  }
+
+  /**
    * Used to clear an entire configuration row when one column is erased.
    */
   eraseRow (sourceElement, configRow) {
@@ -649,16 +702,8 @@ class Gamepad {
       return
     }
 
-    const ERASE_COLUMNS = [
-      'description',
-      'destinationType',
-      'destinationName',
-      'interface',
-      'attributes',
-      'scaling'
-    ]
-    for (const column of ERASE_COLUMNS) {
-      const columnName = '[name=' + rowToErase + column + ']'
+    for (const field of ACTION_FIELDS) {
+      const columnName = '[name=' + rowToErase + field[0] + ']'
       jQuery(columnName).val('')
     }
   }
@@ -725,7 +770,7 @@ class Gamepad {
           if (field.length > 1 &&
               Array.isArray(field[FIELD_PULLDOWN]) &&
               field[FIELD_PULLDOWN].length > 0) {
-            row += `<td><select data-section="data" value="" name="${section.prefix}${indexId}${field[FIELD_NAME]}" onchange="gamepad.${field[FIELD_CHANGE]}(this)">`
+            row += `<td><select data-section="data" value="" name="${section.prefix}${indexId}${field[FIELD_NAME]}" ${field[FIELD_EVENT]}="gamepad.${field[FIELD_FUNC]}(this)">`
             row += '<option value=""></option>'
             for (const value of field[FIELD_PULLDOWN]) {
               row += `<option value="${value}">${value}</option>`
@@ -733,8 +778,8 @@ class Gamepad {
             row += '</select></td>'
           } else {
             let change = ''
-            if (field[FIELD_CHANGE] && field[FIELD_CHANGE] !== '') {
-              change = ` onchange="gamepad.${field[FIELD_CHANGE]}(this)"`
+            if (field[FIELD_FUNC] && field[FIELD_FUNC] !== '') {
+              change = ` ${field[FIELD_EVENT]}="gamepad.${field[FIELD_FUNC]}(this)"`
             }
             row += `<td><input type="text" data-section="data" value="${field[FIELD_DEFAULT]}" name="${section.prefix}${indexId}${field[FIELD_NAME]}"${change}></td>`
           }

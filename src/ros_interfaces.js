@@ -166,37 +166,12 @@ module.exports = {
       }
     },
 
-    'rq_msgs/msg/Telemetry': {
-      header: {
-        stamp: {
-          sec: 0,
-          nanosec: 0
-        },
-        frame_id: ''
-      },
-      battery_v: 0.0,
-      battery_ma: 0.0,
-      system_ma: 0.0,
-      adc0_v: 0.0,
-      adc1_v: 0.0,
-      adc2_v: 0.0,
-      adc3_v: 0.0,
-      adc4_v: 0.0,
-      charger_has_power: false,
-      battery_charging: false,
-      motors_on: false,
-      servos_on: false
-    },
-
     'rq_msgs/srv/Control': {
       set_charger: '',
       set_fet1: '',
       set_fet2: '',
       set_motors: '',
       set_servos: ''
-    },
-
-    'std_srvs/srv/Empty': {
     }
   },
 
@@ -206,47 +181,82 @@ module.exports = {
    */
   attributesLists: { // eslint-disable-line no-unused-vars
     'rq_msgs/srv/Control': [
-      'set_charger',
-      'set_fet1',
-      'set_fet2',
-      'set_motors',
-      'set_servos'
+      'set_fet1:OFF',
+      'set_fet2:OFF'
     ],
 
     'rq_msgs/msg/MotorSpeed': [
-      'max_rpm'
+      'max_rpm:0'
     ],
 
     'rq_msgs/msg/Servos': [
-      'servo0.angle_deg', 'servo0.angle_incr_deg', 'servo0.speed_dps', 'servo0.command_type',
-      'servo1.angle_deg', 'servo1.angle_incr_deg', 'servo1.speed_dps', 'servo1.command_type',
-      'servo2.angle_deg', 'servo2.angle_incr_deg', 'servo2.speed_dps', 'servo2.command_type',
-      'servo3.angle_deg', 'servo3.angle_incr_deg', 'servo3.speed_dps', 'servo3.command_type',
-      'servo4.angle_deg', 'servo4.angle_incr_deg', 'servo4.speed_dps', 'servo4.command_type',
-      'servo5.angle_deg', 'servo5.angle_incr_deg', 'servo5.speed_dps', 'servo5.command_type',
-      'servo6.angle_deg', 'servo6.angle_incr_deg', 'servo6.speed_dps', 'servo6.command_type',
-      'servo7.angle_deg', 'servo7.angle_incr_deg', 'servo7.speed_dps', 'servo7.command_type',
-      'servo8.angle_deg', 'servo8.angle_incr_deg', 'servo8.speed_dps', 'servo8.command_type',
-      'servo9.angle_deg', 'servo9.angle_incr_deg', 'servo9.speed_dps', 'servo9.command_type',
-      'servo10.angle_deg', 'servo10.angle_incr_deg', 'servo10.speed_dps', 'servo10.command_type',
-      'servo11.angle_deg', 'servo11.angle_incr_deg', 'servo11.speed_dps', 'servo11.command_type',
-      'servo12.angle_deg', 'servo12.angle_incr_deg', 'servo12.speed_dps', 'servo12.command_type',
-      'servo13.angle_deg', 'servo13.angle_incr_deg', 'servo13.speed_dps', 'servo13.command_type',
-      'servo14.angle_deg', 'servo14.angle_incr_deg', 'servo14.speed_dps', 'servo14.command_type',
-      'servo15.angle_deg', 'servo15.angle_incr_deg', 'servo15.speed_dps', 'servo15.command_type'
-    ],
+      'servo0.angle_deg:0;servo0.command_type:1',
+      'servo0.angle_incr_deg:0;servo0.command_type:2',
+      'servo0.speed_dps:0;servo0.command_type:3',
 
-    'rq_msgs/msg/Telemetry': [
-      'adc0_v', 'adc1_v', 'adc2_v', 'adc3_v', 'adc4_v', 'battery_charging', 'battery_ma',
-      'battery_v', 'charger_has_power', 'motors_on', 'servos_on', 'system_ma'
+      'servo1.angle_deg:0;servo1.command_type:1',
+      'servo1.angle_incr_deg:0;servo1.command_type:2',
+      'servo1.speed_dps:0;servo1.command_type:3',
+
+      'servo2.angle_deg:0;servo2.command_type:1',
+      'servo2.angle_incr_deg:0;servo2.command_type:2',
+      'servo2.speed_dps:0;servo2.command_type:3',
+
+      'servo3.angle_deg:0;servo3.command_type:1',
+      'servo3.angle_incr_deg:0;servo3.command_type:2',
+      'servo3.speed_dps:0;servo3.command_type:3',
+
+      'servo4.angle_deg:0;servo4.command_type:1',
+      'servo4.angle_incr_deg:0;servo4.command_type:2',
+      'servo4.speed_dps:0;servo4.command_type:3',
+
+      'servo5.angle_deg:0;servo5.command_type:1',
+      'servo5.angle_incr_deg:0;servo5.command_type:2',
+      'servo5.speed_dps:0;servo5.command_type:3',
+
+      'servo6.angle_deg:0;servo6.command_type:1',
+      'servo6.angle_incr_deg:0;servo6.command_type:2',
+      'servo6.speed_dps:0;servo6.command_type:3',
+
+      'servo7.angle_deg:0;servo7.command_type:1',
+      'servo7.angle_incr_deg:0;servo7.command_type:2',
+      'servo7.speed_dps:0;servo7.command_type:3',
+
+      'servo8.angle_deg:0;servo8.command_type:1',
+      'servo8.angle_incr_deg:0;servo8.command_type:2',
+      'servo8.speed_dps:0;servo8.command_type:3',
+
+      'servo9.angle_deg:0;servo9.command_type:1',
+      'servo9.angle_incr_deg:0;servo9.command_type:2',
+      'servo9.speed_dps:0;servo9.command_type:3',
+
+      'servo10.angle_deg:0;servo10.command_type:1',
+      'servo10.angle_incr_deg:10;servo0.command_type:2',
+      'servo10.speed_dps:0;servo10.command_type:3',
+
+      'servo11.angle_deg:0;servo11.command_type:1',
+      'servo11.angle_incr_deg:11;servo0.command_type:2',
+      'servo11.speed_dps:0;servo11.command_type:3',
+
+      'servo12.angle_deg:0;servo12.command_type:1',
+      'servo12.angle_incr_deg:12;servo0.command_type:2',
+      'servo12.speed_dps:0;servo12.command_type:3',
+
+      'servo13.angle_deg:0;servo13.command_type:1',
+      'servo13.angle_incr_deg:13;servo0.command_type:2',
+      'servo13.speed_dps:0;servo13.command_type:3',
+
+      'servo14.angle_deg:0;servo14.command_type:1',
+      'servo14.angle_incr_deg:14;servo0.command_type:2',
+      'servo14.speed_dps:0;servo14.command_type:3',
+
+      'servo15.angle_deg:0;servo15.command_type:1',
+      'servo15.angle_incr_deg:15;servo0.command_type:2',
+      'servo15.speed_dps:0;servo15.command_type:3'
     ],
 
     'geometry_msgs/msg/TwistStamped': [
-      'twist.angular.z', 'twist.linear.x'
-    ],
-
-    'std_srvs/srv/Empty': [
-      'NA:NA'
+      'twist.angular.z:0.0', 'twist.linear.x:0.0'
     ]
   },
 
@@ -258,9 +268,7 @@ module.exports = {
     cmd_vel: 'geometry_msgs/msg/TwistStamped',
     control_hat: 'rq_msgs/srv/Control',
     motor_speed: 'rq_msgs/msg/MotorSpeed',
-    restart: 'std_srvs/srv/Empty',
-    servos: 'rq_msgs/msg/Servos',
-    telemetry: 'rq_msgs/msg/Telemetry'
+    servos: 'rq_msgs/msg/Servos'
   },
 
   /**
@@ -271,13 +279,11 @@ module.exports = {
     topic: [
       'cmd_vel',
       'motor_speed',
-      'servos',
-      'telemetry'
+      'servos'
     ],
 
     service: [
-      'control_hat',
-      'restart'
+      'control_hat'
     ]
   },
 

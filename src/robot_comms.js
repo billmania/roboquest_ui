@@ -124,7 +124,6 @@ class RobotComms {
       }
     } else if (Object.hasOwn(this.serviceTypes, name)) {
       const serviceRequest = this.buildServiceMessage(name, payload)
-      this.logger.debug(`handle_payload: serviceRequest ${JSON.stringify(serviceRequest)}`)
       try {
         this.serviceClients[name].sendRequest(
           serviceRequest,

@@ -4,7 +4,7 @@
 /* global positionWidgets createWidget initWidgetConfig */
 /* global RQUpdateHelp RQRebootHelp RQShutdownHelp */
 /* global setMsgDialogOpen setMsgDialogClosed */
-/* global showMsg ros */
+/* global showMsg gamepad ros */
 
 /**
  * The main control for the RoboQuest front-end UI.
@@ -353,6 +353,15 @@ jQuery(function () {
     },
     close: function (event, ui) {
       setMsgDialogClosed()
+    }
+  })
+  jQuery('#attributePicker').dialog({
+    width: 250,
+    autoOpen: false,
+    buttons: {
+      Append: function () {
+        gamepad.appendAttribute()
+      }
     }
   })
   jQuery('#menuDialog').dialog({

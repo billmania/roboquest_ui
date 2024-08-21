@@ -38,7 +38,7 @@ label{
     color: #3392ff;
 }
 
-input, select{
+input{
     display: inline-block;
     width: 248px;
     padding: 5px;
@@ -46,6 +46,20 @@ input, select{
     border-radius: 5px;
     background: rgba(0, 0, 0, .5);
     color: #CC894E;
+}
+
+select {
+    display: inline-block;
+    width: 248px;
+    padding: 5px;
+    border: 1px solid #3392ff;
+    border-radius: 5px;
+    background: rgba(0, 0, 0, 0);
+    color: #FFFFFF;
+}
+
+option {
+    background-color: rgb(47, 79, 79);
 }
 
 #chooseCamera {
