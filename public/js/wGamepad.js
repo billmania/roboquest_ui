@@ -22,6 +22,7 @@
 const BUTTON_PREFIX = 'b'
 const AXIS_PREFIX = 'a'
 const PAD_LENGTH = 2
+const PAD_BASE = '000000'.slice(-PAD_LENGTH)
 const ROW_ID_LENGTH = PAD_LENGTH + BUTTON_PREFIX.length
 
 const FIREFOX = 'firefox'
@@ -324,6 +325,99 @@ class Gamepad {
     this._haveWebkitEvents = false
     this._getBrowserType()
     this._setupEvents()
+  }
+
+  /**
+   * Cause the specified configuration cell to be highlighted or un-highlighted.
+   */
+  highlightConfigCell (configRow, fieldName, on) {
+    const element = jQuery('[name=' + configRow + fieldName + ']')
+    if (on) {
+      element.css('color', RQ_PARAMS.INVALID_COLOR)
+      console.debug(`highlightConfigCell: ${configRow}${fieldName} highlighted`)
+    } else {
+      element.css('color', RQ_PARAMS.VALID_COLOR)
+      console.debug(`highlightConfigCell: ${configRow}${fieldName} cleared`)
+    }
+  }
+
+  /**
+   * Extract the configured attributes from configAttributes one at a time. Check
+   * if each one is present in validAttributesList, ignoring any optional constant values.
+   * If the configured attributes all do appear in validAttributesList, return true.
+   *
+   * @param {String} configAttributes - attributes to validate
+   * @param {Array} validAttributesList - list of valid attributes
+   */
+  attributesAreValid (configAttributes, validAttributesList) {
+    let re
+    /*
+     * Break the configAttributes into a list of individual attributes with their
+     * optional constant value. Iterate through that list.
+     */
+    const configAttributesList = configAttributes.split(RQ_PARAMS.ATTR_DELIMIT)
+    for (const configAttribute of configAttributesList) {
+      /*
+       * Separate the attribute from any optional constant value and create a
+       * regular expression with it.
+       */
+      const configAttributeName = configAttribute.split(RQ_PARAMS.VALUE_DELIMIT)[0]
+      re = new RegExp(
+        `(^|${RQ_PARAMS.ATTR_DELIMIT})${configAttributeName}(${RQ_PARAMS.VALUE_DELIMIT}|$)`
+      )
+
+      /*
+       * Search for the configAttributeName in validAttributesList. foundAttribute
+       * will either be the matching string from validAttributesList, including the
+       * optional constant, or undefined.
+       */
+      const foundAttribute = validAttributesList.find(
+        (attributeListMember) => re.test(attributeListMember)
+      )
+
+      if (foundAttribute === undefined) {
+        /*
+         * There's at least one attribute in configAttributes which isn't in
+         * validAttributesList.
+         */
+        return false
+      }
+    }
+
+    return true
+  }
+
+  /**
+   * Check the contents of every entry in the attributes against ros.attributesLists,
+   * highlighting those which aren't properly formed.
+   *
+   * Get the list of rowIds for the configuration.
+   * Using the rowIds, iterate through the rows of the attributes column. When an entry
+   * isn't blank, retrieve the interface for that row and use it to get the list of unique
+   * attributes, including each default value.
+   * Validate each individual configured attribute against the retrieved list, including
+   * any configured constant value. If something doesn't validate, highlight that entry.
+   * Otherwise remove the highlighting from the row.
+   */
+  checkAttributes () {
+    const rowCounts = {}
+    rowCounts[BUTTON_PREFIX] = gamepadMaps[this._gamepadId][BUTTON_PREFIX].length
+    rowCounts[AXIS_PREFIX] = gamepadMaps[this._gamepadId][AXIS_PREFIX].length
+
+    for (const prefix of [BUTTON_PREFIX, AXIS_PREFIX]) {
+      for (let rowIndex = 0; rowIndex < rowCounts[prefix]; rowIndex++) {
+        const configRow = prefix + ((PAD_BASE + rowIndex).slice(-PAD_LENGTH))
+        const attributes = jQuery('[name=' + configRow + 'attributes]').val()
+        if (attributes !== '') {
+          const interfaceName = jQuery('[name=' + configRow + 'interface]').val()
+          if (this.attributesAreValid(attributes, ros.attributesLists[interfaceName])) {
+            this.highlightConfigCell(configRow, 'attributes', false)
+          } else {
+            this.highlightConfigCell(configRow, 'attributes', true)
+          }
+        }
+      }
+    }
   }
 
   /**

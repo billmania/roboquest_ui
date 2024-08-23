@@ -361,6 +361,9 @@ jQuery(function () {
     buttons: {
       Append: function () {
         gamepad.appendAttribute()
+      },
+      Check: function () {
+        gamepad.checkAttributes()
       }
     }
   })
