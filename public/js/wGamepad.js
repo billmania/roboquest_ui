@@ -350,6 +350,10 @@ class Gamepad {
    * @param {Array} validAttributesList - list of valid attributes
    */
   attributesAreValid (configAttributes, validAttributesList) {
+    if (!Array.isArray(validAttributesList)) {
+      return false
+    }
+
     let re
     /*
      * Break the configAttributes into a list of individual attributes with their
@@ -759,8 +763,11 @@ class Gamepad {
     const attributeSelect = jQuery('#attributeSelect')
     attributeSelect.empty()
     attributeSelect.append('<option value=""></option>')
-    for (const attribute of ros.attributesLists[interfaceType]) {
-      attributeSelect.append(`<option value="${attribute}">${attribute}</option>`)
+
+    if (ros.attributesLists[interfaceType] !== undefined) {
+      for (const attribute of ros.attributesLists[interfaceType]) {
+        attributeSelect.append(`<option value="${attribute}">${attribute}</option>`)
+      }
     }
 
     this._attributesConfigRow = configRow
