@@ -344,21 +344,29 @@ class RobotComms {
       switch (widgetData.topicDirection) {
         case 'subscribe': {
           if (!this.subscribers[widgetData.topic]) {
-            this.subscribers[widgetData.topic] = this.create_subscriber(
-              widgetData.topic,
-              widgetData.topicType)
-            this.logger.debug('Added subscriber for ' + widgetData.topic)
+            try {
+              this.subscribers[widgetData.topic] = this.create_subscriber(
+                widgetData.topic,
+                widgetData.topicType)
+              this.logger.debug('Added subscriber for ' + widgetData.topic)
+            } catch (error) {
+              this.logger.warn(`Widget subscribe config error: ${error}`)
+            }
           }
           return
         }
 
         case 'publish': {
           if (!this.publishers[widgetData.topic]) {
-            this.publishers[widgetData.topic] = this.create_publisher(
-              widgetData.topic,
-              widgetData.topicType)
-            this.publishedTopics[widgetData.topic] = widgetData.topicType
-            this.logger.debug('Added publisher for ' + widgetData.topic)
+            try {
+              this.publishers[widgetData.topic] = this.create_publisher(
+                widgetData.topic,
+                widgetData.topicType)
+              this.publishedTopics[widgetData.topic] = widgetData.topicType
+              this.logger.debug('Added publisher for ' + widgetData.topic)
+            } catch (error) {
+              this.logger.warn(`Widget publish config error: ${error}`)
+            }
           }
           return
         }
