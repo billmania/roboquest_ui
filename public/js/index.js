@@ -4,7 +4,7 @@
 /* global positionWidgets createWidget initWidgetConfig */
 /* global RQUpdateHelp RQRebootHelp RQShutdownHelp */
 /* global setMsgDialogOpen setMsgDialogClosed */
-/* global showMsg */
+/* global showMsg gamepad ros */
 
 /**
  * The main control for the RoboQuest front-end UI.
@@ -13,6 +13,8 @@
 console.info(`rq_ui version ${RQ_PARAMS.VERSION} starting`)
 console.info(`rq_ui config format version ${RQ_PARAMS.CONFIG_FORMAT_VERSION}`)
 console.info(`isSecureContext ${isSecureContext}`)
+
+ros.checkMaps()
 
 const keyControl = new KeyControl('#keyControl')
 const servoConfig = new ServoConfig()
@@ -34,13 +36,6 @@ const initSocket = function () {
       timeout: RQ_PARAMS.SOCKET_TIMEOUT_MS
     }
   )
-  objSocket.on('connect', () => {
-    console.info('Connection to the robot established.')
-    updating = false
-  })
-  objSocket.on('connect_error', (objError) => {
-    console.error('Error connecting to robot. ', objError)
-  })
 
   const imgDisconnected = new Image()
   imgDisconnected.src = RQ_PARAMS.DISCONNECTED_IMAGE
@@ -70,6 +65,14 @@ const initSocket = function () {
         `, bytes| ${bufImage.byteLength}`
       )
     }
+  })
+
+  objSocket.on('connect', () => {
+    console.info('Connection to the robot established.')
+    updating = false
+  })
+  objSocket.on('connect_error', (objError) => {
+    console.error('Error connecting to robot. ', objError)
   })
 
   return objSocket
@@ -350,6 +353,18 @@ jQuery(function () {
     },
     close: function (event, ui) {
       setMsgDialogClosed()
+    }
+  })
+  jQuery('#attributePicker').dialog({
+    width: 250,
+    autoOpen: false,
+    buttons: {
+      Append: function () {
+        gamepad.appendAttribute()
+      },
+      Check: function () {
+        gamepad.checkAttributes()
+      }
     }
   })
   jQuery('#menuDialog').dialog({

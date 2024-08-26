@@ -1,7 +1,7 @@
 'use strict'
 /* global jQuery, RQ_PARAMS, configuringWidget, gamepadMaps */
 /* global DONT_SCALE, DEFAULT_VALUE */
-/* global assignValue */
+/* global assignValue ros */
 
 /**
  * A widget to represent a single gamepad. Only the most
@@ -22,6 +22,7 @@
 const BUTTON_PREFIX = 'b'
 const AXIS_PREFIX = 'a'
 const PAD_LENGTH = 2
+const PAD_BASE = '000000'.slice(-PAD_LENGTH)
 const ROW_ID_LENGTH = PAD_LENGTH + BUTTON_PREFIX.length
 
 const FIREFOX = 'firefox'
@@ -32,23 +33,32 @@ const WINDOWS = 'windows'
 /*
  * The gamepad widget configuration dialog data section has a
  * form containing a table which includes rows with the following
- * fields.
+ * fields. The ACTION_FIELDS Array looks like it can be used as a
+ * general-purpose configuration object, but don't be fooled. There are
+ * too many other places in this source file where these same strings
+ * are defined separately.
+ *
  * The first element of each entry is the field name and is hard-coded
  * into the GamepadData class.
  * The second is a list of default values for a pulldown menu.
  * The third is a default value for the field, without a pulldown.
+ * Fourth is the function to call on the event. There must be a method in
+ * the Gamepad class with this name.
+ * Fifth is the browser event, from ['', 'onchange', 'onclick']
  */
 const ACTION_FIELDS = [
-  ['description', [], ''], // meaningful to the user
-  ['destinationType', ['topic', 'service'], ''], // topic or service
-  ['destinationName', [], ''], // name of topic or service
-  ['interface', [], ''], // interface type
-  ['attributes', [], ''], // semi-colon delimited list with colon-delimited constants
-  ['scaling', [], '1.0'] // signed, floating point
+  ['description', [], '', 'eraseRow', 'onchange'],
+  ['destinationType', ['topic', 'service'], '', 'fillNextPulldown', 'onchange'],
+  ['destinationName', [], '', 'fillNextPulldown', 'onchange'],
+  ['interface', [], '', '', ''],
+  ['attributes', [], '', 'showAttributes', 'ondblclick'],
+  ['scaling', [], '1.0', '', '']
 ]
 const FIELD_NAME = 0
 const FIELD_PULLDOWN = 1
 const FIELD_DEFAULT = 2
+const FIELD_FUNC = 3
+const FIELD_EVENT = 4
 
 /*
  * 'buttons' and 'axes' come from the Gamepad object.
@@ -309,11 +319,129 @@ class Gamepad {
     this._pollIntervalId = null
     this._userAgent = null
     this._operatingSystem = null
+    this._attributesConfigRow = null
 
     this._haveEvents = false
     this._haveWebkitEvents = false
     this._getBrowserType()
     this._setupEvents()
+  }
+
+  /**
+   * Cause the specified configuration cell to be highlighted or un-highlighted.
+   */
+  highlightConfigCell (configRow, fieldName, on) {
+    const element = jQuery('[name=' + configRow + fieldName + ']')
+    if (on) {
+      element.css('color', RQ_PARAMS.INVALID_COLOR)
+      console.debug(`highlightConfigCell: ${configRow}${fieldName} highlighted`)
+    } else {
+      element.css('color', RQ_PARAMS.VALID_COLOR)
+      console.debug(`highlightConfigCell: ${configRow}${fieldName} cleared`)
+    }
+  }
+
+  /**
+   * Extract the configured attributes from configAttributes one at a time. Check
+   * if each one is present in validAttributesList, ignoring any optional constant values.
+   * If the configured attributes all do appear in validAttributesList, return true.
+   *
+   * @param {String} configAttributes - attributes to validate
+   * @param {Array} validAttributesList - list of valid attributes
+   */
+  attributesAreValid (configAttributes, validAttributesList) {
+    if (!Array.isArray(validAttributesList)) {
+      return false
+    }
+
+    let re
+    /*
+     * Break the configAttributes into a list of individual attributes with their
+     * optional constant value. Iterate through that list.
+     */
+    const configAttributesList = configAttributes.split(RQ_PARAMS.ATTR_DELIMIT)
+    for (const configAttribute of configAttributesList) {
+      /*
+       * Separate the attribute from any optional constant value and create a
+       * regular expression with it.
+       */
+      const configAttributeName = configAttribute.split(RQ_PARAMS.VALUE_DELIMIT)[0]
+      re = new RegExp(
+        `(^|${RQ_PARAMS.ATTR_DELIMIT})${configAttributeName}(${RQ_PARAMS.VALUE_DELIMIT}|$)`
+      )
+
+      /*
+       * Search for the configAttributeName in validAttributesList. foundAttribute
+       * will either be the matching string from validAttributesList, including the
+       * optional constant, or undefined.
+       */
+      const foundAttribute = validAttributesList.find(
+        (attributeListMember) => re.test(attributeListMember)
+      )
+
+      if (foundAttribute === undefined) {
+        /*
+         * There's at least one attribute in configAttributes which isn't in
+         * validAttributesList.
+         */
+        return false
+      }
+    }
+
+    return true
+  }
+
+  /**
+   * Check the contents of every entry in the attributes against ros.attributesLists,
+   * highlighting those which aren't properly formed.
+   *
+   * Get the list of rowIds for the configuration.
+   * Using the rowIds, iterate through the rows of the attributes column. When an entry
+   * isn't blank, retrieve the interface for that row and use it to get the list of unique
+   * attributes, including each default value.
+   * Validate each individual configured attribute against the retrieved list, including
+   * any configured constant value. If something doesn't validate, highlight that entry.
+   * Otherwise remove the highlighting from the row.
+   */
+  checkAttributes () {
+    const rowCounts = {}
+    rowCounts[BUTTON_PREFIX] = gamepadMaps[this._gamepadId][BUTTON_PREFIX].length
+    rowCounts[AXIS_PREFIX] = gamepadMaps[this._gamepadId][AXIS_PREFIX].length
+
+    for (const prefix of [BUTTON_PREFIX, AXIS_PREFIX]) {
+      for (let rowIndex = 0; rowIndex < rowCounts[prefix]; rowIndex++) {
+        const configRow = prefix + ((PAD_BASE + rowIndex).slice(-PAD_LENGTH))
+        const attributes = jQuery('[name=' + configRow + 'attributes]').val()
+        if (attributes !== '') {
+          const interfaceName = jQuery('[name=' + configRow + 'interface]').val()
+          if (this.attributesAreValid(attributes, ros.attributesLists[interfaceName])) {
+            this.highlightConfigCell(configRow, 'attributes', false)
+          } else {
+            this.highlightConfigCell(configRow, 'attributes', true)
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Retrieve the attribute chosen in the select element and
+   * append it to the value of the attributes element.
+   */
+  appendAttribute () {
+    const selectedAttribute = jQuery('#attributeSelect').val()
+    if (selectedAttribute === undefined || selectedAttribute === '') {
+      return
+    }
+
+    const attributesElement = jQuery('[name=' + this._attributesConfigRow + 'attributes' + ']')
+    let attributes = attributesElement.val()
+
+    if (attributes !== '') {
+      attributes += ';'
+    }
+    attributes += selectedAttribute
+    attributesElement.val(attributes)
   }
 
   /**
@@ -528,6 +656,160 @@ class Gamepad {
   }
 
   /**
+   * If destinationType is neither 'service' nor 'topic, empty the entire row.
+   * Otherwise, fill the destinationName pulldown with the list of destinationNames
+   * corresponding to the destinationType.
+   */
+  fillDestinationNamePulldown (configRow, destinationType) {
+    const scalingElementName = '[name=' + configRow + 'scaling' + ']'
+
+    if (destinationType === 'service') {
+      jQuery(scalingElementName).val('')
+    } else if (destinationType === 'topic') {
+      for (const field of ACTION_FIELDS) {
+        if (field[FIELD_NAME] === 'scaling') {
+          jQuery(scalingElementName).val(field[FIELD_DEFAULT])
+          break
+        }
+      }
+    } else {
+      this.eraseRow(undefined, configRow)
+      return
+    }
+
+    /*
+     * Find the element with the name configRow+destinationName
+     * and replace it with a SELECT element with the appropriate OPTIONs.
+     */
+    const oldDestinationNameElement = jQuery('[name=' + configRow + 'destinationName' + ']')
+    oldDestinationNameElement.replaceWith(
+      `<select data-section="data" value="" name="${configRow}destinationName" onchange="gamepad.fillNextPulldown(this)"></select>`
+    )
+
+    const newDestinationNameElement = jQuery('[name=' + configRow + 'destinationName' + ']')
+
+    /*
+     * Start the options with a blank one, to both force the onchange event and
+     * provide an easy way to erase the entry.
+     */
+    newDestinationNameElement.append(
+      '<option value=""></option>'
+    )
+    for (const destinationName of ros.destinationMap[destinationType]) {
+      newDestinationNameElement.append(
+        `<option value="${destinationName}">${destinationName}</option>`
+      )
+    }
+  }
+
+  /**
+   * Use configRow to retrieve the interface element and the destinationType. Use
+   * destinationNameValue to lookup the interface. Set the value of the interface
+   * element to the interface.
+   */
+  fillInterface (configRow, destinationNameValue) {
+    const destinationType = jQuery('[name=' + configRow + 'destinationType]').val()
+
+    for (const destinationName of ros.destinationMap[destinationType]) {
+      if (destinationName === destinationNameValue) {
+        const interfaceElement = jQuery('[name=' + configRow + 'interface' + ']')
+        interfaceElement.val(ros.interfacesMap[destinationName])
+
+        return
+      }
+    }
+
+    console.warn(`fillInterface: ${destinationNameValue} not in destinationMap`)
+  }
+
+  /**
+   * This method is called each time the value of an element in the
+   * a configuration column is changed. It uses the current value of the
+   * element and the ID of the element to determine which pulldown menu to fill
+   * and with what to fill it. Some of the relevant details are defined in the
+   * ACTION_FIELDS Array.
+   *
+   * Example of name is "b04destinationType". value has the current value of the
+   * select element, from the set ['service', 'topic'].
+   */
+  fillNextPulldown (sourceElement) {
+    const configRow = sourceElement.name.slice(0, ROW_ID_LENGTH)
+    const columnName = sourceElement.name.slice(ROW_ID_LENGTH)
+
+    switch (columnName) {
+      case 'destinationType':
+        this.fillDestinationNamePulldown(configRow, sourceElement.value)
+        break
+
+      case 'destinationName':
+        this.fillInterface(configRow, sourceElement.value)
+        break
+
+      default:
+        break
+    }
+  }
+
+  /**
+   * Show a dialog with a select of attributes for sourceElement.name.
+   */
+  showAttributes (sourceElement) {
+    const configRow = sourceElement.name.slice(0, ROW_ID_LENGTH)
+    const interfaceType = jQuery('[name=' + configRow + 'interface]').val()
+    if (interfaceType === undefined || interfaceType === '') {
+      return
+    }
+
+    const attributeSelect = jQuery('#attributeSelect')
+    attributeSelect.empty()
+    attributeSelect.append('<option value=""></option>')
+
+    if (ros.attributesLists[interfaceType] !== undefined) {
+      for (const attribute of ros.attributesLists[interfaceType]) {
+        attributeSelect.append(`<option value="${attribute}">${attribute}</option>`)
+      }
+    }
+
+    this._attributesConfigRow = configRow
+    const configRowLabel = jQuery('#' + configRow + 'span').text()
+    jQuery('#attributePicker').dialog({ title: `${configRowLabel} attributes` })
+    jQuery('#attributePicker').dialog('open')
+  }
+
+  /**
+   * Used to clear an entire configuration row when one column is erased.
+   */
+  eraseRow (sourceElement, configRow) {
+    let columnName = null
+    let rowToErase = null
+
+    /*
+     * If a configRow is provided, erase all of the columns in that row.
+     * Otherwise, extract the sourceElement.columnName and the value of
+     * that column and decide how to proceed based on them.
+     */
+
+    if (configRow !== undefined) {
+      rowToErase = configRow
+    } else if (sourceElement !== undefined) {
+      columnName = sourceElement.name.slice(ROW_ID_LENGTH)
+      if (columnName === 'description') {
+        const description = jQuery(`[name=${sourceElement.name}]`).val()
+        if (description === '') {
+          rowToErase = sourceElement.name.slice(0, ROW_ID_LENGTH)
+        }
+      }
+    } else {
+      return
+    }
+
+    for (const field of ACTION_FIELDS) {
+      const columnName = '[name=' + rowToErase + field[0] + ']'
+      jQuery(columnName).val('')
+    }
+  }
+
+  /**
    * This method can't be called until a gamepad is connected, because
    * the ID of the gamepad is required.
    *
@@ -541,7 +823,7 @@ class Gamepad {
     jQuery('#gamepadId').html(this._gamepad.id)
     let columnHeadings = '<tr><th>actionId</th>'
     for (const field of ACTION_FIELDS) {
-      columnHeadings += `<th>${field[0]}</th>`
+      columnHeadings += `<th>${field[FIELD_NAME]}</th>`
     }
     columnHeadings += '</tr>'
 
@@ -589,14 +871,18 @@ class Gamepad {
           if (field.length > 1 &&
               Array.isArray(field[FIELD_PULLDOWN]) &&
               field[FIELD_PULLDOWN].length > 0) {
-            row += `<td><select data-section="data" value="" name="${section.prefix}${indexId}${field[0]}">`
+            row += `<td><select data-section="data" value="" name="${section.prefix}${indexId}${field[FIELD_NAME]}" ${field[FIELD_EVENT]}="gamepad.${field[FIELD_FUNC]}(this)">`
             row += '<option value=""></option>'
             for (const value of field[FIELD_PULLDOWN]) {
               row += `<option value="${value}">${value}</option>`
             }
             row += '</select></td>'
           } else {
-            row += `<td><input type="text" data-section="data" value="" name="${section.prefix}${indexId}${field[0]}"></td>`
+            let change = ''
+            if (field[FIELD_FUNC] && field[FIELD_FUNC] !== '') {
+              change = ` ${field[FIELD_EVENT]}="gamepad.${field[FIELD_FUNC]}(this)"`
+            }
+            row += `<td><input type="text" data-section="data" value="${field[FIELD_DEFAULT]}" name="${section.prefix}${indexId}${field[FIELD_NAME]}"${change}></td>`
           }
         }
         row += '</tr>'

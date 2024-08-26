@@ -12,7 +12,7 @@
 
 const RQ_PARAMS = {}
 
-RQ_PARAMS.VERSION = '32rc1'
+RQ_PARAMS.VERSION = '32'
 
 RQ_PARAMS.CONFIG_FORMAT_VERSION = '8'
 RQ_PARAMS.CONFIG_FILE = 'persist/configuration.json'
@@ -30,6 +30,12 @@ RQ_PARAMS.ATTR_DELIMIT = ';'
  * the constant.
  */
 RQ_PARAMS.VALUE_DELIMIT = ':'
+
+/*
+ * Colors for highlighting invalid gamepad attribute configurations.
+ */
+RQ_PARAMS.VALID_COLOR = 'white'
+RQ_PARAMS.INVALID_COLOR = 'red'
 
 // TODO: Implement use of this in public/js/index.js
 RQ_PARAMS.WIDGET_NAMESPACE = 'rq'
