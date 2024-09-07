@@ -125,7 +125,8 @@
     <div id="newWidget">
         <form id="configureNewWidget">
             <label>widget type:</label>
-            <select id="newWidgetType" name="type" data-section="root">
+            <select id="newWidgetType" name="type" onchange="rosConfiguration" data-section="root">
+                <option value=""></option>
                 <option value="button">Button</option>
                 <option value="value">Value</option>
                 <option value="slider">Slider</option>
