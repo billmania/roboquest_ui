@@ -41,6 +41,32 @@ jQuery.fn.getWidgetConfiguration = function () {
 }
 
 /**
+ * Reset all of the Format and Robot Communications input elements
+ * to ''.
+ */
+const resetConfigInputs = function () {
+  jQuery('#newWidget')
+    .find('[data-section]')
+    .each((i, element) => {
+      const dataSection = jQuery(element).data('section')
+
+      if (dataSection === 'data') {
+        console.debug(
+          'resetConfigInputs:' +
+          ` localName: ${element.localName}` +
+          ` name: ${element.name}` +
+          ` value: ${element.value}`
+        )
+        element.value = ''
+      }
+    })
+  /*
+   * Reset the select element to the blank option.
+   */
+  jQuery('#newWidgetType').val('').selectmenu('refresh')
+}
+
+/**
  * Determine the greatest widget ID integer already assigned to a widget.
  * Return that integer + 1. ID numbers must be non-negative.
  *
@@ -419,12 +445,6 @@ const populateWidgetConfigurationDialog = function (widgetConfig) {
     gamepad.parseConfig(widgetConfig)
   }
 
-  /*
-   * The following two .find() calls limit the elements to only the data
-   * section AND for only the data section.
-   *
-   *  .find('#' + widgetConfig.type)
-   */
   jQuery('#newWidget')
     .find('[data-section]')
     .each((i, element) => {
@@ -706,6 +726,7 @@ const initWidgetConfig = function (objSocket) { // eslint-disable-line no-unused
         }
       },
       open: function (event, ui) {
+        resetConfigInputs()
         setNewWidgetDialogType('')
         keyControl.disableKeys()
         setWidgetConfigDefaults()
