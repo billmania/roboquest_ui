@@ -367,21 +367,6 @@ const reconfigureWidget = function (oldWidgetConfig, newWidgetConfig) {
 }
 
 /**
- * In the widget configuration dialog, set the input element default
- * values based on the selected widget type.
- * This function is called when adding a new widget AND when changing
- * the type of an existing widget.
- */
-// TODO: Constrain configuration using widgetInterface based on widgetType
-const setWidgetConfigDefaults = function () {
-  const widgetType = jQuery('#newWidget #newWidgetType').find('option:selected').val()
-  if (WIDGET_TYPES.includes(widgetType)) {
-    console.debug(`setWidgetConfigDefaults: ${JSON.stringify(widgetDefaults[widgetType])}`)
-    populateWidgetConfigurationDialog('add', widgetDefaults[widgetType], widgetType)
-  }
-}
-
-/**
  * Adjust the newWidget dialog to show only the relevant input elements,
  * based on the selected widget type. Set the default value for each input,
  * using the object of defaults for the widget type.
@@ -431,17 +416,8 @@ const populateWidgetConfigurationDialog = function (addOrReconfig, widgetConfig,
     gamepad.parseConfig(widgetConfig)
   }
 
-  /*
-   * The following has a design flaw for which a solution has not yet
-   * been found.
-   * All of the widget types in WIDGET_TYPES have a 'data' data-section
-   * but this function is called for one specific widget at a time and
-   * that widget has only one type. However, the find() function returns
-   * the 'data' elements for all widget types, because there isn't a way
-   * to distinguish the 'data' elements by widget type.
-   */
-  // TODO: Fix the design flaw
-  jQuery('#newWidget')
+  const widgetClass = '.allWidgetsClass, .' + widgetType + 'Class'
+  jQuery(widgetClass)
     .find('[data-section]')
     .each((i, element) => {
       const dataSection = jQuery(element).data('section')
@@ -469,7 +445,7 @@ const populateWidgetConfigurationDialog = function (addOrReconfig, widgetConfig,
         }
 
         case 'data': {
-          if (widgetConfig.type !== 'gamepad') {
+          if (widgetType !== 'gamepad') {
             if (Object.hasOwn(widgetConfig[dataSection], element.name)) {
               const configValue = widgetConfig[dataSection][element.name]
               if (typeof (configValue) === 'object' &&
@@ -507,7 +483,7 @@ const populateWidgetConfigurationDialog = function (addOrReconfig, widgetConfig,
 * Reads all the populated fields of the configuration dialog into an object
 *
 * The data-sections of the input elements contained by the
-* #configureNewWidget element are expected to be in order as
+* #configureNewWidgetForm element are expected to be in order as
 * root, position, format, and data. The data elements for a gamepad
 * are expected to be in order as description, destinationType,
 * destinationName, interface, attributes, and scaling. Input elements
@@ -528,8 +504,8 @@ const extractWidgetConfigurationFromDialog = function () {
   let rowId = null
   jQuery('#newWidget')
     .find(
-      '#configureNewWidget input:visible' +
-      ', #configureNewWidget select:visible' +
+      '#configureNewWidgetForm input:visible' +
+      ', #configureNewWidgetForm select:visible' +
       ', #newWidgetType'
     )
     .each((i, element) => {
@@ -722,7 +698,6 @@ const initWidgetConfig = function (objSocket) { // eslint-disable-line no-unused
     change: function (event, ui) {
       const widgetType = ui.item.value
 
-      setWidgetConfigDefaults()
       setNewWidgetDialogType(widgetType)
     }
   })
@@ -752,92 +727,6 @@ const initWidgetConfig = function (objSocket) { // eslint-disable-line no-unused
       }
     }).dialog('open')
   })
-}
-
-/*
- * Default configuration values for each type of widget. The properties
- * of widgetDefaults are the widget types. The properties under each widget
- * type are the name attribute of the input elements in the
- * configureNewWidget form.
- * Each widget type object must have both a "format" and a "data" property.
- */
-const widgetDefaults = {
-  button: {
-    label: 'buttonX',
-    format: {
-      text: ''
-    },
-    data: {
-      service: '',
-      serviceType: 'rq_msgs/srv',
-      serviceAttribute: '',
-      clickValue: ''
-    }
-  },
-  slider: {
-    label: 'sliderX',
-    format: {
-      min: 0,
-      max: 180,
-      step: 10,
-      reversed: 'no',
-      default: 90,
-      orientation: 'horizontal',
-      animate: 'true'
-    },
-    data: {
-      topicDirection: 'publish',
-      topic: '',
-      topicType: 'rq_msgs/msg',
-      topicAttribute: ''
-    }
-  },
-  value: {
-    label: 'valueX',
-    format: {
-      textColor: '#CCC',
-      prefix: ' ',
-      suffix: ' '
-    },
-    data: {
-      topicDirection: 'subscribe',
-      topic: '',
-      topicType: 'rq_msgs/msg',
-      topicAttribute: ''
-    }
-  },
-  indicator: {
-    label: 'indicatorX',
-    format: {
-      trueText: 'True',
-      trueColor: '#DDD',
-      falseText: 'False',
-      falseColor: '#EEE'
-    },
-    data: {
-      topicDirection: 'subscribe',
-      topic: '',
-      topicType: 'rq_msgs/msg',
-      topicAttribute: ''
-    }
-  },
-  joystick: {
-    label: 'joystickX',
-    format: {},
-    data: {
-      scale: '1;1',
-      topicPeriodS: 3,
-      topicDirection: 'publish',
-      topic: 'cmd_vel',
-      topicType: 'geometry_msgs/msg/TwistStamped',
-      topicAttribute: 'twist.angular.z;twist.linear.x'
-    }
-  },
-  gamepad: {
-    label: 'gamepadX',
-    format: {},
-    data: {}
-  }
 }
 
 /*

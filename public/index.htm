@@ -123,10 +123,11 @@
     </div>
 
     <div id="newWidget">
-        <form id="configureNewWidget">
+        <form id="configureNewWidgetForm">
+          <div class="allWidgetsClass">
             <label>widget type:</label>
             <select id="newWidgetType" name="type" data-section="root">
-                <!-- This collection of option elements must match widget_config.js:WIDGET_TYPES -->
+                <!-- This collection of option elements must match WIDGET_TYPES in widget_config.js -->
                 <option value=""></option>
                 <option value="button">Button</option>
                 <option value="value">Value</option>
@@ -135,6 +136,7 @@
                 <option value="joystick">Joystick</option>
                 <option value="gamepad">Gamepad</option>
             </select>
+          </div>
             <br/>
             <label> widget label:</label> <input type="text" id="newWidgetLabel" name="label" value="" data-section="root">
 
@@ -158,8 +160,12 @@
             <div class="newWidgetType buttonClass" id="button">
                 <label>button text:</label> <input type="text" value="" name="text" data-section="format"><br/>
                 <h3>Robot Communications</h3>
-                <label>service:</label> <input type="text" data-section="data" value="" name="service"><br/>
-                <label>service type:</label> <input type="text" data-section="data" value="" name="serviceType"><br/>
+                <label>service:</label>
+                  <select onchange="dataConfigChange" data-section="data" name="service">
+                  </select>
+                <label>service type:</label>
+                  <select onchange="dataConfigChange" data-section="data" name="serviceType">
+                  </select>
                 <label>service attribute:</label> <input type="text" value="" data-section="data" name="serviceAttribute"><br/>
                 <label>click value:</label> <input type="text" data-section="data" value="" name="clickValue"><br/>
             </div>
@@ -171,16 +177,12 @@
                 <h3>Robot Communications</h3>
                 <label>topic direction:</label>
                   <select onchange="dataConfigChange" data-section="data" name="topicDirection">
-                    <option value=""></option>
-                    <option value="subscribe"></option>
                   </select>
                 <label>topic:</label>
                   <select onchange="dataConfigChange" data-section="data" name="topic">
-                    <option value=""></option>
                   </select>
                 <label>topic type:</label>
                   <select onchange="dataConfigChange" data-section="data" name="topicType">
-                    <option value=""></option>
                   </select>
                 <label>topic attribute:</label>
                   <input type="text" value="" data-section="data" ondblclick="pickAttributes(this)" name="topicAttribute"><br/>
@@ -195,9 +197,15 @@
                 <label>orientation:</label> <input type="text" value="" name="orientation" data-section="format"><br/>
                 <label>animate:</label> <input type="text" value="" name="animate" data-section="format"><br/>
                 <h3>Robot Communications</h3>
-                <label>topic direction:</label> <input type="text" data-section="data" value="" name="topicDirection"><br/>
-                <label>topic:</label> <input type="text" data-section="data" value="" name="topic"><br/>
-                <label>topic type:</label> <input type="text" data-section="data" value="" name="topicType"><br/>
+                <label>topic direction:</label>
+                  <select onchange="dataConfigChange" data-section="data" name="topicDirection">
+                  </select>
+                <label>topic:</label>
+                  <select onchange="dataConfigChange" data-section="data" name="topic">
+                  </select>
+                <label>topic type:</label>
+                  <select onchange="dataConfigChange" data-section="data" name="topicType">
+                  </select>
                 <label>topic attribute:</label> <input type="text" data-section="data" value="" name="topicAttribute"><br/>
             </div>
 
@@ -207,17 +215,29 @@
                 <label>false text:</label> <input type="text" value="" name="falseText" data-section="format"><br/>
                 <label>false color:</label> <input type="text" value="" name="falseColor" data-section="format"><br/>
                 <h3>Robot Communications</h3>
-                <label>topic direction:</label> <input type="text" data-section="data" value="" name="topicDirection"><br/>
-                <label>topic:</label> <input type="text" data-section="data" data-section="data" value="" name="topic"><br/>
-                <label>topic type:</label> <input type="text" data-section="data" value="" name="topicType"><br/>
+                <label>topic direction:</label>
+                  <select onchange="dataConfigChange" data-section="data" name="topicDirection">
+                  </select>
+                <label>topic:</label>
+                  <select onchange="dataConfigChange" data-section="data" name="topic">
+                  </select>
+                <label>topic type:</label>
+                  <select onchange="dataConfigChange" data-section="data" name="topicType">
+                  </select>
                 <label>topic attribute:</label> <input type="text" data-section="data" value="" name="topicAttribute"><br/>
             </div>
 
             <div class="newWidgetType joystickClass" id="joystick">
                 <h3>Robot Communications</h3>
-                <label>topic direction:</label> <input type="text" data-section="data" value="" name="topicDirection"><br/>
-                <label>topic:</label> <input type="text" data-section="data" value="" name="topic"><br/>
-                <label>topic type:</label> <input type="text" data-section="data" value="" name="topicType"><br/>
+                <label>topic direction:</label>
+                  <select onchange="dataConfigChange" data-section="data" name="topicDirection">
+                  </select>
+                <label>topic:</label>
+                  <select onchange="dataConfigChange" data-section="data" name="topic">
+                  </select>
+                <label>topic type:</label>
+                  <select onchange="dataConfigChange" data-section="data" name="topicType">
+                  </select>
                 <label>topic attribute:</label> <input type="text" data-section="data" value="" name="topicAttribute"><br/>
                 <label>axes scaling:</label> <input type="text" data-section="data" value="" name="scale"><br/>
                 <label>topic period:</label> <input type="number" data-section="data" value="" name="topicPeriodS"><br/>
