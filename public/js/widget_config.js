@@ -19,6 +19,9 @@ const WIDGET_TYPES = [
   'value'
 ]
 
+const RECONFIG = true
+const ADD = false
+
 /*
  * Used to tell other logic that the widget configuration process is
  * active. An example is the Gamepad class, so it can determine what to
@@ -238,7 +241,7 @@ const createWidget = function (objWidget) { // eslint-disable-line no-unused-var
 const openConfigureWidgetDialog = function (widget) {
   const oldWidgetConfig = widget.getWidgetConfiguration()
 
-  populateWidgetConfigurationDialog('reconfig', oldWidgetConfig, oldWidgetConfig.type)
+  populateWidgetConfigurationDialog(RECONFIG, oldWidgetConfig.type, oldWidgetConfig)
 
   jQuery('#newWidget').dialog({
     title: 'Configure Widget',
@@ -367,53 +370,77 @@ const reconfigureWidget = function (oldWidgetConfig, newWidgetConfig) {
 }
 
 /**
+ * Show the configuration elements for only the specified widgetType.
+ */
+const showConfigurationElements = function (widgetType) {
+  jQuery('#newWidget .newWidgetType').hide()
+  if (WIDGET_TYPES.includes(widgetType)) {
+    jQuery(`#newWidget #${widgetType}`).show()
+  } else {
+    if (widgetType === '') {
+      return
+    }
+
+    console.warn(
+      'showconfigurationElements:' +
+      ` ${widgetType} must be from ${WIDGET_TYPES}`
+    )
+  }
+}
+
+/**
  * Adjust the newWidget dialog to show only the relevant input elements,
- * based on the selected widget type. Set the default value for each input,
- * using the object of defaults for the widget type.
+ * based on the selected widget type. Cause those elements to be populated
+ * appropriately.
  *
  * @param {string} widgetType - the type of widget from [Button, Value,
  *                              Slider, Indicator, Joystick, Gamepad]
  */
 const setNewWidgetDialogType = function (widgetType) {
-  jQuery('#newWidget .newWidgetType').hide()
-  if (WIDGET_TYPES.includes(widgetType)) {
-    jQuery(`#newWidget #${widgetType}`).show()
-    if (widgetType === 'gamepad') {
-      if (gamepad.gamepadConnected()) {
-        gamepad.enableGamepad()
-      } else {
-        showMsg('No gamepad connected')
-        console.warn('setNewWidgetDialogType: No gamepad connected')
-      }
+  showConfigurationElements(widgetType)
+
+  if (widgetType === '') {
+    return
+  }
+
+  if (widgetType === 'gamepad') {
+    if (gamepad.gamepadConnected()) {
+      gamepad.enableGamepad()
+    } else {
+      showMsg('No gamepad connected')
+      console.warn('setNewWidgetDialogType: No gamepad connected')
     }
+  } else {
+    populateWidgetConfigurationDialog(ADD, widgetType)
   }
 }
 
 /**
  * Used when adding a new widget and re-configuring an existing widget.
  *
+ * @param {boolean} reconfig - true if reconfiguring, otherwise adding
+ * @param {string} widgetType - one of WIDGET_TYPES
  * @param {object} widgetConfig - the current configuration when
- *                                reconfiguring OR the default
- *                                values when adding a new widget
- *
- * If widgetConfig.type === undefined, this is a new widget,
- * otherwise it's an existing widget being reconfigured.
- *
+ *                                reconfiguring
  */
-const populateWidgetConfigurationDialog = function (addOrReconfig, widgetConfig, widgetType) {
-  if (widgetConfig === undefined || widgetType === undefined) {
+const populateWidgetConfigurationDialog = function (reconfig, widgetType, widgetConfig) {
+  if (![RECONFIG, ADD].includes(reconfig)) {
     console.warn(
       'populateWidgetConfigurationDialog:' +
-      ' At least one of widgetConfig and widgetType is not defined'
+      ' reconfig must be RECONFIG or ADD'
     )
     return
   }
 
-  if (addOrReconfig === 'reconfig' && widgetType === 'gamepad') {
+  if (reconfig && widgetType === 'gamepad') {
     /*
      * Re-configuring an existing gamepad widget.
      */
     gamepad.parseConfig(widgetConfig)
+  }
+
+  if (reconfig) {
+    showConfigurationElements(widgetType)
   }
 
   const widgetClass = '.allWidgetsClass, .' + widgetType + 'Class'
@@ -424,12 +451,11 @@ const populateWidgetConfigurationDialog = function (addOrReconfig, widgetConfig,
 
       switch (dataSection) {
         case 'root': {
-          if (Object.hasOwn(widgetConfig, element.name)) {
+          if (reconfig && Object.hasOwn(widgetConfig, element.name)) {
             if (element.name === 'type') {
               jQuery('#newWidgetType')
                 .val(widgetConfig[element.name])
                 .selectmenu('refresh')
-              setNewWidgetDialogType(widgetConfig[element.name])
             } else {
               element.value = widgetConfig[element.name]
             }
@@ -438,7 +464,7 @@ const populateWidgetConfigurationDialog = function (addOrReconfig, widgetConfig,
         }
 
         case 'format': {
-          if (Object.hasOwn(widgetConfig[dataSection], element.name)) {
+          if (reconfig && Object.hasOwn(widgetConfig[dataSection], element.name)) {
             element.value = widgetConfig[dataSection][element.name]
           }
           break
@@ -446,7 +472,7 @@ const populateWidgetConfigurationDialog = function (addOrReconfig, widgetConfig,
 
         case 'data': {
           if (widgetType !== 'gamepad') {
-            if (Object.hasOwn(widgetConfig[dataSection], element.name)) {
+            if (reconfig && Object.hasOwn(widgetConfig[dataSection], element.name)) {
               const configValue = widgetConfig[dataSection][element.name]
               if (typeof (configValue) === 'object' &&
                   Array.isArray(configValue)) {
@@ -461,12 +487,6 @@ const populateWidgetConfigurationDialog = function (addOrReconfig, widgetConfig,
                  * or to a SELECT element.
                  */
                 element.value = configValue
-                if (element.localName === 'select') {
-                  console.debug(
-                    'populateWidgetConfigurationDialog:' +
-                    ` element.name=${element.name}`
-                  )
-                }
               }
             }
           } else {
