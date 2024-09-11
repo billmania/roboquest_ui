@@ -454,13 +454,6 @@ const setupWidgetDataSection = function (widgetType) {
   jQuery(widgetTypeClass)
     .find('[data-section=data]')
     .each((i, element) => {
-      console.debug(
-        'setupWidgetDataSection:' +
-        ` element.localName=${element.localName}` +
-        `, element.name=${element.name}` +
-        `, element.value=${element.value}`
-      )
-
       if (element.localName === 'select') {
         const dataElement = jQuery('[name=' + element.name + ']')
         switch (destinationType) {
@@ -749,10 +742,11 @@ const pickAttributes = function (event) { // eslint-disable-line no-unused-vars
 }
 
 /**
- * Handle a change to a 'data' data-section change.
+ * Handle a change to a 'data' data-section change. Changes to any SELECT element
+ * in the data section call this function.
  */
-const dataConfigChange = function (event) { // eslint-disable-line no-unused-vars
-  console.debug(`dataConfigChange: ${JSON.stringify(event)}`)
+const dataConfigChange = function (event, ui) {
+  console.debug(`dataConfigChange: ${event.target.id} ${event.target.name} ${ui.item.value}`)
 }
 
 const initWidgetConfig = function (objSocket) { // eslint-disable-line no-unused-vars
@@ -811,6 +805,27 @@ const initWidgetConfig = function (objSocket) { // eslint-disable-line no-unused
       setNewWidgetDialogType(widgetType)
     }
   })
+
+  /**
+   * Capture changes to the SELECT elements in the data sections of
+   * widget configuration.
+   */
+  let widgetDataElements = ''
+  for (const widgetType of WIDGET_TYPES) {
+    if (widgetType !== 'gamepad') {
+      widgetDataElements += ('.' + widgetType + 'Class, ')
+    }
+  }
+  widgetDataElements = widgetDataElements.slice(0, -2)
+  jQuery(widgetDataElements)
+    .find('select')
+    .each((i, element) => {
+      jQuery(`[name=${element.name}]`).selectmenu({
+        change: function (event, ui) {
+          dataConfigChange(event, ui)
+        }
+      })
+    })
 
   jQuery('#addWidget').on('click', function () {
     /*
