@@ -416,7 +416,95 @@ const setNewWidgetDialogType = function (widgetType) {
 }
 
 /**
- * Used when adding a new widget and re-configuring an existing widget.
+ * Setup the SELECT and INPUT elements in the #configureNewWidgetForm
+ * for the specified widgetType.
+ *
+ * @param (string) widgetType - one of the members of WIDGET_TYPES,
+ *                              except gamepad
+ */
+const setupWidgetDataSection = function (widgetType) {
+  if (widgetType === 'gamepad') {
+    return
+  }
+
+  if (!WIDGET_TYPES.includes(widgetType)) {
+    console.warn(
+      'setupWidgetDataSection:' +
+      ` ${widgetType} must be from ${WIDGET_TYPES}`
+    )
+  }
+
+  /*
+   * Find the SELECT elements in the data section for this widgetType,
+   * remove all OPTIONs, add a blank OPTION, and then add more OPTIONs
+   * based on widgetInterface.
+   * Find the INPUT elements and erase any content.
+   */
+  let widgetOptions
+  let destinationType
+  if (Object.hasOwn(widgetInterface[widgetType], 'topic')) {
+    widgetOptions = widgetInterface[widgetType].topic
+    destinationType = 'topic'
+  } else {
+    widgetOptions = widgetInterface[widgetType].service
+    destinationType = 'service'
+  }
+
+  const widgetTypeClass = '.' + widgetType + 'Class'
+  jQuery(widgetTypeClass)
+    .find('[data-section=data]')
+    .each((i, element) => {
+      console.debug(
+        'setupWidgetDataSection:' +
+        ` element.localName=${element.localName}` +
+        `, element.name=${element.name}` +
+        `, element.value=${element.value}`
+      )
+
+      if (element.localName === 'select') {
+        const dataElement = jQuery('[name=' + element.name + ']')
+        switch (destinationType) {
+          case 'service': {
+            switch (element.name) {
+              case 'service': {
+                dataElement.empty()
+                dataElement.append('<option value=""></option>')
+                for (const serviceName in widgetOptions) {
+                  dataElement.append(`<option value="${serviceName}">${serviceName}</option>`)
+                }
+                break
+              }
+            }
+            break
+          }
+
+          case 'topic': {
+            switch (element.name) {
+              case 'topicDirection': {
+                dataElement.empty()
+                dataElement.append('<option value=""></option>')
+                for (const topicDirection in widgetOptions) {
+                  dataElement.append(`<option value="${topicDirection}">${topicDirection}</option>`)
+                }
+                break
+              }
+            }
+            break
+          }
+        }
+      } else {
+        element.value = ''
+      }
+    })
+}
+
+/**
+ * When adding a new widget or re-configuring an existing widget, the data section
+ * elements are populated based on the widgetType property in the widgetInterface
+ * object.
+ * When re-configuring an existing widget, all of configuration dialog elements
+ * are set based on the widget's current configuration. If the widget type is changed
+ * while reconfiguring, the process will convert to the add-a-new-widget process.
  *
  * @param {boolean} reconfig - true if reconfiguring, otherwise adding
  * @param {string} widgetType - one of WIDGET_TYPES
@@ -442,6 +530,8 @@ const populateWidgetConfigurationDialog = function (reconfig, widgetType, widget
   if (reconfig) {
     showConfigurationElements(widgetType)
   }
+
+  setupWidgetDataSection(widgetType)
 
   const widgetClass = '.allWidgetsClass, .' + widgetType + 'Class'
   jQuery(widgetClass)
