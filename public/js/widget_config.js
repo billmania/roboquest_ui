@@ -742,11 +742,126 @@ const pickAttributes = function (event) { // eslint-disable-line no-unused-vars
 }
 
 /**
+ * Called after a serviceName is selected from the service element. Use the
+ * serviceName as the property in configDetails.service[serviceName] to get the
+ * serviceTypeName (which will be the only property). Set the value of the
+ * serviceType INPUT element to the serviceTypeName.
+ * #button-serviceAttribute will call pickAttributes on ondblclick.
+ */
+const setupServiceType = function (widgetType, configValue, configDetails) {
+  console.debug(`setupServiceType: ${configValue} ${configDetails.service[configValue]}`)
+
+  if (configValue === '') {
+    jQuery(`#${widgetType}-serviceType`).val('')
+    jQuery(`#${widgetType}-serviceAttribute`).val('')
+    jQuery(`#${widgetType}-clickValue`).val('')
+  } else {
+    for (const serviceType in configDetails.service[configValue]) {
+      jQuery(`#${widgetType}-serviceType`).val(serviceType)
+    }
+  }
+}
+
+/**
+ * Called after a topicDirection is selected from the topicDirection element.
+ * Use the topicDirection as the property in configDetails.topic[topicDirection]
+ * to get the list of available topics. Add the OPTION elements to the
+ * #widgetType-topic SELECT element.
+ */
+const setupTopic = function (widgetType, configValue, configDetails) {
+  console.debug(
+    'setupTopic:' +
+    ` ${configValue}` +
+    ` ${JSON.stringify(configDetails.topic[configValue])}`
+  )
+
+  jQuery(`#${widgetType}-topic`)
+    .find('option')
+    .remove()
+  jQuery(`#${widgetType}-topic`).val('')
+  jQuery(`#${widgetType}-topicType`).val('')
+  jQuery(`#${widgetType}-topicAttribute`).val('')
+
+  if (configValue !== '') {
+    jQuery(`#${widgetType}-topic`)
+      .append('<option value=""></option>')
+      .val('')
+    for (const topicName in configDetails.topic[configValue]) {
+      jQuery(`#${widgetType}-topic`)
+        .append(`<option value="${topicName}">${topicName}</option>`)
+    }
+  }
+}
+
+/**
+ * Called after a topicName is selected from the topic element. Retrieve the
+ * value of the widget's topicDirection SELECT element. Use the
+ * topicName as the property in configDetails.topic[topicDirection][topicName]
+ * to get the single topicType. Set the value of the topicType INPUT element.
+ */
+const setupTopicType = function (widgetType, configValue, configDetails) {
+  console.debug(`setupTopicType: ${configValue} ${configDetails.topic}`)
+
+  jQuery(`#${widgetType}-topicType`).val('')
+  jQuery(`#${widgetType}-topicAttribute`).val('')
+
+  const topicDirection = jQuery(`#${widgetType}-topicDirection`).val()
+  if (topicDirection === '') {
+    return
+  }
+  const topicTypeInputElement = jQuery(`#${widgetType}-topicType`)
+  topicTypeInputElement.val('')
+
+  if (configValue !== '') {
+    /*
+     * A for loop is used here, but there can be only one property. The property
+     * name is NOT known until run-time.
+     */
+    for (const topicType in configDetails.topic[topicDirection][configValue]) {
+      topicTypeInputElement.val(topicType)
+    }
+  }
+}
+
+/**
  * Handle a change to a 'data' data-section change. Changes to any SELECT element
  * in the data section call this function.
  */
 const dataConfigChange = function (event, ui) {
-  console.debug(`dataConfigChange: ${event.target.id} ${event.target.name} ${ui.item.value}`)
+  /*
+   * The unique ID for the SELECT element, comprised of the widgetType and the configuration
+   * item.
+   */
+  const selectId = event.target.id
+  /*
+   * event.target.name is embedded in the selectId, as the second part. event.target.name
+   * on its own is NOT unique.
+   */
+  const widgetType = selectId.split('-')[0]
+  const configItem = event.target.name
+  const configValue = ui.item.value
+  const configDetails = widgetInterface[widgetType]
+
+  switch (configItem) {
+    case 'service': {
+      setupServiceType(widgetType, configValue, configDetails)
+      break
+    }
+
+    case 'topicDirection': {
+      setupTopic(widgetType, configValue, configDetails)
+      break
+    }
+
+    case 'topic': {
+      setupTopicType(widgetType, configValue, configDetails)
+      break
+    }
+
+    default: {
+      console.warn(`dataConfigChange: ${configItem} is not a recognized configItem`)
+    }
+  }
 }
 
 const initWidgetConfig = function (objSocket) { // eslint-disable-line no-unused-vars
@@ -866,9 +981,9 @@ const initWidgetConfig = function (objSocket) { // eslint-disable-line no-unused
  * the following structures:
  *
  * 'service': {
- *   serviceName: {
- *     interfaceName: [
- *       attribute1,
+ *   serviceName: {                  // service
+ *     interfaceName: [              // serviceType
+ *       attribute1,                 // serviceAttribute
  *       attribute2,
  *       attributeN
  *     ]
@@ -876,10 +991,10 @@ const initWidgetConfig = function (objSocket) { // eslint-disable-line no-unused
  * }
  *
  * 'topic': {
- *   'publish'|'subscribe': {
- *     topicName: {
- *       interfaceName: [
- *         attribute1,
+ *   'publish'|'subscribe': {        // topicDirection
+ *     topicName: {                  // topic
+ *       interfaceName: [            // topicType
+ *         attribute1,               // topicAttribute
  *         attribute2,
  *         attributeN
  *       ]
