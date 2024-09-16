@@ -5,6 +5,7 @@
 /* global RQUpdateHelp RQRebootHelp RQShutdownHelp */
 /* global setMsgDialogOpen setMsgDialogClosed */
 /* global showMsg gamepad ros */
+/* global appendAttribute checkAttributes */
 
 /**
  * The main control for the RoboQuest front-end UI.
@@ -355,7 +356,7 @@ jQuery(function () {
       setMsgDialogClosed()
     }
   })
-  jQuery('#attributePicker').dialog({
+  jQuery('#gamepadAttributePicker').dialog({
     width: 250,
     autoOpen: false,
     buttons: {
@@ -364,6 +365,18 @@ jQuery(function () {
       },
       Check: function () {
         gamepad.checkAttributes()
+      }
+    }
+  })
+  jQuery('#widgetAttributePicker').dialog({
+    width: 250,
+    autoOpen: false,
+    buttons: {
+      Append: function () {
+        appendAttribute()
+      },
+      Check: function () {
+        checkAttributes()
       }
     }
   })

@@ -29,6 +29,8 @@ const ADD = false
  */
 let configuringWidget = false // eslint-disable-line no-unused-vars
 
+let activeWidgetAttributesElementId = ''
+
 /**
  * Extends jQuery. To be called on a jQuery element of class 'widget'.
  *
@@ -733,12 +735,92 @@ const extractWidgetConfigurationFromDialog = function () {
   return objNewWidget
 }
 
+const setupTopicAttributeSelect = function (widgetType, topicName, direction, interfaceType) {
+  for (const attribute of widgetInterface[widgetType].topic[direction][topicName][interfaceType]) {
+    jQuery('#widgetAttributeSelect')
+      .append(`<option value="${attribute}">${attribute}</option>`)
+  }
+}
+
+const setupServiceAttributeSelect = function (widgetType, serviceName, interfaceType) {
+  for (const attribute of widgetInterface[widgetType].service[serviceName][interfaceType]) {
+    jQuery('#widgetAttributeSelect')
+      .append(`<option value="${attribute}">${attribute}</option>`)
+  }
+}
+
 /**
- * Show the list of attributes for a widget. Used as a callback on
- * HTML input elements.
+ * Show the list of attributes for a widget using a dialog, very similar to
+ * Gamepad.showAttributes().
  */
-const pickAttributes = function (event) { // eslint-disable-line no-unused-vars
-  console.debug(`pickAttributes: ${JSON.stringify(event)}`)
+const showAttributes = function (sourceElement) { // eslint-disable-line no-unused-vars
+  const identifiers = sourceElement.id.split('-')
+  if (identifiers.length !== 2) {
+    return
+  }
+
+  activeWidgetAttributesElementId = sourceElement.id
+
+  const widgetType = identifiers[0]
+  const attributeElementName = identifiers[1]
+  console.debug(
+    'showAttributes:' +
+    ` widgetType: ${widgetType}` +
+    ` attributeElement: ${attributeElementName}`
+  )
+
+  jQuery(`#${widgetType}-topicAttribute`).val('')
+  jQuery(`#${widgetType}-serviceAttribute`).val('')
+  jQuery('#widgetAttributeSelect').empty()
+
+  if (attributeElementName.startsWith('topic')) {
+    const topicDirection = jQuery(`#${widgetType}-topicDirection`).val()
+    const topic = jQuery(`#${widgetType}-topic`).val()
+    const interfaceType = jQuery(`#${widgetType}-topicType`).val()
+
+    setupTopicAttributeSelect(widgetType, topic, topicDirection, interfaceType)
+  } else if (attributeElementName.startsWith('service')) {
+    const service = jQuery(`#${widgetType}-service`).val()
+    const interfaceType = jQuery(`#${widgetType}-serviceType`).val()
+    setupServiceAttributeSelect(widgetType, service, interfaceType)
+  } else {
+    console.warn(
+      'showAttributes:' +
+      `cannot find topic or service in ${attributeElementName}`
+    )
+    return
+  }
+
+  jQuery('#widgetAttributePicker').dialog({ title: `${widgetType} attributes` })
+  jQuery('#widgetAttributePicker').dialog('open')
+}
+
+/**
+ * Append the selected attribute to the collection of attributes.
+ */
+const appendAttribute = function () { // eslint-disable-line no-unused-vars
+  console.debug('appendAttribute')
+
+  const selectedAttribute = jQuery('#widgetAttributeSelect').val()
+  if (selectedAttribute === undefined || selectedAttribute === '') {
+    return
+  }
+
+  const attributesElement = jQuery(`#${activeWidgetAttributesElementId}`)
+  let attributes = attributesElement.val()
+
+  if (attributes !== '') {
+    attributes += ';'
+  }
+  attributes += selectedAttribute
+  attributesElement.val(attributes)
+}
+
+/**
+ * Confirm the collection of attributes are valid.
+ */
+const checkAttributes = function () { // eslint-disable-line no-unused-vars
+  console.debug('checkAttributes')
 }
 
 /**
@@ -746,7 +828,6 @@ const pickAttributes = function (event) { // eslint-disable-line no-unused-vars
  * serviceName as the property in configDetails.service[serviceName] to get the
  * serviceTypeName (which will be the only property). Set the value of the
  * serviceType INPUT element to the serviceTypeName.
- * #button-serviceAttribute will call pickAttributes on ondblclick.
  */
 const setupServiceType = function (widgetType, configValue, configDetails) {
   console.debug(`setupServiceType: ${configValue} ${configDetails.service[configValue]}`)
@@ -778,7 +859,9 @@ const setupTopic = function (widgetType, configValue, configDetails) {
   jQuery(`#${widgetType}-topic`)
     .find('option')
     .remove()
-  jQuery(`#${widgetType}-topic`).val('')
+  jQuery(`#${widgetType}-topic`).val(null)
+  jQuery(`#${widgetType}-topic`).hide().show()
+
   jQuery(`#${widgetType}-topicType`).val('')
   jQuery(`#${widgetType}-topicAttribute`).val('')
 

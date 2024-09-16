@@ -30,9 +30,15 @@
         </p>
       </div>
     </div>
-    <div id="attributePicker" title="Attributes">
-      <div id="attributeSelectDiv">
-        <select id="attributeSelect">
+    <div id="gamepadAttributePicker" title="Attributes">
+      <div id="gamepadAttributeSelectDiv">
+        <select id="gamepadAttributeSelect">
+        </select>
+      </div>
+    </div>
+    <div id="widgetAttributePicker" title="Widget Attributes">
+      <div id="widgetAttributeSelectDiv">
+        <select id="widgetAttributeSelect">
         </select>
       </div>
     </div>
@@ -166,7 +172,7 @@
                 <label>service type:</label>
                   <input id="button-serviceType" type="text" value="" data-section="data" name="serviceType"><br/>
                 <label>service attribute:</label>
-                  <input id="button-serviceAttribute" type="text" value="" data-section="data" ondblclick="pickAttributes(this)"  name="serviceAttribute"><br/>
+                  <input id="button-serviceAttribute" type="text" value="" data-section="data" ondblclick="showAttributes(this)"  name="serviceAttribute"><br/>
                 <label>click value:</label>
                   <input id="button-clickValue" type="text" data-section="data" value="" name="clickValue"><br/>
             </div>
@@ -185,7 +191,7 @@
                 <label>topic type:</label>
                   <input id="value-topicType" type="text" value="" data-section="data" name="topicType"><br/>
                 <label>topic attribute:</label>
-                  <input id="value-topicAttribute" type="text" value="" data-section="data" ondblclick="pickAttributes(this)"  name="topicAttribute"><br/>
+                  <input id="value-topicAttribute" type="text" value="" data-section="data" ondblclick="showAttributes(this)"  name="topicAttribute"><br/>
             </div>
 
             <div class="newWidgetType sliderClass" id="slider">
@@ -206,7 +212,7 @@
                 <label>topic type:</label>
                   <input id="slider-topicType" type="text" value="" data-section="data" name="topicType"><br/>
                 <label>topic attribute:</label>
-                  <input id="slider-topicAttribute" type="text" value="" data-section="data" ondblclick="pickAttributes(this)"  name="topicAttribute"><br/>
+                  <input id="slider-topicAttribute" type="text" value="" data-section="data" ondblclick="showAttributes(this)"  name="topicAttribute"><br/>
             </div>
 
             <div class="newWidgetType indicatorClass" id="indicator">
@@ -224,7 +230,7 @@
                 <label>topic type:</label>
                   <input id="indicator-topicType" type="text" value="" data-section="data" name="topicType"><br/>
                 <label>topic attribute:</label>
-                  <input id="indicator-topicAttribute" type="text" value="" data-section="data" ondblclick="pickAttributes(this)"  name="topicAttribute"><br/>
+                  <input id="indicator-topicAttribute" type="text" value="" data-section="data" ondblclick="showAttributes(this)"  name="topicAttribute"><br/>
             </div>
 
             <div class="newWidgetType joystickClass" id="joystick">
@@ -238,7 +244,7 @@
                 <label>topic type:</label>
                   <input id="joystick-topicType" type="text" value="" data-section="data" name="topicType"><br/>
                 <label>topic attribute:</label>
-                  <input id="joystick-topicAttribute" type="text" value="" data-section="data" ondblclick="pickAttributes(this)"  name="topicAttribute"><br/>
+                  <input id="joystick-topicAttribute" type="text" value="" data-section="data" ondblclick="showAttributes(this)"  name="topicAttribute"><br/>
                 <label>axes scaling:</label>
                   <input id="joystick-scale" type="text" data-section="data" value="" name="scale"><br/>
                 <label>topic period:</label>
