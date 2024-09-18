@@ -95,8 +95,8 @@
       </div>
     </div>
     <div id="chooseServoDialog" title="Choose servo to configure">
-      <div id="chooseServo" title="Choose servo to configure">
-        <form id="chooseServo">
+      <div id="chooseServoDiv" title="Choose servo to configure">
+        <form id="chooseServForm">
           <label>Servos:</label>
           <select id="servoChannel" name="Servo">
           </select>
@@ -104,8 +104,8 @@
       </div>
     </div>
     <div id="configServoDialog" title="Configure the servo">
-      <div id="configureServo" title="Configure the servo">
-        <form id="configureServo">
+      <div id="configureServoDiv" title="Configure the servo">
+        <form id="configureServoForm">
           <!--
             The element IDs of the inputs must match the object property names
             in servos_config.json.
@@ -128,6 +128,7 @@
       </div>
     </div>
 
+    <!-- TODO: Eliminate the redundancy and convolution within this DIV -->
     <div id="newWidget">
         <form id="configureNewWidgetForm">
           <div class="allWidgetsClass">
@@ -163,12 +164,12 @@
             </select><br/>
 
             <h3>Format</h3>
-            <div class="newWidgetType buttonClass" id="button">
+            <div class="newWidgetClass" id="button">
                 <label>button text:</label> <input type="text" value="" name="text" data-section="format"><br/>
                 <h3>Robot Communications</h3>
                 <label>service:</label>
                   <select id="button-service" data-section="data" name="service">
-                  </select>
+                  </select><br/>
                 <label>service type:</label>
                   <input id="button-serviceType" type="text" value="" data-section="data" name="serviceType"><br/>
                 <label>service attribute:</label>
@@ -177,24 +178,24 @@
                   <input id="button-clickValue" type="text" data-section="data" value="" name="clickValue"><br/>
             </div>
 
-            <div class="newWidgetType valueClass" id="value">
+            <div class="newWidgetClass" id="value">
                 <label>text color:</label> <input type="text" value="" name="textColor" data-section="format"><br/>
                 <label>display prefix:</label> <input type="text" value="" name="prefix" data-section="format"><br/>
                 <label>display suffix:</label> <input type="text" value="" name="suffix" data-section="format"><br/>
                 <h3>Robot Communications</h3>
                 <label>topic direction:</label>
                   <select id="value-topicDirection" data-section="data" name="topicDirection">
-                  </select>
+                  </select><br>
                 <label>topic:</label>
                   <select id="value-topic" data-section="data" name="topic">
-                  </select>
+                  </select><br>
                 <label>topic type:</label>
                   <input id="value-topicType" type="text" value="" data-section="data" name="topicType"><br/>
                 <label>topic attribute:</label>
                   <input id="value-topicAttribute" type="text" value="" data-section="data" ondblclick="showAttributes(this)"  name="topicAttribute"><br/>
             </div>
 
-            <div class="newWidgetType sliderClass" id="slider">
+            <div class="newWidgetClass" id="slider">
                 <label>min:</label> <input type="number" value="" name="min" data-section="format"><br/>
                 <label>max:</label> <input type="number" value="" name="max" data-section="format"><br/>
                 <label>step:</label> <input type="number" value="" name="step" data-section="format"><br/>
@@ -205,17 +206,17 @@
                 <h3>Robot Communications</h3>
                 <label>topic direction:</label>
                   <select id="slider-topicDirection" data-section="data" name="topicDirection">
-                  </select>
+                  </select><br>
                 <label>topic:</label>
                   <select id="slider-topic" data-section="data" name="topic">
-                  </select>
+                  </select><br>
                 <label>topic type:</label>
                   <input id="slider-topicType" type="text" value="" data-section="data" name="topicType"><br/>
                 <label>topic attribute:</label>
                   <input id="slider-topicAttribute" type="text" value="" data-section="data" ondblclick="showAttributes(this)"  name="topicAttribute"><br/>
             </div>
 
-            <div class="newWidgetType indicatorClass" id="indicator">
+            <div class="newWidgetClass" id="indicator">
                 <label>true text:</label> <input type="text" value="" name="trueText" data-section="format"><br/>
                 <label>true color:</label> <input type="text" value="" name="trueColor" data-section="format"><br/>
                 <label>false text:</label> <input type="text" value="" name="falseText" data-section="format"><br/>
@@ -223,24 +224,24 @@
                 <h3>Robot Communications</h3>
                 <label>topic direction:</label>
                   <select id="indicator-topicDirection" data-section="data" name="topicDirection">
-                  </select>
+                  </select><br>
                 <label>topic:</label>
                   <select id="indicator-topic" data-section="data" name="topic">
-                  </select>
+                  </select><br>
                 <label>topic type:</label>
                   <input id="indicator-topicType" type="text" value="" data-section="data" name="topicType"><br/>
                 <label>topic attribute:</label>
                   <input id="indicator-topicAttribute" type="text" value="" data-section="data" ondblclick="showAttributes(this)"  name="topicAttribute"><br/>
             </div>
 
-            <div class="newWidgetType joystickClass" id="joystick">
+            <div class="newWidgetClass" id="joystick">
                 <h3>Robot Communications</h3>
                 <label>topic direction:</label>
                   <select id="joystick-topicDirection" data-section="data" name="topicDirection">
-                  </select>
+                  </select><br>
                 <label>topic:</label>
                   <select id="joystick-topic" data-section="data" name="topic">
-                  </select>
+                  </select><br>
                 <label>topic type:</label>
                   <input id="joystick-topicType" type="text" value="" data-section="data" name="topicType"><br/>
                 <label>topic attribute:</label>
@@ -251,7 +252,7 @@
                   <input id="joystick-topicPeriodS" type="number" data-section="data" value="" name="topicPeriodS"><br/>
             </div>
 
-            <div class="newWidgetType gamepadClass" id="gamepad">
+            <div class="newWidgetClass" id="gamepad">
                 <div class="gamepadInputsClass" id="gamepadId"></div>
                 <div class="gamepadInputsClass" id="gamepadInputs">
                   <table>

@@ -51,12 +51,15 @@ const resetConfigInputs = function () {
       const dataSection = jQuery(element).data('section')
 
       if (dataSection === 'data') {
-        element.value = ''
+        if (element.localName === 'select') {
+          jQuery(`#${element.id}`).empty()
+          jQuery(`#${element.id}`).append('<option value=""></option>')
+        } else {
+          element.value = ''
+        }
       }
     })
-  /*
-   * Reset the select element to the blank option.
-   */
+
   jQuery('#newWidgetType').val('').selectmenu('refresh')
 }
 
@@ -213,9 +216,6 @@ const createWidget = function (objWidget) { // eslint-disable-line no-unused-var
       jQuery('#' + widgetId).getWidgetConfiguration().position = updateWidgetPosition(
         widgetPosition,
         jQuery('#' + widgetId).position()
-      )
-      console.debug(
-        ` updated position to: ${JSON.stringify(jQuery('#' + widgetId).getWidgetConfiguration().position)}`
       )
     }
   }).hover(function (event) {
@@ -375,11 +375,15 @@ const reconfigureWidget = function (oldWidgetConfig, newWidgetConfig) {
  * Show the configuration elements for only the specified widgetType.
  */
 const showConfigurationElements = function (widgetType) {
-  jQuery('#newWidget .newWidgetType').hide()
+  jQuery('#newWidget .newWidgetClass').hide()
   if (WIDGET_TYPES.includes(widgetType)) {
     jQuery(`#newWidget #${widgetType}`).show()
   } else {
     if (widgetType === '') {
+      console.warn(
+        'showconfigurationElements:' +
+        ' widgetType was blank'
+      )
       return
     }
 
@@ -452,8 +456,8 @@ const setupWidgetDataSection = function (widgetType) {
     destinationType = 'service'
   }
 
-  const widgetTypeClass = '.' + widgetType + 'Class'
-  jQuery(widgetTypeClass)
+  const widgetConfigSelector = `#${widgetType}`
+  jQuery(widgetConfigSelector)
     .find('[data-section=data]')
     .each((i, element) => {
       if (element.localName === 'select') {
@@ -607,12 +611,27 @@ const extractWidgetConfigurationFromDialog = function () {
   }
   let gamepadData = null
   let rowId = null
-  jQuery('#newWidget')
-    .find(
-      '#configureNewWidgetForm input:visible' +
-      ', #configureNewWidgetForm select:visible' +
-      ', #newWidgetType'
-    )
+  const widgetType = jQuery('#newWidgetType').val()
+  console.debug(
+    'extractWidgetConfigurationFromDialog:' +
+    ` widgetType: ${widgetType}`
+  )
+
+  /*
+   * https://learn.jquery.com/using-jquery-core/selecting-elements/
+   */
+  const configElements = jQuery('#configureNewWidgetForm select, #configureNewWidgetForm input')
+
+  let widgetTypesToExclude = ''
+  for (const otherWidgetType of WIDGET_TYPES) {
+    if (widgetType !== otherWidgetType) {
+      widgetTypesToExclude += `[id^="${otherWidgetType}-"], `
+    }
+  }
+  widgetTypesToExclude = `:not(${widgetTypesToExclude.slice(0, -2)})`
+
+  configElements
+    .filter(widgetTypesToExclude)
     .each((i, element) => {
       /*
        * The 'root' data-section elements must be found
@@ -709,6 +728,18 @@ const extractWidgetConfigurationFromDialog = function () {
             break
           }
         }
+      } else {
+        /*
+         * This element doesn't have a value.
+         */
+        if (element.name.startsWith(widgetType)) {
+          console.warn(
+            'extractWidgetConfigurationFromDialog:' +
+            ` type: ${element.localName}` +
+            ` name: ${element.name}` +
+            ' has no value. Skipping.'
+          )
+        }
       }
     })
 
@@ -763,11 +794,6 @@ const showAttributes = function (sourceElement) { // eslint-disable-line no-unus
 
   const widgetType = identifiers[0]
   const attributeElementName = identifiers[1]
-  console.debug(
-    'showAttributes:' +
-    ` widgetType: ${widgetType}` +
-    ` attributeElement: ${attributeElementName}`
-  )
 
   jQuery(`#${widgetType}-topicAttribute`).val('')
   jQuery(`#${widgetType}-serviceAttribute`).val('')
@@ -799,8 +825,6 @@ const showAttributes = function (sourceElement) { // eslint-disable-line no-unus
  * Append the selected attribute to the collection of attributes.
  */
 const appendAttribute = function () { // eslint-disable-line no-unused-vars
-  console.debug('appendAttribute')
-
   const selectedAttribute = jQuery('#widgetAttributeSelect').val()
   if (selectedAttribute === undefined || selectedAttribute === '') {
     return
@@ -850,12 +874,6 @@ const setupServiceType = function (widgetType, configValue, configDetails) {
  * #widgetType-topic SELECT element.
  */
 const setupTopic = function (widgetType, configValue, configDetails) {
-  console.debug(
-    'setupTopic:' +
-    ` ${configValue}` +
-    ` ${JSON.stringify(configDetails.topic[configValue])}`
-  )
-
   jQuery(`#${widgetType}-topic`)
     .find('option')
     .remove()
@@ -883,13 +901,12 @@ const setupTopic = function (widgetType, configValue, configDetails) {
  * to get the single topicType. Set the value of the topicType INPUT element.
  */
 const setupTopicType = function (widgetType, configValue, configDetails) {
-  console.debug(`setupTopicType: ${configValue} ${configDetails.topic}`)
-
   jQuery(`#${widgetType}-topicType`).val('')
   jQuery(`#${widgetType}-topicAttribute`).val('')
 
   const topicDirection = jQuery(`#${widgetType}-topicDirection`).val()
   if (topicDirection === '') {
+    console.warn('setupTopicType: No topicDirection provided')
     return
   }
   const topicTypeInputElement = jQuery(`#${widgetType}-topicType`)
@@ -981,7 +998,6 @@ const initWidgetConfig = function (objSocket) { // eslint-disable-line no-unused
     buttons: {
       Create: addWidget,
       Done: function () {
-        console.debug('Done newWidget dialog')
         jQuery(this).dialog('close')
       }
     },
@@ -1011,7 +1027,7 @@ const initWidgetConfig = function (objSocket) { // eslint-disable-line no-unused
   let widgetDataElements = ''
   for (const widgetType of WIDGET_TYPES) {
     if (widgetType !== 'gamepad') {
-      widgetDataElements += ('.' + widgetType + 'Class, ')
+      widgetDataElements += ('#' + widgetType + ', ')
     }
   }
   widgetDataElements = widgetDataElements.slice(0, -2)
@@ -1099,11 +1115,11 @@ const widgetInterface = {
     service: {
       control_hat: {
         'rq_msgs/srv/Control': [
-          'set_motors:ON',
-          'set_servos:ON',
-          'set_fet1:ON',
-          'set_fet2:ON',
-          'set_charger:ON'
+          'set_motors',
+          'set_servos',
+          'set_fet1',
+          'set_fet2',
+          'set_charger'
         ]
       }
     }

@@ -27,6 +27,21 @@ jQuery(window).on('resize', function () {
   positionWidgets()
 })
 
+jQuery(document).ready(function () {
+  console.log('Checking for duplicate IDs')
+
+	jQuery('[id]')
+    .each(function () {
+      let ids = jQuery('[id="' + this.id + '"]')
+      if (ids.length > 1 && ids[0] == this) {
+        console.warn('Multiple IDs #'+this.id)
+        console.warn(
+          `ID ${this.id} is duplicated`
+        )
+      }
+    })
+})
+
 const initSocket = function () {
   const objSocket = io(`${window.location.hostname}:${window.location.port}`,
     {
