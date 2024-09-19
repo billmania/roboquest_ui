@@ -143,10 +143,10 @@
                 <option value="joystick">Joystick</option>
                 <option value="gamepad">Gamepad</option>
             </select>
-          </div>
             <br/>
             <label> widget label:</label> <input type="text" id="newWidgetLabel" name="label" value="" data-section="root">
 
+            <!-- TODO: Hide everything about position -->
             <h3>Position (simple)</h3>
             <label>widget anchor:</label> 
             <select id="widgetPositionMyX" name="myX" style="width:100px" data-section="position">
@@ -162,6 +162,7 @@
             <select id="parentPositionAtY" name="atY" style="width:100px" data-section="position">
                 <option value="top">Top</option>
             </select><br/>
+          </div>
 
             <h3>Format</h3>
             <div class="newWidgetClass" id="button">

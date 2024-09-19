@@ -4,10 +4,36 @@
 /* global gamepad GamepadData ROW_ID_LENGTH */
 /* global showMsg */
 
-/*
- * A socket object is required to create a widget, so we need to define
- * it globally here to avoid a circular scope dependency.
-*/
+/**
+ * Process flow for widget configuration
+ *
+ * Widget configuration can take two paths: configure a new widget;
+ * reconfigure an existing widget.
+ *
+ * Configure a new widget
+ * The process begins by clicking the "add widget" button in the "CONFIGURE"
+ * menu. That creates a jQuery dialog using the #newWidget element and opens
+ * it. Two functions are called as a result of the "open" event: resetConfigInputs()
+ * and setNewWidgetDialogType(). setNewWidgetDialogType() in turn calls
+ * populateWidgetConfigurationDialog(ADD). After all these calls have completed,
+ * all SELECT and INPUT elements in #configureNewWidgetForm will have been reset
+ * and some will have been assigned values based on widgetInterfaces.
+ *
+ * Reconfigure an existing widget
+ * The process begins by clicking the "kebob" at the upper right corner of the
+ * widget. That calls the function openConfigureWidgetDialog(), which in turn does
+ * two things: call populateWidgetConfigurationDialog(RECONFIG) and then creates a
+ * jQuery dialog using the same #newWidget element as the "Configure a new widget"
+ * process. After all these calls have completed, all SELECT and INPUT elements in
+ * #configureNewWidgetForm will have been reset and some will have been assigned
+ * the widget's current configuration values.
+ *
+ * Both configuration processes
+ * At this point, the process flows merge into one. The user modifies the configuration,
+ * aided by the dataConfigChange() callback.
+ * Once the user has completed the configuration, the Create button is clicked for a
+ * new widget or the Done button is clicked for a reconfigured widget.
+ */
 let socket
 
 const WIDGET_TYPES = [
@@ -41,8 +67,8 @@ jQuery.fn.getWidgetConfiguration = function () {
 }
 
 /**
- * Reset all of the Format and Robot Communications input elements
- * to ''.
+ * Reset all of the position, format, and data section elements, along with
+ * the newWidgetLabel element, to ''.
  */
 const resetConfigInputs = function () {
   jQuery('#newWidget')
@@ -50,7 +76,7 @@ const resetConfigInputs = function () {
     .each((i, element) => {
       const dataSection = jQuery(element).data('section')
 
-      if (dataSection === 'data') {
+      if (['position', 'format', 'data'].includes(dataSection)) {
         if (element.localName === 'select') {
           jQuery(`#${element.id}`).empty()
           jQuery(`#${element.id}`).append('<option value=""></option>')
@@ -61,6 +87,7 @@ const resetConfigInputs = function () {
     })
 
   jQuery('#newWidgetType').val('').selectmenu('refresh')
+  jQuery('#newWidgetLabel').val('')
 }
 
 /**
@@ -403,11 +430,16 @@ const showConfigurationElements = function (widgetType) {
  *                              Slider, Indicator, Joystick, Gamepad]
  */
 const setNewWidgetDialogType = function (widgetType) {
-  showConfigurationElements(widgetType)
-
   if (widgetType === '') {
     return
   }
+
+  showConfigurationElements(widgetType)
+  /*
+   * This default label is expected to be overwritten when re-configuring
+   * an existing widget.
+   */
+  jQuery('#newWidgetLabel').val(`new_${widgetType}`)
 
   if (widgetType === 'gamepad') {
     if (gamepad.gamepadConnected()) {
@@ -532,7 +564,11 @@ const populateWidgetConfigurationDialog = function (reconfig, widgetType, widget
 
   setupWidgetDataSection(widgetType)
 
-  const widgetClass = '.allWidgetsClass, .' + widgetType + 'Class'
+  /*
+   * Retrieve the elements which apply to all widget types and to only
+   * widgetType.
+   */
+  const widgetClass = '.allWidgetsClass, #' + widgetType
   jQuery(widgetClass)
     .find('[data-section]')
     .each((i, element) => {
@@ -560,6 +596,7 @@ const populateWidgetConfigurationDialog = function (reconfig, widgetType, widget
         }
 
         case 'data': {
+          // TODO: Make this work with the new SELECT data elements
           if (widgetType !== 'gamepad') {
             if (reconfig && Object.hasOwn(widgetConfig[dataSection], element.name)) {
               const configValue = widgetConfig[dataSection][element.name]
