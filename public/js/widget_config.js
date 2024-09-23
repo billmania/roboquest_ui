@@ -991,7 +991,7 @@ const setupTopicType = function (widgetType, configValue, configDetails) {
  * Handle a change to a 'data' data-section change. Changes to any SELECT element
  * in the data section call this function.
  */
-const dataConfigChange = function (event, ui) {
+const dataConfigChange = function (event) {
   /*
    * The unique ID for the SELECT element, comprised of the widgetType and the configuration
    * item.
@@ -1003,7 +1003,7 @@ const dataConfigChange = function (event, ui) {
    */
   const widgetType = selectId.split('-')[0]
   const configItem = event.target.name
-  const configValue = ui.item.value
+  const configValue = event.target.value
   const configDetails = widgetInterface[widgetType]
 
   switch (configItem) {
@@ -1097,12 +1097,10 @@ const initWidgetConfig = function (objSocket) { // eslint-disable-line no-unused
   jQuery(widgetDataElements)
     .find('select')
     .each((i, element) => {
-      // TODO: Why is a jQuery.selectmenu() necessary here?
-      jQuery(`[name=${element.name}]`).selectmenu({
-        change: function (event, ui) {
-          dataConfigChange(event, ui)
-        }
-      })
+      jQuery(`[name=${element.name}]`)
+        .change(function (event) {
+          dataConfigChange(event)
+        })
     })
 
   jQuery('#addWidget').on('click', function () {
