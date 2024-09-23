@@ -67,7 +67,7 @@ jQuery.fn.getWidgetConfiguration = function () {
 }
 
 /**
- * Reset all of the position, format, and data section elements, along with
+ * Reset all of the format and data section elements, along with
  * the newWidgetLabel element, to ''.
  */
 const resetConfigInputs = function () {
@@ -76,7 +76,7 @@ const resetConfigInputs = function () {
     .each((i, element) => {
       const dataSection = jQuery(element).data('section')
 
-      if (['position', 'format', 'data'].includes(dataSection)) {
+      if (['format', 'data'].includes(dataSection)) {
         if (element.localName === 'select') {
           jQuery(`#${element.id}`).empty()
           jQuery(`#${element.id}`).append('<option value=""></option>')
@@ -86,7 +86,7 @@ const resetConfigInputs = function () {
       }
     })
 
-  jQuery('#newWidgetType').val('').selectmenu('refresh')
+  jQuery('#newWidgetType').val('').trigger('change')
   jQuery('#newWidgetLabel').val('')
 }
 
@@ -430,11 +430,12 @@ const showConfigurationElements = function (widgetType) {
  *                              Slider, Indicator, Joystick, Gamepad]
  */
 const setNewWidgetDialogType = function (widgetType) {
+  showConfigurationElements(widgetType)
+
   if (widgetType === '') {
     return
   }
 
-  showConfigurationElements(widgetType)
   /*
    * This default label is expected to be overwritten when re-configuring
    * an existing widget.
@@ -580,7 +581,7 @@ const populateWidgetConfigurationDialog = function (reconfig, widgetType, widget
             if (element.name === 'type') {
               jQuery('#newWidgetType')
                 .val(widgetConfig[element.name])
-                .selectmenu('refresh')
+                .trigger('change')
             } else {
               element.value = widgetConfig[element.name]
             }
@@ -598,8 +599,14 @@ const populateWidgetConfigurationDialog = function (reconfig, widgetType, widget
         case 'data': {
           // TODO: Make this work with the new SELECT data elements
           if (widgetType !== 'gamepad') {
-            if (reconfig && Object.hasOwn(widgetConfig[dataSection], element.name)) {
-              const configValue = widgetConfig[dataSection][element.name]
+            if (reconfig && Object.hasOwn(widgetConfig.data, element.name)) {
+              const configValue = widgetConfig.data[element.name]
+              console.debug(
+                'populateWidgetConfigurationDialog: data elements' +
+                ` localName: ${element.localName}` +
+                ` name: ${element.name}` +
+                ` configValue: ${configValue}`
+              )
               if (typeof (configValue) === 'object' &&
                   Array.isArray(configValue)) {
                 /*
@@ -612,7 +619,27 @@ const populateWidgetConfigurationDialog = function (reconfig, widgetType, widget
                  * This configValue could be assigned to an INPUT element
                  * or to a SELECT element.
                  */
-                element.value = configValue
+                if (element.localName === 'select') {
+                  console.debug(
+                    'populateWidgetConfigurationDialog:' +
+                    ` name: ${element.name}` +
+                    ` configValue: ${configValue}`
+                  )
+                  jQuery(`[name=${element.name}] option`)
+                    .each((i, option) => {
+                      console.debug(
+                        'populateWidgetConfigurationDialog:' +
+                        ` ${i}` +
+                        `, localName: ${option.localName}` +
+                        `, name: ${option.name}` +
+                        `, value: ${option.value}`
+                      )
+                    })
+
+                  jQuery(`#${widgetType}-${element.name} select`).val(configValue)
+                } else {
+                  element.value = configValue
+                }
               }
             }
           } else {
@@ -1049,13 +1076,12 @@ const initWidgetConfig = function (objSocket) { // eslint-disable-line no-unused
   /**
    * Capture changes to the widget configuration type.
    */
-  jQuery('#newWidget #newWidgetType').selectmenu({
-    change: function (event, ui) {
-      const widgetType = ui.item.value
+  jQuery('#newWidgetType')
+    .change(function (event) {
+      const widgetType = event.target.value
 
       setNewWidgetDialogType(widgetType)
-    }
-  })
+    })
 
   /**
    * Capture changes to the SELECT elements in the data sections of
@@ -1071,6 +1097,7 @@ const initWidgetConfig = function (objSocket) { // eslint-disable-line no-unused
   jQuery(widgetDataElements)
     .find('select')
     .each((i, element) => {
+      // TODO: Why is a jQuery.selectmenu() necessary here?
       jQuery(`[name=${element.name}]`).selectmenu({
         change: function (event, ui) {
           dataConfigChange(event, ui)
