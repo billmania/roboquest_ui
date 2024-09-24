@@ -440,6 +440,7 @@ const setNewWidgetDialogType = function (widgetType) {
    * This default label is expected to be overwritten when re-configuring
    * an existing widget.
    */
+  // TODO: Make the new widgetLabel unique
   jQuery('#newWidgetLabel').val(`new_${widgetType}`)
 
   if (widgetType === 'gamepad') {
@@ -471,6 +472,7 @@ const setupWidgetDataSection = function (widgetType) {
       'setupWidgetDataSection:' +
       ` ${widgetType} must be from ${WIDGET_TYPES}`
     )
+    return
   }
 
   /*
@@ -511,19 +513,26 @@ const setupWidgetDataSection = function (widgetType) {
           }
 
           case 'topic': {
-            switch (element.name) {
-              case 'topicDirection': {
-                dataElement.empty()
-                dataElement.append('<option value=""></option>')
-                for (const topicDirection in widgetOptions) {
-                  dataElement.append(`<option value="${topicDirection}">${topicDirection}</option>`)
-                }
-                break
+            if (element.name === 'topic') {
+              let topicDirection = 'publish'
+              if (Object.hasOwn(widgetOptions, 'subscribe')) {
+                topicDirection = 'subscribe'
+              }
+              dataElement.empty()
+              dataElement.append('<option value=""></option>')
+              for (const topic in widgetOptions[topicDirection]) {
+                dataElement.append(`<option value="${topic}">${topic}</option>`)
               }
             }
-            break
           }
         }
+      } else if (element.localName === 'input' &&
+                 element.name === 'topicDirection') {
+        let topicDirection = 'publish'
+        if (Object.hasOwn(widgetOptions, 'subscribe')) {
+          topicDirection = 'subscribe'
+        }
+        element.value = topicDirection
       } else {
         element.value = ''
       }
@@ -567,7 +576,8 @@ const populateWidgetConfigurationDialog = function (reconfig, widgetType, widget
 
   /*
    * Retrieve the elements which apply to all widget types and to only
-   * widgetType.
+   * widgetType. This logic assumes the SELECT OPTIONs are already correctly
+   * populated.
    */
   const widgetClass = '.allWidgetsClass, #' + widgetType
   jQuery(widgetClass)
@@ -581,7 +591,6 @@ const populateWidgetConfigurationDialog = function (reconfig, widgetType, widget
             if (element.name === 'type') {
               jQuery('#newWidgetType')
                 .val(widgetConfig[element.name])
-                .trigger('change')
             } else {
               element.value = widgetConfig[element.name]
             }
@@ -597,7 +606,6 @@ const populateWidgetConfigurationDialog = function (reconfig, widgetType, widget
         }
 
         case 'data': {
-          // TODO: Make this work with the new SELECT data elements
           if (widgetType !== 'gamepad') {
             if (reconfig && Object.hasOwn(widgetConfig.data, element.name)) {
               const configValue = widgetConfig.data[element.name]
@@ -615,29 +623,65 @@ const populateWidgetConfigurationDialog = function (reconfig, widgetType, widget
                  */
                 element.value = configValue.join(RQ_PARAMS.ATTR_DELIMIT)
               } else {
-                /*
-                 * This configValue could be assigned to an INPUT element
-                 * or to a SELECT element.
-                 */
                 if (element.localName === 'select') {
                   console.debug(
                     'populateWidgetConfigurationDialog:' +
+                    ' SELECT->' +
                     ` name: ${element.name}` +
                     ` configValue: ${configValue}`
                   )
-                  jQuery(`[name=${element.name}] option`)
+                  /*
+                   *
+                   * Confirm the SELECT named widgetType-element.name has an
+                   * OPTION element with the value configValue. If no, set the
+                   * SELECT value to '', to force the user to choose an allowed
+                   * value.
+                   */
+                  let foundOption = false
+                  jQuery(`#${element.id} option`)
                     .each((i, option) => {
                       console.debug(
                         'populateWidgetConfigurationDialog:' +
-                        ` ${i}` +
-                        `, localName: ${option.localName}` +
-                        `, name: ${option.name}` +
+                        ` ${element.id} OPTION` +
                         `, value: ${option.value}`
                       )
-                    })
+                      if (option.value === configValue) {
+                        foundOption = true
+                        console.debug(
+                          'populateWidgetConfigurationDialog:' +
+                          ` Found OPTION in ${element.id}` +
+                          ` with value ${configValue}`
+                        )
+                        jQuery(`#${element.id}`)
+                          .find(`option[value=${configValue}]`)
+                          .attr('selected', 'selected')
+                        /*
+                        jQuery(`#${element.id} select`)
+                          .val(configValue)
+                         */
 
-                  jQuery(`#${widgetType}-${element.name} select`).val(configValue)
+                        /*
+                         * No need to look at the rest of the OPTIONs.
+                         */
+                        return false
+                      }
+                    })
+                  if (!foundOption) {
+                    jQuery(`#${widgetType}-${element.name} select`)
+                      .val('')
+                      .trigger('change')
+                    console.warn(
+                      'populateWidgetConfigurationDialog:' +
+                      ` No ${configValue} OPTION found for SELECT ${element.id}`
+                    )
+                  }
                 } else {
+                  console.debug(
+                    'populateWidgetConfigurationDialog:' +
+                    ' INPUT->' +
+                    ` name: ${element.name}` +
+                    ` configValue: ${configValue}`
+                  )
                   element.value = configValue
                 }
               }
@@ -932,33 +976,6 @@ const setupServiceType = function (widgetType, configValue, configDetails) {
 }
 
 /**
- * Called after a topicDirection is selected from the topicDirection element.
- * Use the topicDirection as the property in configDetails.topic[topicDirection]
- * to get the list of available topics. Add the OPTION elements to the
- * #widgetType-topic SELECT element.
- */
-const setupTopic = function (widgetType, configValue, configDetails) {
-  jQuery(`#${widgetType}-topic`)
-    .find('option')
-    .remove()
-  jQuery(`#${widgetType}-topic`).val(null)
-  jQuery(`#${widgetType}-topic`).hide().show()
-
-  jQuery(`#${widgetType}-topicType`).val('')
-  jQuery(`#${widgetType}-topicAttribute`).val('')
-
-  if (configValue !== '') {
-    jQuery(`#${widgetType}-topic`)
-      .append('<option value=""></option>')
-      .val('')
-    for (const topicName in configDetails.topic[configValue]) {
-      jQuery(`#${widgetType}-topic`)
-        .append(`<option value="${topicName}">${topicName}</option>`)
-    }
-  }
-}
-
-/**
  * Called after a topicName is selected from the topic element. Retrieve the
  * value of the widget's topicDirection SELECT element. Use the
  * topicName as the property in configDetails.topic[topicDirection][topicName]
@@ -988,8 +1005,7 @@ const setupTopicType = function (widgetType, configValue, configDetails) {
 }
 
 /**
- * Handle a change to a 'data' data-section change. Changes to any SELECT element
- * in the data section call this function.
+ * Handle a change to a SELECT element in a 'data' data-section.
  */
 const dataConfigChange = function (event) {
   /*
@@ -1009,11 +1025,6 @@ const dataConfigChange = function (event) {
   switch (configItem) {
     case 'service': {
       setupServiceType(widgetType, configValue, configDetails)
-      break
-    }
-
-    case 'topicDirection': {
-      setupTopic(widgetType, configValue, configDetails)
       break
     }
 

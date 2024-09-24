@@ -185,8 +185,7 @@
                 <label>display suffix:</label> <input type="text" value="" name="suffix" data-section="format"><br/>
                 <h3>Robot Communications</h3>
                 <label>topic direction:</label>
-                  <select id="value-topicDirection" data-section="data" name="topicDirection">
-                  </select><br>
+                  <input id="value-topicDirection" type="text" value="subscribe" data-section="data" name="topicDirection"><br/>
                 <label>topic:</label>
                   <select id="value-topic" data-section="data" name="topic">
                   </select><br>
@@ -200,14 +199,13 @@
                 <label>min:</label> <input type="number" value="" name="min" data-section="format"><br/>
                 <label>max:</label> <input type="number" value="" name="max" data-section="format"><br/>
                 <label>step:</label> <input type="number" value="" name="step" data-section="format"><br/>
-                <label>reversed:</label> <input type="text" value="" name="reversed" data-section="format"><br/>
-                <label>default:</label> <input type="number" value="" name="default" data-section="format"><br/>
-                <label>orientation:</label> <input type="text" value="" name="orientation" data-section="format"><br/>
-                <label>animate:</label> <input type="text" value="" name="animate" data-section="format"><br/>
+                <label>reversed:</label> <input type="text" value="no" name="reversed" data-section="format"><br/>
+                <label>default:</label> <input type="number" value="90" name="default" data-section="format"><br/>
+                <label>orientation:</label> <input type="text" value="horizontal" name="orientation" data-section="format"><br/>
+                <label>animate:</label> <input type="text" value="true" name="animate" data-section="format"><br/>
                 <h3>Robot Communications</h3>
                 <label>topic direction:</label>
-                  <select id="slider-topicDirection" data-section="data" name="topicDirection">
-                  </select><br>
+                  <input id="slider-topicDirection" type="text" value="publish" data-section="data" name="topicDirection"><br/>
                 <label>topic:</label>
                   <select id="slider-topic" data-section="data" name="topic">
                   </select><br>
@@ -224,8 +222,7 @@
                 <label>false color:</label> <input type="text" value="" name="falseColor" data-section="format"><br/>
                 <h3>Robot Communications</h3>
                 <label>topic direction:</label>
-                  <select id="indicator-topicDirection" data-section="data" name="topicDirection">
-                  </select><br>
+                  <input id="indicator-topicDirection" type="text" value="subscribe" data-section="data" name="topicDirection"><br/>
                 <label>topic:</label>
                   <select id="indicator-topic" data-section="data" name="topic">
                   </select><br>
@@ -238,8 +235,7 @@
             <div class="newWidgetClass" id="joystick">
                 <h3>Robot Communications</h3>
                 <label>topic direction:</label>
-                  <select id="joystick-topicDirection" data-section="data" name="topicDirection">
-                  </select><br>
+                  <input id="joystick-topicDirection" type="text" value="publish" data-section="data" name="topicDirection"><br/>
                 <label>topic:</label>
                   <select id="joystick-topic" data-section="data" name="topic">
                   </select><br>
