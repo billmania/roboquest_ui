@@ -76,7 +76,7 @@ const resetConfigInputs = function () {
     .each((i, element) => {
       const dataSection = jQuery(element).data('section')
 
-      if (['format', 'data'].includes(dataSection)) {
+      if (dataSection === 'data') {
         if (element.localName === 'select') {
           jQuery(`#${element.id}`).empty()
           jQuery(`#${element.id}`).append('<option value=""></option>')
@@ -729,6 +729,13 @@ const extractWidgetConfigurationFromDialog = function () {
    * https://learn.jquery.com/using-jquery-core/selecting-elements/
    */
   const configElements = jQuery('#configureNewWidgetForm select, #configureNewWidgetForm input')
+  configElements
+    .each((index, element) => {
+      console.debug(
+        'extractWidgetConfigurationFromDialog configElements:' +
+        ` ${index}-${element.localName} ${element.name} <${element.value}>`
+      )
+    })
 
   let widgetTypesToExclude = ''
   for (const otherWidgetType of WIDGET_TYPES) {
@@ -737,17 +744,24 @@ const extractWidgetConfigurationFromDialog = function () {
     }
   }
   widgetTypesToExclude = `:not(${widgetTypesToExclude.slice(0, -2)})`
+  console.debug(
+    'extractWidgetConfigurationFromDialog widgetTypesToExclude:' +
+    ` <${widgetTypesToExclude}`
+  )
+
+  configElements
+    .filter(widgetTypesToExclude)
+    .each((index, element) => {
+      console.debug(
+        'extractWidgetConfigurationFromDialog filtered configElements:' +
+        ` ${index}-${element.localName} ${element.name} <${element.value}>`
+      )
+    })
 
   configElements
     .filter(widgetTypesToExclude)
     .each((i, element) => {
-      /*
-       * The 'root' data-section elements must be found
-       * before any 'data' data-section elements, so the widget
-       * type will already be known when the first 'data' element
-       * is processed.
-       */
-      if (element.value) {
+      if (element.value !== undefined) {
         const dataSection = jQuery(element).data('section')
 
         switch (dataSection) {
@@ -840,14 +854,12 @@ const extractWidgetConfigurationFromDialog = function () {
         /*
          * This element doesn't have a value.
          */
-        if (element.name.startsWith(widgetType)) {
-          console.warn(
-            'extractWidgetConfigurationFromDialog:' +
-            ` type: ${element.localName}` +
-            ` name: ${element.name}` +
-            ' has no value. Skipping.'
-          )
-        }
+        console.warn(
+          'extractWidgetConfigurationFromDialog:' +
+          ` type: ${element.localName}` +
+          ` name: ${element.name}` +
+          ' has no value. Skipping.'
+        )
       }
     })
 
@@ -940,19 +952,11 @@ const appendAttribute = function () { // eslint-disable-line no-unused-vars
 
   const attributesElement = jQuery(`#${activeWidgetAttributesElementId}`)
   let attributes = attributesElement.val()
-
   if (attributes !== '') {
-    attributes += ';'
+    attributes += RQ_PARAMS.ATTR_DELIMIT
   }
   attributes += selectedAttribute
   attributesElement.val(attributes)
-}
-
-/**
- * Confirm the collection of attributes are valid.
- */
-const checkAttributes = function () { // eslint-disable-line no-unused-vars
-  console.debug('checkAttributes')
 }
 
 /**

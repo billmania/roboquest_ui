@@ -5,7 +5,7 @@
 /* global RQUpdateHelp RQRebootHelp RQShutdownHelp */
 /* global setMsgDialogOpen setMsgDialogClosed */
 /* global showMsg gamepad ros */
-/* global appendAttribute checkAttributes */
+/* global appendAttribute */
 
 /**
  * The main control for the RoboQuest front-end UI.
@@ -30,11 +30,11 @@ jQuery(window).on('resize', function () {
 jQuery(document).ready(function () {
   console.log('Checking for duplicate IDs')
 
-	jQuery('[id]')
+  jQuery('[id]')
     .each(function () {
-      let ids = jQuery('[id="' + this.id + '"]')
-      if (ids.length > 1 && ids[0] == this) {
-        console.warn('Multiple IDs #'+this.id)
+      const ids = jQuery('[id="' + this.id + '"]')
+      if (ids.length > 1 && ids[0] === this) {
+        console.warn('Multiple IDs #' + this.id)
         console.warn(
           `ID ${this.id} is duplicated`
         )
@@ -389,9 +389,6 @@ jQuery(function () {
     buttons: {
       Append: function () {
         appendAttribute()
-      },
-      Check: function () {
-        checkAttributes()
       }
     }
   })

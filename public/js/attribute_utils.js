@@ -26,9 +26,18 @@ const assignValue = function ( // eslint-disable-line no-unused-vars
   if (topicAttr !== '') {
     if (topicAttr.indexOf(
       RQ_PARAMS.VALUE_DELIMIT) === -1) {
-      payload[topicAttr] = (
-        value * scale
-      )
+      /*
+       * No constant included, so assign the passed value.
+       */
+      if (!isNaN(parseInt(value))) {
+        payload[topicAttr] = (
+          value * scale
+        )
+      } else {
+        payload[topicAttr] = (
+          value
+        )
+      }
     } else {
       const nameAndValue = topicAttr
         .split(RQ_PARAMS.VALUE_DELIMIT)

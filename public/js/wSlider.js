@@ -97,22 +97,30 @@ jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.SLIDER', {
        * A slider provides one numeric value. If any more attributes
        * are specified, they must include constant values.
        */
-      if (this.options.data.topicAttribute.length > 0) {
+      if (!Array.isArray(this.options.data.topicAttribute)) {
+        assignValue(
+          objPayload,
+          this.options.data.topicAttribute,
+          DONT_SCALE,
+          value
+        )
+      } else {
         assignValue(
           objPayload,
           this.options.data.topicAttribute[0],
           DONT_SCALE,
           value
         )
-      }
-      if (this.options.data.topicAttribute.length > 1) {
-        for (const attr of this.options.data.topicAttribute.slice(1)) {
-          assignValue(
-            objPayload,
-            attr,
-            DONT_SCALE,
-            DEFAULT_VALUE
-          )
+
+        for (const attribute of this.options.data.topicAttribute.slice(1)) {
+          if (attribute !== '') {
+            assignValue(
+              objPayload,
+              attribute,
+              DONT_SCALE,
+              DEFAULT_VALUE
+            )
+          }
         }
       }
 
