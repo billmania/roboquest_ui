@@ -5,6 +5,7 @@
 /* global RQUpdateHelp RQRebootHelp RQShutdownHelp */
 /* global setMsgDialogOpen setMsgDialogClosed */
 /* global showMsg gamepad ros */
+/* global appendAttribute */
 
 /**
  * The main control for the RoboQuest front-end UI.
@@ -24,6 +25,21 @@ let stopping = null
 
 jQuery(window).on('resize', function () {
   positionWidgets()
+})
+
+jQuery(document).ready(function () {
+  console.log('Checking for duplicate IDs')
+
+  jQuery('[id]')
+    .each(function () {
+      const ids = jQuery('[id="' + this.id + '"]')
+      if (ids.length > 1 && ids[0] === this) {
+        console.warn('Multiple IDs #' + this.id)
+        console.warn(
+          `ID ${this.id} is duplicated`
+        )
+      }
+    })
 })
 
 const initSocket = function () {
@@ -355,7 +371,7 @@ jQuery(function () {
       setMsgDialogClosed()
     }
   })
-  jQuery('#attributePicker').dialog({
+  jQuery('#gamepadAttributePicker').dialog({
     width: 250,
     autoOpen: false,
     buttons: {
@@ -364,6 +380,15 @@ jQuery(function () {
       },
       Check: function () {
         gamepad.checkAttributes()
+      }
+    }
+  })
+  jQuery('#widgetAttributePicker').dialog({
+    width: 250,
+    autoOpen: false,
+    buttons: {
+      Append: function () {
+        appendAttribute()
       }
     }
   })

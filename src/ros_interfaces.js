@@ -181,8 +181,11 @@ module.exports = {
    */
   attributesLists: { // eslint-disable-line no-unused-vars
     'rq_msgs/srv/Control': [
+      'set_charger:OFF',
       'set_fet1:OFF',
-      'set_fet2:OFF'
+      'set_fet2:OFF',
+      'set_motors:OFF',
+      'set_servos:OFF'
     ],
 
     'rq_msgs/msg/MotorSpeed': [

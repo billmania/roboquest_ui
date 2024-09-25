@@ -429,7 +429,7 @@ class Gamepad {
    * append it to the value of the attributes element.
    */
   appendAttribute () {
-    const selectedAttribute = jQuery('#attributeSelect').val()
+    const selectedAttribute = jQuery('#gamepadAttributeSelect').val()
     if (selectedAttribute === undefined || selectedAttribute === '') {
       return
     }
@@ -760,7 +760,7 @@ class Gamepad {
       return
     }
 
-    const attributeSelect = jQuery('#attributeSelect')
+    const attributeSelect = jQuery('#gamepadAttributeSelect')
     attributeSelect.empty()
     attributeSelect.append('<option value=""></option>')
 
@@ -772,8 +772,8 @@ class Gamepad {
 
     this._attributesConfigRow = configRow
     const configRowLabel = jQuery('#' + configRow + 'span').text()
-    jQuery('#attributePicker').dialog({ title: `${configRowLabel} attributes` })
-    jQuery('#attributePicker').dialog('open')
+    jQuery('#gamepadAttributePicker').dialog({ title: `${configRowLabel} attributes` })
+    jQuery('#gamepadAttributePicker').dialog('open')
   }
 
   /**

@@ -4,23 +4,58 @@
 /* global gamepad GamepadData ROW_ID_LENGTH */
 /* global showMsg */
 
-/*
- * A socket object is required to create a widget, so we need to define
- * it globally here to avoid a circular scope dependency.
-*/
+/**
+ * Process flow for widget configuration
+ *
+ * Widget configuration can take two paths: configure a new widget;
+ * reconfigure an existing widget.
+ *
+ * Configure a new widget
+ * The process begins by clicking the "add widget" button in the "CONFIGURE"
+ * menu. That creates a jQuery dialog using the #newWidget element and opens
+ * it. Two functions are called as a result of the "open" event: resetConfigInputs()
+ * and setNewWidgetDialogType(). setNewWidgetDialogType() in turn calls
+ * populateWidgetConfigurationDialog(ADD). After all these calls have completed,
+ * all SELECT and INPUT elements in #configureNewWidgetForm will have been reset
+ * and some will have been assigned values based on widgetInterfaces.
+ *
+ * Reconfigure an existing widget
+ * The process begins by clicking the "kebob" at the upper right corner of the
+ * widget. That calls the function openConfigureWidgetDialog(), which in turn does
+ * two things: call populateWidgetConfigurationDialog(RECONFIG) and then creates a
+ * jQuery dialog using the same #newWidget element as the "Configure a new widget"
+ * process. After all these calls have completed, all SELECT and INPUT elements in
+ * #configureNewWidgetForm will have been reset and some will have been assigned
+ * the widget's current configuration values.
+ *
+ * Both configuration processes
+ * At this point, the process flows merge into one. The user modifies the configuration,
+ * aided by the dataConfigChange() callback.
+ * Once the user has completed the configuration, the Create button is clicked for a
+ * new widget or the Done button is clicked for a reconfigured widget.
+ */
 let socket
 
-/*
- * So the widget default configuration can be shown for a new
- * widget but not for an existing widget.
- */
-let showConfigDefaults = true
+const WIDGET_TYPES = [
+  'button',
+  'gamepad',
+  'indicator',
+  'joystick',
+  'slider',
+  'value'
+]
+
+const RECONFIG = true
+const ADD = false
+
 /*
  * Used to tell other logic that the widget configuration process is
  * active. An example is the Gamepad class, so it can determine what to
  * do with gamepad events.
  */
 let configuringWidget = false // eslint-disable-line no-unused-vars
+
+let activeWidgetAttributesElementId = ''
 
 /**
  * Extends jQuery. To be called on a jQuery element of class 'widget'.
@@ -29,6 +64,30 @@ let configuringWidget = false // eslint-disable-line no-unused-vars
  */
 jQuery.fn.getWidgetConfiguration = function () {
   return this.data(RQ_PARAMS.WIDGET_NAMESPACE)
+}
+
+/**
+ * Reset all of the format and data section elements, along with
+ * the newWidgetLabel element, to ''.
+ */
+const resetConfigInputs = function () {
+  jQuery('#newWidget')
+    .find('[data-section]')
+    .each((i, element) => {
+      const dataSection = jQuery(element).data('section')
+
+      if (dataSection === 'data') {
+        if (element.localName === 'select') {
+          jQuery(`#${element.id}`).empty()
+          jQuery(`#${element.id}`).append('<option value=""></option>')
+        } else {
+          element.value = ''
+        }
+      }
+    })
+
+  jQuery('#newWidgetType').val('').trigger('change')
+  jQuery('#newWidgetLabel').val('')
 }
 
 /**
@@ -98,7 +157,7 @@ const updateWidgetPosition = function (oldPosition, newPosition) {
  *
  * The structure of a new widget is comprised of three parts:
  * 1. the top level, all-encompassing element is a widgetContainer and is
- *    and HTML DIV with the CSS class "widget" and widgetType. it also
+ *    an HTML DIV with the CSS class "widget" and widgetType. it also
  *    has an HTML ID unique to this widget
  * 2. the widgetContainer includes a widgetHeader which shows the
  *    widget's label
@@ -185,9 +244,6 @@ const createWidget = function (objWidget) { // eslint-disable-line no-unused-var
         widgetPosition,
         jQuery('#' + widgetId).position()
       )
-      console.debug(
-        ` updated position to: ${JSON.stringify(jQuery('#' + widgetId).getWidgetConfiguration().position)}`
-      )
     }
   }).hover(function (event) {
     jQuery(event.currentTarget).find('.widget-kebobMenu')[0].style.display = 'block'
@@ -214,9 +270,8 @@ const createWidget = function (objWidget) { // eslint-disable-line no-unused-var
 const openConfigureWidgetDialog = function (widget) {
   const oldWidgetConfig = widget.getWidgetConfiguration()
 
-  populateWidgetConfigurationDialog(oldWidgetConfig)
+  populateWidgetConfigurationDialog(RECONFIG, oldWidgetConfig.type, oldWidgetConfig)
 
-  showConfigDefaults = false
   jQuery('#newWidget').dialog({
     title: 'Configure Widget',
     buttons: {
@@ -234,7 +289,6 @@ const openConfigureWidgetDialog = function (widget) {
     open: function (event, ui) {
       keyControl.disableKeys()
       configuringWidget = true
-      console.debug('configuringWidget is true')
     },
     close: function (event, ui) {
       /*
@@ -242,7 +296,6 @@ const openConfigureWidgetDialog = function (widget) {
        * dialog, regardless of widget type. Also by calling dialog.close().
        */
       configuringWidget = false
-      console.debug('configuringWidget is false')
     }
   }).dialog('open')
 }
@@ -346,31 +399,50 @@ const reconfigureWidget = function (oldWidgetConfig, newWidgetConfig) {
 }
 
 /**
- * In the widget configuration dialog, set the input element default
- * values based on the selected widget type.
- * The global variable showConfigDefaults prevents over-writing an
- * existing configuration with the defaults.
+ * Show the configuration elements for only the specified widgetType.
  */
-const setWidgetConfigDefaults = function () {
-  if (showConfigDefaults) {
-    const widgetType = jQuery('#newWidget #newWidgetType').find('option:selected').val()
-    populateWidgetConfigurationDialog(widgetDefaults[widgetType])
-    return
+const showConfigurationElements = function (widgetType) {
+  jQuery('#newWidget .newWidgetClass').hide()
+  if (WIDGET_TYPES.includes(widgetType)) {
+    jQuery(`#newWidget #${widgetType}`).show()
+  } else {
+    if (widgetType === '') {
+      console.warn(
+        'showconfigurationElements:' +
+        ' widgetType was blank'
+      )
+      return
+    }
+
+    console.warn(
+      'showconfigurationElements:' +
+      ` ${widgetType} must be from ${WIDGET_TYPES}`
+    )
   }
-  showConfigDefaults = true
 }
 
 /**
  * Adjust the newWidget dialog to show only the relevant input elements,
- * based on the selected widget type. Set the default value for each input,
- * using the object of defaults for the widget type.
+ * based on the selected widget type. Cause those elements to be populated
+ * appropriately.
  *
  * @param {string} widgetType - the type of widget from [Button, Value,
  *                              Slider, Indicator, Joystick, Gamepad]
  */
 const setNewWidgetDialogType = function (widgetType) {
-  jQuery('#newWidget .newWidgetType').hide()
-  jQuery(`#newWidget #${widgetType}`).show()
+  showConfigurationElements(widgetType)
+
+  if (widgetType === '') {
+    return
+  }
+
+  /*
+   * This default label is expected to be overwritten when re-configuring
+   * an existing widget.
+   */
+  // TODO: Make the new widgetLabel unique
+  jQuery('#newWidgetLabel').val(`new_${widgetType}`)
+
   if (widgetType === 'gamepad') {
     if (gamepad.gamepadConnected()) {
       gamepad.enableGamepad()
@@ -378,39 +450,147 @@ const setNewWidgetDialogType = function (widgetType) {
       showMsg('No gamepad connected')
       console.warn('setNewWidgetDialogType: No gamepad connected')
     }
+  } else {
+    populateWidgetConfigurationDialog(ADD, widgetType)
   }
 }
 
 /**
- * Used when re-configuring an existing widget.
+ * Setup the SELECT and INPUT elements in the #configureNewWidgetForm
+ * for the specified widgetType.
  *
- * @param {object} widgetConfig - the current configuration to use as
- *                                default values.
+ * @param (string) widgetType - one of the members of WIDGET_TYPES,
+ *                              except gamepad
  */
-const populateWidgetConfigurationDialog = function (widgetConfig) {
-  if (widgetConfig.type === 'gamepad') {
-    gamepad.parseConfig(widgetConfig)
+const setupWidgetDataSection = function (widgetType) {
+  if (widgetType === 'gamepad') {
+    return
+  }
+
+  if (!WIDGET_TYPES.includes(widgetType)) {
+    console.warn(
+      'setupWidgetDataSection:' +
+      ` ${widgetType} must be from ${WIDGET_TYPES}`
+    )
+    return
   }
 
   /*
-   * The following two .find() calls limit the elements to only the data
-   * section AND for only the data section.
-   *
-   *  .find('#' + widgetConfig.type)
+   * Find the SELECT elements in the data section for this widgetType,
+   * remove all OPTIONs, add a blank OPTION, and then add more OPTIONs
+   * based on widgetInterface.
+   * Find the INPUT elements and erase any content.
    */
-  jQuery('#newWidget')
+  let widgetOptions
+  let destinationType
+  if (Object.hasOwn(widgetInterface[widgetType], 'topic')) {
+    widgetOptions = widgetInterface[widgetType].topic
+    destinationType = 'topic'
+  } else {
+    widgetOptions = widgetInterface[widgetType].service
+    destinationType = 'service'
+  }
+
+  const widgetConfigSelector = `#${widgetType}`
+  jQuery(widgetConfigSelector)
+    .find('[data-section=data]')
+    .each((i, element) => {
+      if (element.localName === 'select') {
+        const dataElement = jQuery('[name=' + element.name + ']')
+        switch (destinationType) {
+          case 'service': {
+            switch (element.name) {
+              case 'service': {
+                dataElement.empty()
+                dataElement.append('<option value=""></option>')
+                for (const serviceName in widgetOptions) {
+                  dataElement.append(`<option value="${serviceName}">${serviceName}</option>`)
+                }
+                break
+              }
+            }
+            break
+          }
+
+          case 'topic': {
+            if (element.name === 'topic') {
+              let topicDirection = 'publish'
+              if (Object.hasOwn(widgetOptions, 'subscribe')) {
+                topicDirection = 'subscribe'
+              }
+              dataElement.empty()
+              dataElement.append('<option value=""></option>')
+              for (const topic in widgetOptions[topicDirection]) {
+                dataElement.append(`<option value="${topic}">${topic}</option>`)
+              }
+            }
+          }
+        }
+      } else if (element.localName === 'input' &&
+                 element.name === 'topicDirection') {
+        let topicDirection = 'publish'
+        if (Object.hasOwn(widgetOptions, 'subscribe')) {
+          topicDirection = 'subscribe'
+        }
+        element.value = topicDirection
+      } else {
+        element.value = ''
+      }
+    })
+}
+
+/**
+ * When adding a new widget or re-configuring an existing widget, the data section
+ * elements are populated based on the widgetType property in the widgetInterface
+ * object.
+ * When re-configuring an existing widget, all of configuration dialog elements
+ * are set based on the widget's current configuration. If the widget type is changed
+ * while reconfiguring, the process will convert to the add-a-new-widget process.
+ *
+ * @param {boolean} reconfig - true if reconfiguring, otherwise adding
+ * @param {string} widgetType - one of WIDGET_TYPES
+ * @param {object} widgetConfig - the current configuration when
+ *                                reconfiguring
+ */
+const populateWidgetConfigurationDialog = function (reconfig, widgetType, widgetConfig) {
+  if (![RECONFIG, ADD].includes(reconfig)) {
+    console.warn(
+      'populateWidgetConfigurationDialog:' +
+      ' reconfig must be RECONFIG or ADD'
+    )
+    return
+  }
+
+  if (reconfig && widgetType === 'gamepad') {
+    /*
+     * Re-configuring an existing gamepad widget.
+     */
+    gamepad.parseConfig(widgetConfig)
+  }
+
+  if (reconfig) {
+    showConfigurationElements(widgetType)
+  }
+
+  setupWidgetDataSection(widgetType)
+
+  /*
+   * Retrieve the elements which apply to all widget types and to only
+   * widgetType. This logic assumes the SELECT OPTIONs are already correctly
+   * populated.
+   */
+  const widgetClass = '.allWidgetsClass, #' + widgetType
+  jQuery(widgetClass)
     .find('[data-section]')
     .each((i, element) => {
       const dataSection = jQuery(element).data('section')
 
       switch (dataSection) {
         case 'root': {
-          if (Object.hasOwn(widgetConfig, element.name)) {
+          if (reconfig && Object.hasOwn(widgetConfig, element.name)) {
             if (element.name === 'type') {
               jQuery('#newWidgetType')
                 .val(widgetConfig[element.name])
-                .selectmenu('refresh')
-              setNewWidgetDialogType(widgetConfig[element.name])
             } else {
               element.value = widgetConfig[element.name]
             }
@@ -419,21 +599,91 @@ const populateWidgetConfigurationDialog = function (widgetConfig) {
         }
 
         case 'format': {
-          if (Object.hasOwn(widgetConfig[dataSection], element.name)) {
+          if (reconfig && Object.hasOwn(widgetConfig[dataSection], element.name)) {
             element.value = widgetConfig[dataSection][element.name]
           }
           break
         }
 
         case 'data': {
-          if (widgetConfig.type !== 'gamepad') {
-            if (Object.hasOwn(widgetConfig[dataSection], element.name)) {
-              const configValue = widgetConfig[dataSection][element.name]
+          if (widgetType !== 'gamepad') {
+            if (reconfig && Object.hasOwn(widgetConfig.data, element.name)) {
+              const configValue = widgetConfig.data[element.name]
+              console.debug(
+                'populateWidgetConfigurationDialog: data elements' +
+                ` localName: ${element.localName}` +
+                ` name: ${element.name}` +
+                ` configValue: ${configValue}`
+              )
               if (typeof (configValue) === 'object' &&
                   Array.isArray(configValue)) {
+                /*
+                 * Only attributes are handled this way and they don't
+                 * use a SELECT element.
+                 */
                 element.value = configValue.join(RQ_PARAMS.ATTR_DELIMIT)
               } else {
-                element.value = configValue
+                if (element.localName === 'select') {
+                  console.debug(
+                    'populateWidgetConfigurationDialog:' +
+                    ' SELECT->' +
+                    ` name: ${element.name}` +
+                    ` configValue: ${configValue}`
+                  )
+                  /*
+                   *
+                   * Confirm the SELECT named widgetType-element.name has an
+                   * OPTION element with the value configValue. If no, set the
+                   * SELECT value to '', to force the user to choose an allowed
+                   * value.
+                   */
+                  let foundOption = false
+                  jQuery(`#${element.id} option`)
+                    .each((i, option) => {
+                      console.debug(
+                        'populateWidgetConfigurationDialog:' +
+                        ` ${element.id} OPTION` +
+                        `, value: ${option.value}`
+                      )
+                      if (option.value === configValue) {
+                        foundOption = true
+                        console.debug(
+                          'populateWidgetConfigurationDialog:' +
+                          ` Found OPTION in ${element.id}` +
+                          ` with value ${configValue}`
+                        )
+                        jQuery(`#${element.id}`)
+                          .find(`option[value=${configValue}]`)
+                          .attr('selected', 'selected')
+                        /*
+                        jQuery(`#${element.id} select`)
+                          .val(configValue)
+                         */
+
+                        /*
+                         * No need to look at the rest of the OPTIONs.
+                         */
+                        return false
+                      }
+                    })
+                  if (!foundOption) {
+                    jQuery(`#${widgetType}-${element.name} select`)
+                      .val('')
+                      .trigger('change')
+                    console.warn(
+                      'populateWidgetConfigurationDialog:' +
+                      ` No ${configValue} OPTION found for SELECT ${element.id}`
+                    )
+                  }
+                } else {
+                  console.debug(
+                    'populateWidgetConfigurationDialog:' +
+                    ' INPUT->' +
+                    ` name: ${element.name}` +
+                    ` configValue: ${configValue}`
+                  )
+                  element.value = configValue
+                }
               }
             }
           } else {
@@ -450,7 +700,7 @@ const populateWidgetConfigurationDialog = function (widgetConfig) {
 * Reads all the populated fields of the configuration dialog into an object
 *
 * The data-sections of the input elements contained by the
-* #configureNewWidget element are expected to be in order as
+* #configureNewWidgetForm element are expected to be in order as
 * root, position, format, and data. The data elements for a gamepad
 * are expected to be in order as description, destinationType,
 * destinationName, interface, attributes, and scaling. Input elements
@@ -469,20 +719,49 @@ const extractWidgetConfigurationFromDialog = function () {
   }
   let gamepadData = null
   let rowId = null
-  jQuery('#newWidget')
-    .find(
-      '#configureNewWidget input:visible' +
-      ', #configureNewWidget select:visible' +
-      ', #newWidgetType'
-    )
+  const widgetType = jQuery('#newWidgetType').val()
+  console.debug(
+    'extractWidgetConfigurationFromDialog:' +
+    ` widgetType: ${widgetType}`
+  )
+
+  /*
+   * https://learn.jquery.com/using-jquery-core/selecting-elements/
+   */
+  const configElements = jQuery('#configureNewWidgetForm select, #configureNewWidgetForm input')
+  configElements
+    .each((index, element) => {
+      console.debug(
+        'extractWidgetConfigurationFromDialog configElements:' +
+        ` ${index}-${element.localName} ${element.name} <${element.value}>`
+      )
+    })
+
+  let widgetTypesToExclude = ''
+  for (const otherWidgetType of WIDGET_TYPES) {
+    if (widgetType !== otherWidgetType) {
+      widgetTypesToExclude += `[id^="${otherWidgetType}-"], `
+    }
+  }
+  widgetTypesToExclude = `:not(${widgetTypesToExclude.slice(0, -2)})`
+  console.debug(
+    'extractWidgetConfigurationFromDialog widgetTypesToExclude:' +
+    ` <${widgetTypesToExclude}`
+  )
+
+  configElements
+    .filter(widgetTypesToExclude)
+    .each((index, element) => {
+      console.debug(
+        'extractWidgetConfigurationFromDialog filtered configElements:' +
+        ` ${index}-${element.localName} ${element.name} <${element.value}>`
+      )
+    })
+
+  configElements
+    .filter(widgetTypesToExclude)
     .each((i, element) => {
-      /*
-       * The 'root' data-section elements must be found
-       * before any 'data' data-section elements, so the widget
-       * type will already be known when the first 'data' element
-       * is processed.
-       */
-      if (element.value) {
+      if (element.value !== undefined) {
         const dataSection = jQuery(element).data('section')
 
         switch (dataSection) {
@@ -571,6 +850,16 @@ const extractWidgetConfigurationFromDialog = function () {
             break
           }
         }
+      } else {
+        /*
+         * This element doesn't have a value.
+         */
+        console.warn(
+          'extractWidgetConfigurationFromDialog:' +
+          ` type: ${element.localName}` +
+          ` name: ${element.name}` +
+          ' has no value. Skipping.'
+        )
       }
     })
 
@@ -597,6 +886,163 @@ const extractWidgetConfigurationFromDialog = function () {
   return objNewWidget
 }
 
+const setupTopicAttributeSelect = function (widgetType, topicName, direction, interfaceType) {
+  for (const attribute of widgetInterface[widgetType].topic[direction][topicName][interfaceType]) {
+    jQuery('#widgetAttributeSelect')
+      .append(`<option value="${attribute}">${attribute}</option>`)
+  }
+}
+
+const setupServiceAttributeSelect = function (widgetType, serviceName, interfaceType) {
+  for (const attribute of widgetInterface[widgetType].service[serviceName][interfaceType]) {
+    jQuery('#widgetAttributeSelect')
+      .append(`<option value="${attribute}">${attribute}</option>`)
+  }
+}
+
+/**
+ * Show the list of attributes for a widget using a dialog, very similar to
+ * Gamepad.showAttributes().
+ */
+const showAttributes = function (sourceElement) { // eslint-disable-line no-unused-vars
+  const identifiers = sourceElement.id.split('-')
+  if (identifiers.length !== 2) {
+    return
+  }
+
+  activeWidgetAttributesElementId = sourceElement.id
+
+  const widgetType = identifiers[0]
+  const attributeElementName = identifiers[1]
+
+  jQuery(`#${widgetType}-topicAttribute`).val('')
+  jQuery(`#${widgetType}-serviceAttribute`).val('')
+  jQuery('#widgetAttributeSelect').empty()
+
+  if (attributeElementName.startsWith('topic')) {
+    const topicDirection = jQuery(`#${widgetType}-topicDirection`).val()
+    const topic = jQuery(`#${widgetType}-topic`).val()
+    const interfaceType = jQuery(`#${widgetType}-topicType`).val()
+
+    setupTopicAttributeSelect(widgetType, topic, topicDirection, interfaceType)
+  } else if (attributeElementName.startsWith('service')) {
+    const service = jQuery(`#${widgetType}-service`).val()
+    const interfaceType = jQuery(`#${widgetType}-serviceType`).val()
+    setupServiceAttributeSelect(widgetType, service, interfaceType)
+  } else {
+    console.warn(
+      'showAttributes:' +
+      `cannot find topic or service in ${attributeElementName}`
+    )
+    return
+  }
+
+  jQuery('#widgetAttributePicker').dialog({ title: `${widgetType} attributes` })
+  jQuery('#widgetAttributePicker').dialog('open')
+}
+
+/**
+ * Append the selected attribute to the collection of attributes.
+ */
+const appendAttribute = function () { // eslint-disable-line no-unused-vars
+  const selectedAttribute = jQuery('#widgetAttributeSelect').val()
+  if (selectedAttribute === undefined || selectedAttribute === '') {
+    return
+  }
+
+  const attributesElement = jQuery(`#${activeWidgetAttributesElementId}`)
+  let attributes = attributesElement.val()
+  if (attributes !== '') {
+    attributes += RQ_PARAMS.ATTR_DELIMIT
+  }
+  attributes += selectedAttribute
+  attributesElement.val(attributes)
+}
+
+/**
+ * Called after a serviceName is selected from the service element. Use the
+ * serviceName as the property in configDetails.service[serviceName] to get the
+ * serviceTypeName (which will be the only property). Set the value of the
+ * serviceType INPUT element to the serviceTypeName.
+ */
+const setupServiceType = function (widgetType, configValue, configDetails) {
+  console.debug(`setupServiceType: ${configValue} ${configDetails.service[configValue]}`)
+
+  if (configValue === '') {
+    jQuery(`#${widgetType}-serviceType`).val('')
+    jQuery(`#${widgetType}-serviceAttribute`).val('')
+    jQuery(`#${widgetType}-clickValue`).val('')
+  } else {
+    for (const serviceType in configDetails.service[configValue]) {
+      jQuery(`#${widgetType}-serviceType`).val(serviceType)
+    }
+  }
+}
+
+/**
+ * Called after a topicName is selected from the topic element. Retrieve the
+ * value of the widget's topicDirection SELECT element. Use the
+ * topicName as the property in configDetails.topic[topicDirection][topicName]
+ * to get the single topicType. Set the value of the topicType INPUT element.
+ */
+const setupTopicType = function (widgetType, configValue, configDetails) {
+  jQuery(`#${widgetType}-topicType`).val('')
+  jQuery(`#${widgetType}-topicAttribute`).val('')
+
+  const topicDirection = jQuery(`#${widgetType}-topicDirection`).val()
+  if (topicDirection === '') {
+    console.warn('setupTopicType: No topicDirection provided')
+    return
+  }
+  const topicTypeInputElement = jQuery(`#${widgetType}-topicType`)
+  topicTypeInputElement.val('')
+
+  if (configValue !== '') {
+    /*
+     * A for loop is used here, but there can be only one property. The property
+     * name is NOT known until run-time.
+     */
+    for (const topicType in configDetails.topic[topicDirection][configValue]) {
+      topicTypeInputElement.val(topicType)
+    }
+  }
+}
+
+/**
+ * Handle a change to a SELECT element in a 'data' data-section.
+ */
+const dataConfigChange = function (event) {
+  /*
+   * The unique ID for the SELECT element, comprised of the widgetType and the configuration
+   * item.
+   */
+  const selectId = event.target.id
+  /*
+   * event.target.name is embedded in the selectId, as the second part. event.target.name
+   * on its own is NOT unique.
+   */
+  const widgetType = selectId.split('-')[0]
+  const configItem = event.target.name
+  const configValue = event.target.value
+  const configDetails = widgetInterface[widgetType]
+
+  switch (configItem) {
+    case 'service': {
+      setupServiceType(widgetType, configValue, configDetails)
+      break
+    }
+
+    case 'topic': {
+      setupTopicType(widgetType, configValue, configDetails)
+      break
+    }
+
+    default: {
+      console.warn(`dataConfigChange: ${configItem} is not a recognized configItem`)
+    }
+  }
+}
+
 const initWidgetConfig = function (objSocket) { // eslint-disable-line no-unused-vars
   socket = objSocket
   /**
@@ -617,7 +1063,6 @@ const initWidgetConfig = function (objSocket) { // eslint-disable-line no-unused
 
     createWidget(objNewWidget)
     configuringWidget = false
-    console.debug('configuringWidget is false')
     positionWidgets()
   }
 
@@ -632,7 +1077,6 @@ const initWidgetConfig = function (objSocket) { // eslint-disable-line no-unused
     buttons: {
       Create: addWidget,
       Done: function () {
-        console.debug('Done newWidget dialog')
         jQuery(this).dialog('close')
       }
     },
@@ -644,18 +1088,39 @@ const initWidgetConfig = function (objSocket) { // eslint-disable-line no-unused
     }
   })
 
-  jQuery('#newWidget #newWidgetType').selectmenu({
-    change: function (event, ui) {
-      const widgetType = ui.item.value
+  /**
+   * Capture changes to the widget configuration type.
+   */
+  jQuery('#newWidgetType')
+    .change(function (event) {
+      const widgetType = event.target.value
 
-      setWidgetConfigDefaults()
       setNewWidgetDialogType(widgetType)
+    })
+
+  /**
+   * Capture changes to the SELECT elements in the data sections of
+   * widget configuration.
+   */
+  let widgetDataElements = ''
+  for (const widgetType of WIDGET_TYPES) {
+    if (widgetType !== 'gamepad') {
+      widgetDataElements += ('#' + widgetType + ', ')
     }
-  })
+  }
+  widgetDataElements = widgetDataElements.slice(0, -2)
+  jQuery(widgetDataElements)
+    .find('select')
+    .each((i, element) => {
+      jQuery(`[name=${element.name}]`)
+        .change(function (event) {
+          dataConfigChange(event)
+        })
+    })
 
   jQuery('#addWidget').on('click', function () {
     /*
-     * The #newWidget dialog is used to define a new widget, which
+     * The #newWidget dialog is used to define a new widget which
      * doesn't yet exist in the widget configuration file.
      */
     jQuery('#newWidget').dialog({
@@ -667,100 +1132,198 @@ const initWidgetConfig = function (objSocket) { // eslint-disable-line no-unused
         }
       },
       open: function (event, ui) {
+        resetConfigInputs()
+        setNewWidgetDialogType('')
         keyControl.disableKeys()
-        setWidgetConfigDefaults()
         configuringWidget = true
-        console.debug('configuringWidget is true')
       },
       close: function (event, ui) {
         gamepad.disableGamepad()
+        configuringWidget = false
       }
     }).dialog('open')
   })
 }
 
 /*
- * Default configuration values for each type of widget. The properties
- * of widgetDefaults are the widget types. The properties under each widget
- * type are the name attribute of the input elements in the
- * configureNewWidget form.
- * Each widget type object must have both a "format" and a "data" property.
+ * The widget_interface object is used similarly to the objects in src/ros_interfaces.js.
+ * It defines the allowed service, topic, and attributes allowed for each widget
+ * type.
+ * Widgets are more constrained than the gamepad. There aren't any widgets which have
+ * the option of either a topic or a service.
+ *
+ * The widgetInterface contains a property for each member of WIDGET_TYPES,
+ * exluding 'gamepad'. The value for each property is an object with one of
+ * the following structures:
+ *
+ * 'service': {
+ *   serviceName: {                  // service
+ *     interfaceName: [              // serviceType
+ *       attribute1,                 // serviceAttribute
+ *       attribute2,
+ *       attributeN
+ *     ]
+ *   }
+ * }
+ *
+ * 'topic': {
+ *   'publish'|'subscribe': {        // topicDirection
+ *     topicName: {                  // topic
+ *       interfaceName: [            // topicType
+ *         attribute1,               // topicAttribute
+ *         attribute2,
+ *         attributeN
+ *       ]
+ *     },
+ *     topicName: {
+ *       interfaceName: [
+ *         attribute1,
+ *         attribute2,
+ *         attributeN
+ *       ]
+ *     }
+ *   }
+ * }
+ *
  */
-const widgetDefaults = {
+const widgetInterface = {
   button: {
-    label: 'buttonX',
-    format: {
-      text: ''
-    },
-    data: {
-      service: '',
-      serviceType: 'rq_msgs/srv',
-      serviceAttribute: '',
-      clickValue: ''
+    // can only call services
+    service: {
+      control_hat: {
+        'rq_msgs/srv/Control': [
+          'set_motors',
+          'set_servos',
+          'set_fet1',
+          'set_fet2',
+          'set_charger'
+        ]
+      }
     }
   },
+
   slider: {
-    label: 'sliderX',
-    format: {
-      min: 0,
-      max: 180,
-      step: 10,
-      reversed: 'no',
-      default: 90,
-      orientation: 'horizontal',
-      animate: 'true'
-    },
-    data: {
-      topicDirection: 'publish',
-      topic: '',
-      topicType: 'rq_msgs/msg',
-      topicAttribute: ''
+    // can only publish to topics and only one at a time
+    topic: {
+      publish: {
+        motor_speed: {
+          'rq_msgs/msg/MotorSpeed': [
+            'max_rpm'
+          ]
+        },
+
+        servos: {
+          'rq_msgs/msg/Servos': [
+            'servo0.angle_deg;servo0.command_type:1',
+            'servo1.angle_deg;servo1.command_type:1',
+            'servo2.angle_deg;servo2.command_type:1',
+            'servo3.angle_deg;servo3.command_type:1',
+            'servo4.angle_deg;servo4.command_type:1',
+            'servo5.angle_deg;servo5.command_type:1',
+            'servo6.angle_deg;servo6.command_type:1',
+            'servo7.angle_deg;servo7.command_type:1',
+            'servo8.angle_deg;servo8.command_type:1',
+            'servo9.angle_deg;servo9.command_type:1',
+            'servo10.angle_deg;servo10.command_type:1',
+            'servo11.angle_deg;servo11.command_type:1',
+            'servo12.angle_deg;servo12.command_type:1',
+            'servo13.angle_deg;servo13.command_type:1',
+            'servo14.angle_deg;servo14.command_type:1',
+            'servo15.angle_deg;servo15.command_type:1'
+          ]
+        }
+      }
     }
   },
+
   value: {
-    label: 'valueX',
-    format: {
-      textColor: '#CCC',
-      prefix: ' ',
-      suffix: ' '
-    },
-    data: {
-      topicDirection: 'subscribe',
-      topic: '',
-      topicType: 'rq_msgs/msg',
-      topicAttribute: ''
+    // can only subscribe to topics and only one at a time
+    topic: {
+      subscribe: {
+        telemetry: {
+          // attribute values must be numeric
+          'rq_msgs/msg/Telemetry': [
+            'battery_v',
+            'battery_ma',
+            'system_ma',
+            'adc0_v',
+            'adc1_v',
+            'adc2_v',
+            'adc3_v',
+            'adc4_v'
+          ]
+        }
+      }
     }
   },
+
   indicator: {
-    label: 'indicatorX',
-    format: {
-      trueText: 'True',
-      trueColor: '#DDD',
-      falseText: 'False',
-      falseColor: '#EEE'
-    },
-    data: {
-      topicDirection: 'subscribe',
-      topic: '',
-      topicType: 'rq_msgs/msg',
-      topicAttribute: ''
+    // can only subscribe to topics and only one at a time
+    topic: {
+      subscribe: {
+        telemetry: {
+          // attribute values must be boolean
+          'rq_msgs/msg/Telemetry': [
+            'charger_has_power',
+            'battery_charging',
+            'motors_on',
+            'servos_on'
+          ]
+        }
+      }
     }
   },
+
   joystick: {
-    label: 'joystickX',
-    format: {},
-    data: {
-      scale: '1;1',
-      topicPeriodS: 3,
-      topicDirection: 'publish',
-      topic: 'cmd_vel',
-      topicType: 'geometry_msgs/msg/TwistStamped',
-      topicAttribute: 'twist.angular.z;twist.linear.x'
+    // can only publish to topics and only one at a time.
+    // the widget produces two values from -1.0 to 1.0 and
+    //  the horizontal value will be assigned to the first attribute
+    //  and the vertical to the second.
+    topic: {
+      publish: {
+        servos: {
+          'rq_msgs/msg/Servos': [
+            'servo0.speed_dps',
+            'servo0.command_type:3',
+            'servo1.speed_dps',
+            'servo1.command_type:3',
+            'servo2.speed_dps',
+            'servo2.command_type:3',
+            'servo3.speed_dps',
+            'servo3.command_type:3',
+            'servo4.speed_dps',
+            'servo4.command_type:3',
+            'servo5.speed_dps',
+            'servo5.command_type:3',
+            'servo6.speed_dps',
+            'servo6.command_type:3',
+            'servo7.speed_dps',
+            'servo7.command_type:3',
+            'servo8.speed_dps',
+            'servo8.command_type:3',
+            'servo9.speed_dps',
+            'servo9.command_type:3',
+            'servo10.speed_dps',
+            'servo10.command_type:3',
+            'servo11.speed_dps',
+            'servo11.command_type:3',
+            'servo12.speed_dps',
+            'servo12.command_type:3',
+            'servo13.speed_dps',
+            'servo13.command_type:3',
+            'servo14.speed_dps',
+            'servo14.command_type:3',
+            'servo15.speed_dps',
+            'servo15.command_type:3'
+          ]
+        },
+
+        cmd_vel: {
+          'geometry_msgs/msg/TwistStamped': [
+            'twist.angular.z;twist.linear.x'
+          ]
+        }
+      }
     }
-  },
-  gamepad: {
-    label: 'gamepadX',
-    format: {},
-    data: {}
   }
 }
