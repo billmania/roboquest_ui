@@ -22,6 +22,7 @@ const servoConfig = new ServoConfig()
 let updating = null
 let rebooting = null
 let stopping = null
+let softwareVersions = null
 
 jQuery(window).on('resize', function () {
   positionWidgets()
@@ -166,6 +167,27 @@ jQuery(function () {
    */
   const configServos = function () {
     jQuery('#chooseServoDialog').dialog('open')
+  }
+
+  /**
+   * Show the versions of the software components.
+   *
+   * @param {string} divId - HTML element ID for the table
+   * @param {object} versions - version details
+   */
+  const populateSoftwareVersions = function (divId, versions) {
+    const divSelector = '#' + divId
+    let table = '<table><tbody>'
+    table += '<tr><th>Component</th><th>Installed</th><th>Latest</th></tr>\n'
+    for (const entry in versions.installed) {
+      table += '<tr>'
+      table += `<td>${entry}</td>`
+      table += `<td>${versions.installed[entry]}</td>`
+      table += `<td>${versions.latest[entry]}</td>`
+      table += '</tr>\n'
+    }
+    table = table + '</tbody></table>'
+    jQuery(divSelector).html(table)
   }
 
   /**
@@ -409,6 +431,7 @@ jQuery(function () {
   jQuery('#updateSoftware').on('click', function () {
     jQuery('#menuDialog').dialog('close')
     populateHelpList('updateSoftwareList', RQUpdateHelp.steps)
+    populateSoftwareVersions('softwareVersions', softwareVersions)
     jQuery('#updateSoftwareDialog').dialog('open')
   })
   jQuery('#rebootRobot').on('click', function () {
@@ -442,6 +465,14 @@ jQuery(function () {
         createWidget(widget, objSocket)
       })
       positionWidgets()
+    }
+  })
+
+  jQuery.ajax({
+    url: RQ_PARAMS.VERSIONS_FILE,
+    dataType: 'json',
+    success: function (data) {
+      softwareVersions = data
     }
   })
 })
