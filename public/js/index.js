@@ -208,6 +208,45 @@ jQuery(function () {
     }
   }
 
+  let statusIntervalId
+  const statusUrl = (
+    'https' +
+    `://${window.location.host}` +
+    `:${RQ_PARAMS.STATUS_PORT}` +
+    `/${RQ_PARAMS.STATUS_FILE}`
+  )
+  console.debug(`statusUrl: ${statusUrl}`)
+
+  const showStatusEntries = function () {
+    jQuery.ajax({
+      url: statusUrl,
+      success: function (data) {
+        jQuery('#updateStatusP').text(data)
+      }
+    })
+  }
+
+  jQuery('#updateStatusDialog').dialog({
+    title: 'Software update log',
+    width: 400,
+    autoOpen: false,
+    open: function (event, ui) {
+      statusIntervalId = setInterval(showStatusEntries, RQ_PARAMS.STATUS_INTERVAL_MS)
+      console.debug(
+        'updateStatusDialog: opened'
+      )
+    },
+    close: function (event, ui) {
+      if (statusIntervalId !== undefined) {
+        clearInterval(statusIntervalId)
+        statusIntervalId = undefined
+      }
+      console.debug(
+        'updateStatusDialog: closed'
+      )
+    }
+  })
+
   jQuery('#updateSoftwareDialog').dialog({
     title: 'Update RoboQuest software',
     width: 400,
@@ -234,6 +273,9 @@ jQuery(function () {
           )
         }
       }
+    },
+    open: function (event, ui) {
+      jQuery('#updateStatusDialog').dialog('open')
     }
   })
   jQuery('#rebootRobotDialog').dialog({
