@@ -221,7 +221,8 @@ jQuery(function () {
     jQuery.ajax({
       url: statusUrl,
       success: function (data) {
-        jQuery('#updateStatusP').text(data)
+        jQuery('#updateStatusP')
+          .html(data.replaceAll('\n', '<br>'))
       }
     })
   }
@@ -229,6 +230,9 @@ jQuery(function () {
   jQuery('#updateStatusDialog').dialog({
     title: 'Software update log',
     width: 400,
+    height: 500,
+    maxHeight: 800,
+    maxWidth: 900,
     autoOpen: false,
     open: function (event, ui) {
       statusIntervalId = setInterval(showStatusEntries, RQ_PARAMS.STATUS_INTERVAL_MS)
