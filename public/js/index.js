@@ -22,6 +22,7 @@ const servoConfig = new ServoConfig()
 let updating = null
 let rebooting = null
 let stopping = null
+let softwareVersions = null
 
 jQuery(window).on('resize', function () {
   positionWidgets()
@@ -169,6 +170,27 @@ jQuery(function () {
   }
 
   /**
+   * Show the versions of the software components.
+   *
+   * @param {string} divId - HTML element ID for the table
+   * @param {object} versions - version details
+   */
+  const populateSoftwareVersions = function (divId, versions) {
+    const divSelector = '#' + divId
+    let table = '<table><tbody>'
+    table += '<tr><th>Component</th><th>Installed</th><th>Latest</th></tr>\n'
+    for (const entry in versions.installed) {
+      table += '<tr>'
+      table += `<td>${entry}</td>`
+      table += `<td>${versions.installed[entry]}</td>`
+      table += `<td>${versions.latest[entry]}</td>`
+      table += '</tr>\n'
+    }
+    table = table + '</tbody></table>'
+    jQuery(divSelector).html(table)
+  }
+
+  /**
    * Add the help steps to the list.
    *
    * @param {string} listId - HTML element ID for the list
@@ -185,6 +207,49 @@ jQuery(function () {
       )
     }
   }
+
+  let statusIntervalId
+  const statusUrl = (
+    'https' +
+    `://${window.location.host}` +
+    `:${RQ_PARAMS.STATUS_PORT}` +
+    `/${RQ_PARAMS.STATUS_FILE}`
+  )
+  console.debug(`statusUrl: ${statusUrl}`)
+
+  const showStatusEntries = function () {
+    jQuery.ajax({
+      url: statusUrl,
+      success: function (data) {
+        jQuery('#updateStatusP')
+          .html(data.replaceAll('\n', '<br>'))
+      }
+    })
+  }
+
+  jQuery('#updateStatusDialog').dialog({
+    title: 'Software update log',
+    width: 400,
+    height: 500,
+    maxHeight: 800,
+    maxWidth: 900,
+    autoOpen: false,
+    open: function (event, ui) {
+      statusIntervalId = setInterval(showStatusEntries, RQ_PARAMS.STATUS_INTERVAL_MS)
+      console.debug(
+        'updateStatusDialog: opened'
+      )
+    },
+    close: function (event, ui) {
+      if (statusIntervalId !== undefined) {
+        clearInterval(statusIntervalId)
+        statusIntervalId = undefined
+      }
+      console.debug(
+        'updateStatusDialog: closed'
+      )
+    }
+  })
 
   jQuery('#updateSoftwareDialog').dialog({
     title: 'Update RoboQuest software',
@@ -212,6 +277,9 @@ jQuery(function () {
           )
         }
       }
+    },
+    open: function (event, ui) {
+      jQuery('#updateStatusDialog').dialog('open')
     }
   })
   jQuery('#rebootRobotDialog').dialog({
@@ -409,6 +477,7 @@ jQuery(function () {
   jQuery('#updateSoftware').on('click', function () {
     jQuery('#menuDialog').dialog('close')
     populateHelpList('updateSoftwareList', RQUpdateHelp.steps)
+    populateSoftwareVersions('softwareVersions', softwareVersions)
     jQuery('#updateSoftwareDialog').dialog('open')
   })
   jQuery('#rebootRobot').on('click', function () {
@@ -442,6 +511,14 @@ jQuery(function () {
         createWidget(widget, objSocket)
       })
       positionWidgets()
+    }
+  })
+
+  jQuery.ajax({
+    url: RQ_PARAMS.VERSIONS_FILE,
+    dataType: 'json',
+    success: function (data) {
+      softwareVersions = data
     }
   })
 })
