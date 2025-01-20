@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>roboquest_ui</name>
-  <version>32.0.0</version>
+  <version>35.1.0</version>
   <description>RoboQuest browser-based UI</description>
   <maintainer email="bill@manialabs.us">Bill Mania</maintainer>
   <license>Proprietary</license>

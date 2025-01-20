@@ -165,7 +165,7 @@ class GamepadData { // eslint-disable-line no-unused-vars
             .split(RQ_PARAMS.ATTR_DELIMIT)
           parsed = attributes
         } else {
-          parsed = [parseInt(elementValue)]
+          parsed = [parseFloat(elementValue)]
         }
         if (this._dataObject.topicDirection) {
           this._dataObject.scale = parsed
