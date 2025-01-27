@@ -1,7 +1,8 @@
 'use strict'
 /* global jQuery, RQ_PARAMS, configuringWidget, gamepadMaps */
 /* global DONT_SCALE, DEFAULT_VALUE */
-/* global assignValue ros */
+/* global assignValue, ros */
+/* global joystickIntervalDisabled */
 
 /**
  * A widget to represent a single gamepad. Only the most
@@ -527,7 +528,7 @@ class Gamepad {
       return
     }
 
-    if (!this._gamepad.connected) {
+    if (!this._gamepad || !this._gamepad.connected) {
       if (configuringWidget) {
         console.warn(
           'gamepad not connected, cannot configure'
@@ -1035,6 +1036,7 @@ class Gamepad {
       this._pollIntervalId = null
     }
     this._gamepadEnabled = false
+    joystickIntervalDisabled = false
     jQuery(`#${this.widgetId} .ui-button`).text(DISABLED_TEXT)
   }
 
@@ -1065,6 +1067,7 @@ class Gamepad {
       RQ_PARAMS.POLL_PERIOD_MS
     )
     this._gamepadEnabled = true
+    joystickIntervalDisabled = true
     jQuery(`#${this.widgetId} .ui-button`).text(ENABLED_TEXT)
   }
 
