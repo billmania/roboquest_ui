@@ -9,6 +9,12 @@ const JOYSTICK_DEFAULT_SCALING = [1.0, 1.0]
  */
 const joystickIntervalId = {}
 
+/*
+ * Other functions may disable the joystick's interval, in order to prevent
+ * interference. Setting this flag does NOT disable the joystick.
+ */
+var joystickIntervalDisabled = false
+
 /**
  * A joystick for providing two values based on the position of the joystick
  * knob. Typically used to drive the robot. The x-axis value is always
@@ -153,10 +159,16 @@ jQuery.widget(RQ_PARAMS.WIDGET_NAMESPACE + '.JOYSTICK', {
             this.options.skipAnInterval = false
             return
           }
+          if (joystickIntervalDisabled) {
+            return
+          }
+
           this._triggerSocketEvent(null, this.options.currentAxes)
         },
         this.options.data.topicPeriodS * 1000
       )
+
+      joystickIntervalDisabled = false
     }
   },
 
