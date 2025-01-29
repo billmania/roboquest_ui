@@ -207,6 +207,19 @@ class RobotComms {
       throw new Error(`${destinationName} not in interfacesMap`)
     }
 
+    if (Object.hasOwn(rosMessage, 'reset') &&
+        typeof rosMessage.reset === 'function') {
+      try {
+        rosMessage.reset()
+      } catch (error) {
+        this.logger.warn(
+          `getRosMessage: ${destinationName} reset() error ${error}`
+        )
+      }
+    } else {
+      this.logger.warn(`getRosMessage: ${destinationName} object doesn't have reset()`)
+    }
+
     return rosMessage
   }
 
