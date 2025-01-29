@@ -263,11 +263,11 @@ module.exports = {
       set_motors: '',
       set_servos: '',
       reset: function () {
-        this.set_charger = ''
-        this.set_fet1 = ''
-        this.set_fet2 = ''
-        this.set_motors = ''
-        this.set_servos = ''
+        this.set_charger = 'IGNORE'
+        this.set_fet1 = 'IGNORE'
+        this.set_fet2 = 'IGNORE'
+        this.set_motors = 'IGNORE'
+        this.set_servos = 'IGNORE'
       }
     }
   },
