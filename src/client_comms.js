@@ -125,7 +125,6 @@ class ClientComms {
     this.socket.on(
       'loadProbe',
       (probeData) => {
-        console.log('loadProbe received')
         this.io.emit('probeEcho', probeData)
       })
 

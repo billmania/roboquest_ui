@@ -24,6 +24,7 @@ let rebooting = null
 let stopping = null
 let softwareVersions = null
 let sequenceSent = 0
+let lastEcho = 0
 
 jQuery(window).on('resize', function () {
   positionWidgets()
@@ -64,7 +65,13 @@ const initSocket = function () {
   })
 
   objSocket.on('probeEcho', (probeEcho) => {
-    console.debug('Received probeEcho')
+    lastEcho = Date.now()
+    const probeEchoObj = JSON.parse(probeEcho)
+    const probeRoundTrip = Date.now() - probeEchoObj.timestamp
+    const lostProbes = sequenceSent - probeEchoObj.sequence
+
+    jQuery('#lostProbes').html(`<p>${lostProbes} lost</p>`)
+    jQuery('#probeRoundTrip').html(`<p>${probeRoundTrip} ms</p>`)
   })
 
   objSocket.on('mainImage', (bufImage) => {
@@ -537,9 +544,13 @@ jQuery(function () {
     const sequence = sequenceSent + 1
     const currentTimestamp = Date.now()
 
+    if ((currentTimestamp - lastEcho) >= RQ_PARAMS.PROBE_PERIOD_MS) {
+      jQuery('#lostProbes').html('<p>Lost</p>')
+      jQuery('#probeRoundTrip').html('<p>Contact</p>')
+    }
+
     objSocket.emit('loadProbe', `{"sequence": ${sequence}, "timestamp": ${currentTimestamp}}`)
     sequenceSent = sequence
-    console.debug(`sendLoadProbe: ${sequenceSent}`)
   }
   setInterval(sendLoadProbe, RQ_PARAMS.PROBE_PERIOD_MS)
 })
