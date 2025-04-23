@@ -122,6 +122,12 @@ class ClientComms {
         this.socket = null
       })
 
+    this.socket.on(
+      'loadProbe',
+      (probeData) => {
+        this.io.emit('probeEcho', probeData)
+      })
+
     this.incomingEvents.forEach(this.add_event_handler.bind(this))
 
     this.client_connected = true

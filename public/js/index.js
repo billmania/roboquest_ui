@@ -23,6 +23,8 @@ let updating = null
 let rebooting = null
 let stopping = null
 let softwareVersions = null
+let sequenceSent = 0
+let lastEcho = 0
 
 jQuery(window).on('resize', function () {
   positionWidgets()
@@ -60,6 +62,16 @@ const initSocket = function () {
   objSocket.on('disconnect', (strReason) => {
     console.warn('Connection to the robot has been lost. ', strReason)
     jQuery('#mainImage').attr('src', imgDisconnected.src)
+  })
+
+  objSocket.on('probeEcho', (probeEcho) => {
+    lastEcho = Date.now()
+    const probeEchoObj = JSON.parse(probeEcho)
+    const probeRoundTrip = Date.now() - probeEchoObj.timestamp
+    const lostProbes = sequenceSent - probeEchoObj.sequence
+
+    jQuery('#lostProbes').html(`<p>${lostProbes} lost</p>`)
+    jQuery('#probeRoundTrip').html(`<p>${probeRoundTrip} ms</p>`)
   })
 
   objSocket.on('mainImage', (bufImage) => {
@@ -521,4 +533,24 @@ jQuery(function () {
       softwareVersions = data
     }
   })
+
+  /**
+   * Send a probe object to the backend. Insert the next sequence
+   * number and the current timestamp.
+   *
+   * Called by an interval timer.
+   */
+  const sendLoadProbe = function () {
+    const sequence = sequenceSent + 1
+    const currentTimestamp = Date.now()
+
+    if ((currentTimestamp - lastEcho) >= RQ_PARAMS.PROBE_PERIOD_MS) {
+      jQuery('#lostProbes').html('<p>Lost</p>')
+      jQuery('#probeRoundTrip').html('<p>Contact</p>')
+    }
+
+    objSocket.emit('loadProbe', `{"sequence": ${sequence}, "timestamp": ${currentTimestamp}}`)
+    sequenceSent = sequence
+  }
+  setInterval(sendLoadProbe, RQ_PARAMS.PROBE_PERIOD_MS)
 })

@@ -259,15 +259,15 @@ option {
     )
 }
 
-/*
- * This is obsolete, since it's no longer necessary to highlight
- * gamepad configuration rows.
- */
-.highlight-row {
-        display: inline-block;
-        padding: .25em 0;
-        background: #FFC107;
-        color: #ffffff;
+#loadIndicator{
+    cursor: pointer;
+    position: absolute;
+    top: 80px;
+    right: 0;
+    z-index: 1;
+    width: 80px;
+    height: 80px;
+    background: rgba(0, 0, 0, .5)
 }
 
 /* 
