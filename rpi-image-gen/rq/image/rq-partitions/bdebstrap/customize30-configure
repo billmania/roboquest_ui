@@ -128,7 +128,7 @@ chroot "${CHROOT}" \
         /usr/bin/curl -o \
             /usr/local/bin/updater.py \
             https://raw.githubusercontent.com/billmania/roboquest_core/refs/heads/121-enhance-rq_hatpy-to-work-more-robustly-with-updaterpy/scripts/updater.py
-sed -i -e "s;^HAT_SERIAL = .*$;HAT_SERIAL = '/dev/ttyAMA3;" \
+sed -i -e "s;^HAT_SERIAL = .*$;HAT_SERIAL = '/dev/ttyAMA3';" \
         "${CHROOT}/usr/local/bin/updater.py"
 chroot "${CHROOT}" \
         /usr/bin/curl -o \
