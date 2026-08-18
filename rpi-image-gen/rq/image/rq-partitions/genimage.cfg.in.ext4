@@ -1,0 +1,81 @@
+image <IMAGE_NAME>.<IMAGE_SUFFIX>.sparse {
+   android-sparse {
+      image = <IMAGE_NAME>.<IMAGE_SUFFIX>
+   }
+}
+
+image boot.vfat.sparse {
+   android-sparse {
+      image = boot.vfat
+   }
+}
+
+image root.ext4.sparse {
+   android-sparse {
+      image = root.ext4
+   }
+}
+
+image opt.ext4.sparse {
+   android-sparse {
+      image = opt.ext4
+   }
+}
+
+image <IMAGE_NAME>.<IMAGE_SUFFIX> {
+   hdimage {
+      align = 8M
+      partition-table-type = "mbr"
+      fill = true
+   }
+
+   partition boot {
+      in-partition-table = true
+      partition-type = 0xC
+      image = boot.vfat
+      bootable = true
+   }
+
+   partition root {
+      in-partition-table = true
+      partition-type = 0x83
+      image = root.ext4
+   }
+
+   partition opt {
+      in-partition-table = true
+      partition-type = 0x83
+      image = opt.ext4
+   }
+}
+
+image boot.vfat {
+   vfat {
+      label = "BOOT"
+      extraargs = "<VFAT_EXTRAARGS>"
+   }
+   size = <FW_SIZE>
+   mountpoint = "/boot/firmware"
+}
+
+image root.ext4 {
+   ext4 {
+      label = "ROOT"
+      use-mke2fs = true
+      mke2fs-conf = <MKE2FS_CONF>
+      extraargs = "-U <ROOT_UUID>"
+   }
+   size = <ROOT_SIZE>
+   mountpoint = "/"
+}
+
+image opt.ext4 {
+   ext4 {
+      label = "OPT"
+      use-mke2fs = true
+      mke2fs-conf = <MKE2FS_CONF>
+      extraargs = "-U <OPT_UUID>"
+   }
+   size = <OPT_SIZE>
+   mountpoint = "/opt"
+}

@@ -1,0 +1,13 @@
+# METABEGIN
+# X-Env-Layer-Name: rpi4-rq
+# X-Env-Layer-Category: device
+# X-Env-Layer-Desc: Additional details for Roboquest rpi4
+# X-Env-Layer-Version: 1.0.0
+# X-Env-Layer-Requires: rpi4
+# X-Env-Layer-Provides: device-rq
+# METAEND
+---
+mmdebstrap:
+  customize-hooks:
+    - mkdir -p --mode=0750 $1/opt && chown root:root $1/opt
+    - install -m 644 --owner=root --group=root ${SRCROOT}/device/rpi4/config.txt $1/boot/firmware/
