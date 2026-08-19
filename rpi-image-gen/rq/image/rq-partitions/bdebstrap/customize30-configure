@@ -114,7 +114,7 @@ chroot "${CHROOT}" /usr/bin/systemctl --root=/ enable roboquest-hostname.service
 chroot "${CHROOT}" /usr/bin/curl -o /etc/systemd/system/roboquest-updater.service https://raw.githubusercontent.com/billmania/roboquest_core/refs/heads/main/scripts/roboquest-updater.service
 chroot "${CHROOT}" /usr/bin/systemctl --root=/ enable roboquest-updater.service
 
-chroot "${CHROOT}" /usr/bin/curl -o /usr/local/roboquest/access_point.bash https://raw.githubusercontent.com/billmania/roboquest_core/refs/heads/121-enhance-rq_hatpy-to-work-more-robustly-with-updaterpy/scripts/access_point.bash
+chroot "${CHROOT}" /usr/bin/curl -o /usr/local/roboquest/access_point.bash https://raw.githubusercontent.com/billmania/roboquest_core/refs/heads/main/scripts/access_point.bash
 chroot "${CHROOT}" chmod 0755 /usr/local/roboquest/access_point.bash
 chroot "${CHROOT}" /usr/bin/curl -o /etc/systemd/system/roboquest-access-point.service https://raw.githubusercontent.com/billmania/roboquest_core/refs/heads/main/scripts/roboquest-access-point.service
 chroot "${CHROOT}" /usr/bin/systemctl --root=/ enable roboquest-access-point.service
@@ -127,7 +127,7 @@ printf "customize30-configure: Roboquest systemd services installed.\n"
 chroot "${CHROOT}" \
         /usr/bin/curl -o \
             /usr/local/bin/updater.py \
-            https://raw.githubusercontent.com/billmania/roboquest_core/refs/heads/121-enhance-rq_hatpy-to-work-more-robustly-with-updaterpy/scripts/updater.py
+            https://raw.githubusercontent.com/billmania/roboquest_core/refs/heads/main/scripts/updater.py
 sed -i -e "s;^HAT_SERIAL = .*$;HAT_SERIAL = '/dev/ttyAMA3';" \
         "${CHROOT}/usr/local/bin/updater.py"
 chroot "${CHROOT}" \
@@ -138,12 +138,12 @@ chroot "${CHROOT}" chmod 0755 /usr/local/bin/updater.py
 chroot "${CHROOT}" \
         /usr/bin/curl -o \
             /usr/local/bin/rq_hat.py \
-            https://raw.githubusercontent.com/billmania/roboquest_core/refs/heads/121-enhance-rq_hatpy-to-work-more-robustly-with-updaterpy/roboquest_core/rq_hat.py
+            https://raw.githubusercontent.com/billmania/roboquest_core/refs/heads/main/roboquest_core/rq_hat.py
 chroot "${CHROOT}" chmod 0644 /usr/local/bin/rq_hat.py
 chroot "${CHROOT}" \
         /usr/bin/curl -o \
             /usr/local/bin/rq_gpio_utils.py \
-            https://raw.githubusercontent.com/billmania/roboquest_core/refs/heads/121-enhance-rq_hatpy-to-work-more-robustly-with-updaterpy/roboquest_core/rq_gpio_utils.py
+            https://raw.githubusercontent.com/billmania/roboquest_core/refs/heads/main/roboquest_core/rq_gpio_utils.py
 chroot "${CHROOT}" chmod 0644 /usr/local/bin/rq_hat.py
 
 chroot "${CHROOT}" \
