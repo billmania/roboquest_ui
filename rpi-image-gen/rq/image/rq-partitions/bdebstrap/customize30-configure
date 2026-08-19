@@ -1,0 +1,168 @@
+#!/bin/bash
+#
+
+set -eu
+
+CHROOT=$1
+printf "customize30-configure: CHROOT=%s\n" "${CHROOT}" >&2
+
+PACKAGES="
+git
+iw
+curl
+locales
+locales-all
+wpasupplicant
+network-manager
+python3-docker
+python3-serial
+python3-libgpiod
+"
+
+for package in ${PACKAGES}; do
+    if [[ ! -f ${CHROOT}/var/lib/dpkg/info/${package}.list ]]; then
+        chroot "${CHROOT}" /usr/bin/apt-get install -y "${package}"
+        printf "customize30-configure: %s installed\n" "${package}"
+    fi
+done
+
+#
+# Identify the image version.
+#
+chroot "${CHROOT}" /usr/bin/install -d --owner=roboquest --mode=0755 /opt/roboquest
+cat <<EOF > "${CHROOT}/opt/roboquest/version"
+rq v2
+EOF
+
+#
+# Configure the WiFi interface.
+#
+chroot "${CHROOT}" /usr/sbin/iw reg set US
+printf "customize30-configure: WiFi country set\n"
+
+#
+# Adjust containerd and install docker
+#
+chroot "${CHROOT}" /usr/bin/install -d --owner=root --group root --mode=0700 /opt/containerd/data
+
+chroot "${CHROOT}" /usr/sbin/groupadd docker
+chroot "${CHROOT}" /usr/bin/install -d --owner=root --group docker --mode=0750 /opt/docker
+chroot "${CHROOT}" ln -s /opt/docker /var/lib/docker
+chroot "${CHROOT}" /usr/bin/install -d --owner=root --group docker --mode=0750 /opt/containerd
+chroot "${CHROOT}" ln -s /opt/containerd /var/lib/containerd
+chroot "${CHROOT}" /usr/sbin/usermod -aG docker roboquest
+chroot "${CHROOT}" /usr/bin/install -d --owner=root --group root --mode=0755 /etc/systemd/system/docker.service.d
+
+cat << EOF > "${CHROOT}/etc/systemd/system/docker.service.d/override.conf"
+[Service]
+ExecStart=
+ExecStart=/usr/bin/dockerd -H fd:// -H tcp://0.0.0.0:2375 --containerd=/run/containerd/containerd.sock
+EOF
+/usr/bin/curl -fsSL -o "${CHROOT}/opt/docker/install-docker.sh" http://get.docker.com/
+chmod 0755 "${CHROOT}/opt/docker/install-docker.sh"
+
+cat << EOF > "${CHROOT}/etc/systemd/system/docker-install.service"
+[Unit]
+Description=Install docker, adjust containerd.io, and create ros_logs
+After=network.target
+ConditionPathExists=!/opt/docker/docker-install-done
+
+[Service]
+User=root
+Group=docker
+Type=oneshot
+ExecStart=/opt/docker/install-docker.sh
+ExecStart=/usr/bin/docker volume create ros_logs
+ExecStart=sed -i -e 's|^#root = "/var/lib/containerd"$|root = "/opt/containerd/data"|' /etc/containerd/config.toml
+ExecStartPost=/usr/bin/touch /opt/docker/docker-install-done
+ExecStartPost=/bin/systemctl restart containerd.service
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+EOF
+chroot "${CHROOT}" /usr/bin/systemctl --root=/ enable docker-install.service
+printf "customize30-configure: docker installation setup for first boot\n"
+
+#
+# Set locale.
+#
+chroot "${CHROOT}" /usr/sbin/update-locale LANG=en_US.UTF-8 LANGUAGE=en_US.UTF-8
+printf "customize30-configure: en_US set as the locale\n"
+
+#
+# Install VCS nm connection and disable systemd-networkd.
+#
+chroot "${CHROOT}" /usr/bin/curl -o /etc/NetworkManager/system-connections/VCS.nmconnection https://raw.githubusercontent.com/billmania/roboquest_core/refs/heads/116-add-configuration-for-csi-arducam/scripts/VCS.nmconnection
+chmod 0600 "${CHROOT}/etc/NetworkManager/system-connections/VCS.nmconnection"
+
+sed -i -e "s/<UUID>/$(/usr/bin/uuidgen)/" -e "s/<TIMESTAMP>/$(/usr/bin/date +%s)/" -e "/^#.*$/d" "${CHROOT}/etc/NetworkManager/system-connections/VCS.nmconnection"
+
+chroot "${CHROOT}" /usr/bin/systemctl --root=/ disable systemd-networkd.service
+
+printf "customize30-configure: VCS WiFi configuration installed\n"
+
+#
+# Install the Roboquest systemd services.
+#
+chroot "${CHROOT}" /usr/bin/curl -o /etc/systemd/system/roboquest-hostname.service https://raw.githubusercontent.com/billmania/roboquest_core/refs/heads/main/scripts/roboquest-hostname.service
+chroot "${CHROOT}" /usr/bin/install -d --owner=roboquest --mode=0755 /usr/local/roboquest
+chroot "${CHROOT}" /usr/bin/curl -o /usr/local/roboquest/hostname.bash https://raw.githubusercontent.com/billmania/roboquest_core/refs/heads/main/scripts/hostname.bash
+chroot "${CHROOT}" chmod 0755 /usr/local/roboquest/hostname.bash
+chroot "${CHROOT}" /usr/bin/systemctl --root=/ enable roboquest-hostname.service
+
+chroot "${CHROOT}" /usr/bin/curl -o /etc/systemd/system/roboquest-updater.service https://raw.githubusercontent.com/billmania/roboquest_core/refs/heads/main/scripts/roboquest-updater.service
+chroot "${CHROOT}" /usr/bin/systemctl --root=/ enable roboquest-updater.service
+
+chroot "${CHROOT}" /usr/bin/curl -o /usr/local/roboquest/access_point.bash https://raw.githubusercontent.com/billmania/roboquest_core/refs/heads/121-enhance-rq_hatpy-to-work-more-robustly-with-updaterpy/scripts/access_point.bash
+chroot "${CHROOT}" chmod 0755 /usr/local/roboquest/access_point.bash
+chroot "${CHROOT}" /usr/bin/curl -o /etc/systemd/system/roboquest-access-point.service https://raw.githubusercontent.com/billmania/roboquest_core/refs/heads/main/scripts/roboquest-access-point.service
+chroot "${CHROOT}" /usr/bin/systemctl --root=/ enable roboquest-access-point.service
+
+printf "customize30-configure: Roboquest systemd services installed.\n"
+
+#
+# Install the Roboquest utilities.
+#
+chroot "${CHROOT}" \
+        /usr/bin/curl -o \
+            /usr/local/bin/updater.py \
+            https://raw.githubusercontent.com/billmania/roboquest_core/refs/heads/121-enhance-rq_hatpy-to-work-more-robustly-with-updaterpy/scripts/updater.py
+sed -i -e "s;^HAT_SERIAL = .*$;HAT_SERIAL = '/dev/ttyAMA3';" \
+        "${CHROOT}/usr/local/bin/updater.py"
+chroot "${CHROOT}" \
+        /usr/bin/curl -o \
+            /usr/local/bin/manage_files.py \
+            https://raw.githubusercontent.com/billmania/roboquest_core/refs/heads/main/scripts/manage_files.py
+chroot "${CHROOT}" chmod 0755 /usr/local/bin/updater.py
+chroot "${CHROOT}" \
+        /usr/bin/curl -o \
+            /usr/local/bin/rq_hat.py \
+            https://raw.githubusercontent.com/billmania/roboquest_core/refs/heads/121-enhance-rq_hatpy-to-work-more-robustly-with-updaterpy/roboquest_core/rq_hat.py
+chroot "${CHROOT}" chmod 0644 /usr/local/bin/rq_hat.py
+chroot "${CHROOT}" \
+        /usr/bin/curl -o \
+            /usr/local/bin/rq_gpio_utils.py \
+            https://raw.githubusercontent.com/billmania/roboquest_core/refs/heads/121-enhance-rq_hatpy-to-work-more-robustly-with-updaterpy/roboquest_core/rq_gpio_utils.py
+chroot "${CHROOT}" chmod 0644 /usr/local/bin/rq_hat.py
+
+chroot "${CHROOT}" \
+        /usr/bin/curl -o \
+            /usr/local/bin/update_cli.bash \
+            https://raw.githubusercontent.com/billmania/roboquest_core/refs/heads/main/scripts/update_cli.bash
+chroot "${CHROOT}" chmod 0755 /usr/local/bin/update_cli.bash
+printf "customize30-configure: Roboquest utilities installed.\n"
+
+#
+# Add the Roboquest persist directory tree.
+#
+chroot "${CHROOT}" /usr/bin/install -d --owner=roboquest --mode=0755 /opt/persist
+chroot "${CHROOT}" /usr/bin/install -d --owner=roboquest --mode=0755 /opt/persist/i2c
+chroot "${CHROOT}" /usr/bin/install -d --owner=roboquest --mode=0755 /opt/persist/nodes
+chroot "${CHROOT}" \
+        /usr/bin/curl -o \
+            /opt/persist/configuration.json \
+            https://raw.githubusercontent.com/billmania/roboquest_ui/refs/heads/main/public/config/configuration.json
+chroot "${CHROOT}" chown roboquest /opt/persist/configuration.json
+
+printf "customize30-configure: persist directories added\n"

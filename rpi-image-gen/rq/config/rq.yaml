@@ -1,0 +1,45 @@
+#
+# Description of the target hardware.
+#
+device:
+  layer: rpi4-rq
+  hostname: rq
+  user1: roboquest
+  user1pass: Questpass4$
+
+#
+# Control how the image is built.
+#
+image:
+  layer: rq-partitions
+  boot_part_size: 512M
+  root_part_size: 5G
+# TODO: readjust the size of opt partition
+  opt_part_size: 8G
+  name: rq
+
+#
+# Debian packages to be automatically installed into the root filesystem.
+# Some of the image customization process depends on some of these packages.
+#
+packages:
+  - vim
+  - minicom
+  - usbutils
+  - i2c-tools
+  - gpiod
+  - lsof
+  - apt-transport-https
+  - rpicam-apps
+
+#
+# Set the locale stuff.
+#
+locale:
+  timezone: America/Los_Angeles
+
+#
+# Layers to be included.
+#
+layer:
+  base: trixie-minbase

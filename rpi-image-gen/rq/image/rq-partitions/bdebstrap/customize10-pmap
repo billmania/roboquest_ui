@@ -1,0 +1,50 @@
+#!/bin/sh
+
+set -eu
+
+BOOT_LABEL=$(uuidgen | sed 's/-.*//' | tr 'a-f' 'A-F')
+BOOT_UUID=$(echo "$BOOT_LABEL" | sed 's/^\(....\)\(....\)$/\1-\2/')
+ROOT_UUID=$(uuidgen)
+OPT_UUID=$(uuidgen)
+CRYPT_UUID=$(uuidgen)
+
+rm -f ${IGconf_image_outputdir}/img_uuids
+for v in BOOT_LABEL BOOT_UUID ROOT_UUID OPT_UUID CRYPT_UUID; do
+    eval "val=\$$v"
+    echo "$v=$val" >> "${IGconf_image_outputdir}/img_uuids"
+done
+
+# Install provision map, populating placeholders
+pmap="${IGconf_image_assetdir:-}/device/provisionmap-${IGconf_image_pmap:-}.json"
+if [ -f "$pmap" ]; then
+   env \
+      CRYPT_UUID="$CRYPT_UUID" \
+      LUKS_CIPHER="$IGconf_device_luks2_cipher" \
+      LUKS_KEYSIZE="$IGconf_device_luks2_keysize" \
+      LUKS_HASH="$IGconf_device_luks2_hash" \
+   envsubst \
+      '${CRYPT_UUID} ${LUKS_CIPHER} ${LUKS_KEYSIZE} ${LUKS_HASH}' \
+      < "$pmap" > "${IGconf_image_outputdir}/provisionmap.json"
+fi
+
+#
+# Update the entries in /etc/fstab and /boot/firmward/cmdline.txt.
+#
+sed -i -e '/UNCONFIGURED FSTAB/d' ${IGconf_target_path}/etc/fstab
+
+sed -i -e '/\s\/\s/d' ${IGconf_target_path}/etc/fstab
+cat << EOF >> ${IGconf_target_path}/etc/fstab
+UUID=${ROOT_UUID} /               ext4 rw,noatime,errors=remount-ro,commit=30 0 1
+EOF
+
+sed -i -e '/\s\/opt\s/d' ${IGconf_target_path}/etc/fstab
+cat << EOF >> ${IGconf_target_path}/etc/fstab
+UUID=${OPT_UUID} /opt               ext4 rw,noatime,errors=remount-ro,commit=31 0 2
+EOF
+
+sed -i -e '/\s\/boot\/firmware\s/d' ${IGconf_target_path}/etc/fstab
+cat << EOF >> ${IGconf_target_path}/etc/fstab
+UUID=${BOOT_UUID} /boot/firmware  vfat rw,noatime,errors=remount-ro 0 2
+EOF
+
+sed -i "s|root=\([^ ]*\)|root=UUID=${ROOT_UUID}|" ${IGconf_target_path}/boot/firmware/cmdline.txt
