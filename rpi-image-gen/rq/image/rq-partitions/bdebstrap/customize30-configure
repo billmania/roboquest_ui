@@ -93,7 +93,7 @@ printf "customize30-configure: en_US set as the locale\n"
 #
 # Install VCS nm connection and disable systemd-networkd.
 #
-chroot "${CHROOT}" /usr/bin/curl -o /etc/NetworkManager/system-connections/VCS.nmconnection https://raw.githubusercontent.com/billmania/roboquest_core/refs/heads/116-add-configuration-for-csi-arducam/scripts/VCS.nmconnection
+chroot "${CHROOT}" /usr/bin/curl -o /etc/NetworkManager/system-connections/VCS.nmconnection https://raw.githubusercontent.com/billmania/roboquest_core/refs/heads/main/scripts/VCS.nmconnection
 chmod 0600 "${CHROOT}/etc/NetworkManager/system-connections/VCS.nmconnection"
 
 sed -i -e "s/<UUID>/$(/usr/bin/uuidgen)/" -e "s/<TIMESTAMP>/$(/usr/bin/date +%s)/" -e "/^#.*$/d" "${CHROOT}/etc/NetworkManager/system-connections/VCS.nmconnection"
