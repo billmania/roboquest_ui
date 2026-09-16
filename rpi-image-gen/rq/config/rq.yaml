@@ -14,8 +14,7 @@ image:
   layer: rq-partitions
   boot_part_size: 512M
   root_part_size: 5G
-# TODO: readjust the size of opt partition
-  opt_part_size: 8G
+  opt_part_size: 23G
   name: rq
 
 #
