@@ -135,5 +135,5 @@ set +Eeu
 cd /usr/src/ros2ws
 source /opt/ros/humble/setup.bash
 source install/setup.bash
-
+source /root/.nvm/nvm.sh
 ros2 launch roboquest_ui roboquest_ui.launch.py

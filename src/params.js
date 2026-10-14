@@ -23,8 +23,7 @@ RQ_PARAMS.KEY = path.join(
   __dirname, '../certs/server.key')
 RQ_PARAMS.CERT = path.join(
   __dirname, '../certs/server.cert')
-//RQ_PARAMS.SERVER_PORT_NUMBER = 443
-RQ_PARAMS.SERVER_PORT_NUMBER = 8443
+RQ_PARAMS.SERVER_PORT_NUMBER = 443
 
 /*
  * The interval for emitting the _counters statistics.
