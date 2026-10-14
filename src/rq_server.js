@@ -5,25 +5,32 @@
  * WebServer and RobotComms and then acts as the broker between them.
  */
 
-const RQ_PARAMS = require('./params.js')
-const ConfigFile = require('./config_file.js')
+import { logger } from './logger.js'
+logger.info('rq_server starting')
+
+import RQ_PARAMS from './params.js'
+import ConfigFile from './config_file.js'
 const configFile = new ConfigFile()
 
-const WebServer = require('./web_server.js')
+import { WebServer } from './web_server.js'
+logger.debug('Instantiating WebServer')
 const webServer = new WebServer(
   'RobotConsoleV2',
   configFile)
 
-const RobotComms = require('./robot_comms.js')
+import { RobotComms } from './robot_comms.js'
+logger.debug('Instantiating RobotComms')
 const robotComms = new RobotComms(
   'rq_server',
   webServer.send_to_client.bind(webServer),
   configFile)
 
+
 /*
  * Define which eventNames to expect coming from the UI, so they
  * can be routed to the event handler.
  */
+logger.debug('Setup incoming ROS events')
 for (const topicToPublish of robotComms.published_topics_list()) {
   webServer.add_incoming_event(topicToPublish)
 }
@@ -36,6 +43,7 @@ for (const serviceToCall of robotComms.services_list()) {
  * the ROS graph.
  * The eventName argument is a string. The payload is an object.
  */
+logger.debug('Setup outgoing ROS events')
 webServer.setup_send_to_robot((eventName, payload) => {
   robotComms.handle_payload(eventName, payload)
 })
@@ -44,10 +52,13 @@ webServer.setup_send_to_robot((eventName, payload) => {
  * Now that all of the configuration and setup details have been
  * given to the web server, actually start it.
  */
+logger.debug('Setup client comms')
 webServer.setup_client_comms()
 
+logger.debug('Start the web server event counter')
 setInterval(
   webServer.send_event_counters.bind(webServer),
   RQ_PARAMS.COUNTERS_PERIOD_S * 1000)
 
+logger.debug('Start robot comms')
 robotComms.main()

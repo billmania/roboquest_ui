@@ -5,19 +5,23 @@
  * client.
  */
 
-const RQ_PARAMS = require('./params.js')
-const express = require('express')
-const https = require('https')
-const fs = require('fs')
-const ClientComms = require('./client_comms.js')
+import { logger } from './logger.js'
+
+import RQ_PARAMS from './params.js'
+import express from 'express'
+import https from 'https'
+import fs from 'fs'
+import ClientComms from './client_comms.js'
 
 const options = {
   key: fs.readFileSync(RQ_PARAMS.KEY),
   cert: fs.readFileSync(RQ_PARAMS.CERT)
 }
 
-class WebServer {
+export class WebServer {
   constructor (clientName, configFile) {
+    logger.debug('WebServer constructor')
+
     this.clientName = clientName
     this.configFile = configFile
     this.incomingEvents = ['update', 'restart', 'choose_camera']
@@ -218,5 +222,3 @@ class WebServer {
     this.client.send_event_counters()
   }
 }
-
-module.exports = WebServer
