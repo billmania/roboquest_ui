@@ -5,20 +5,23 @@
  * WebServer and RobotComms and then acts as the broker between them.
  */
 
-import { logger } from './logger.js'
+import logger from './logger.js'
 logger.info('rq_server starting')
 
 import RQ_PARAMS from './params.js'
+logger.debug(
+    `Parameters: ${JSON.stringify(RQ_PARAMS)}`
+)
 import ConfigFile from './config_file.js'
 const configFile = new ConfigFile()
 
-import { WebServer } from './web_server.js'
+import WebServer from './web_server.js'
 logger.debug('Instantiating WebServer')
 const webServer = new WebServer(
   'RobotConsoleV2',
   configFile)
 
-import { RobotComms } from './robot_comms.js'
+import RobotComms from './robot_comms.js'
 logger.debug('Instantiating RobotComms')
 const robotComms = new RobotComms(
   'rq_server',

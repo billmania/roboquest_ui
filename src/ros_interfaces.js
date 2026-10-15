@@ -25,7 +25,7 @@
  * New instances of these objects are NOT created each time they're
  * referenced.
  */
-module.exports = {
+const ros = {
   interfaceObjects: { // eslint-disable-line no-unused-vars
     'geometry_msgs/msg/TwistStamped': {
       header: {
@@ -423,3 +423,5 @@ module.exports = {
     }
   }
 }
+
+export default ros

@@ -4,10 +4,10 @@
 
 'use strict'
 
-const fs = require('fs')
-const RQ_PARAMS = require('./params.js')
+import fs from 'fs'
+import RQ_PARAMS from './params.js'
 
-class ConfigFile {
+export default class ConfigFile {
   /**
    * Manage the persistence of the UI configuration file and its
    * version property.
@@ -188,5 +188,3 @@ class ConfigFile {
     return configurationObj
   }
 }
-
-module.exports = ConfigFile

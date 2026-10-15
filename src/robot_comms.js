@@ -4,7 +4,7 @@
  * The interface between the robot information and the UI.
  */
 
-import { logger } from './logger.js'
+import logger from './logger.js'
 import ros from './ros_interfaces.js'
 ros.checkMaps()
 
@@ -17,7 +17,7 @@ const DEFAULT_CAMERA = '0'
  * RobotComms reads the configuration file and uses its
  * contents to connect to the ROS graph.
  */
-export class RobotComms {
+export default class RobotComms {
   #counter
   #telemetryMessages
   #imageMessages
@@ -205,9 +205,9 @@ export class RobotComms {
       rosMessage = ros.interfaceObjects[ros.interfacesMap[destinationName]]
     } else {
       logger.warn(
-        `getRosMessage: ${destinationName} not in interfacesMap`
+        `getRosMessage: ${destinationName} not in ros.interfacesMap`
       )
-      throw new Error(`${destinationName} not in interfacesMap`)
+      throw new Error(`${destinationName} not in ros.interfacesMap`)
     }
 
     if (Object.hasOwn(rosMessage, 'reset') &&
@@ -252,9 +252,16 @@ export class RobotComms {
     const publishMessage = this.getRosMessage(topicName)
 
     set(publishMessage, 'header.stamp', ros.getRosTimestamp())
-    set(publishMessage, 'header.frame_id', '')
+    set(publishMessage, 'header.frame_id', 'cmd_vel')
     for (const attribute in message) {
       set(publishMessage, attribute, message[attribute])
+    }
+
+    if ((topicName == 'cmd_vel') && (message['twist.linear.x'] != 0)) {
+        logger.debug(
+            `buildPublishMessage(): ${JSON.stringify(message)}`
+        )
+        logger.debug(`buildPublishMessage(): ${JSON.stringify(publishMessage)}`)
     }
 
     return publishMessage

@@ -5,7 +5,7 @@
  * client.
  */
 
-import { logger } from './logger.js'
+import logger from './logger.js'
 
 import RQ_PARAMS from './params.js'
 import express from 'express'
@@ -18,7 +18,7 @@ const options = {
   cert: fs.readFileSync(RQ_PARAMS.CERT)
 }
 
-export class WebServer {
+export default class WebServer {
   constructor (clientName, configFile) {
     logger.debug('WebServer constructor')
 
@@ -55,7 +55,7 @@ export class WebServer {
 
     this.express_app.use(express.json())
     this.express_app.use((error, request, response, next) => {
-      console.error('Unable to parse config file')
+      logger.error('Unable to parse config file')
       return response.status(400).json(
         { success: false, error: 'Unable to parse config file' }
       )
@@ -74,7 +74,7 @@ export class WebServer {
       } else {
         response.status(400).json(
           { success: false, error: 'Failed to save the servo config' })
-        console.error('save_servos: servo config not saved')
+        logger.error('save_servos: servo config not saved')
       }
     })
 
@@ -88,7 +88,7 @@ export class WebServer {
        */
       if (!configObject.widgets) {
         response.status(400).json({ success: false, error: 'config missing widgets property' })
-        console.error(
+        logger.error(
           `save_config: no widgets property in the config file ${JSON.stringify(request.body)}`)
         return
       }
@@ -98,7 +98,7 @@ export class WebServer {
       } else {
         response.status(400).json(
           { success: false, error: 'Failed to save the config' })
-        console.error('save_config: config not saved')
+        logger.error('save_config: config not saved')
       }
     })
   }
@@ -149,7 +149,7 @@ export class WebServer {
    */
   event_cb (eventName, payload) {
     if (!this.incomingEvents.includes(eventName)) {
-      console.warn(`event_cb: ${eventName} not in incomingEvents`)
+      logger.warn(`event_cb: ${eventName} not in incomingEvents`)
       return false
     }
 
@@ -159,10 +159,12 @@ export class WebServer {
         break
 
       default:
+        logger.debug(`event_cb(): ${eventName} ${JSON.stringify(payload)}`)
+
         try {
           this.send_to_robot(eventName, payload)
         } catch (error) {
-          console.error(`event_cb: ${error}`)
+          logger.error(`event_cb: ${error}`)
         }
         break
     }
@@ -201,7 +203,7 @@ export class WebServer {
    * @returns {boolean} - false if the FIFO doesn't exist
    */
   update_software (command) {
-    console.info(`update_software: ${command}`)
+    logger.info(`update_software: ${command}`)
 
     if (!fs.existsSync(RQ_PARAMS.UPDATE_FIFO)) {
       return false
