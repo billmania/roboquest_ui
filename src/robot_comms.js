@@ -9,7 +9,7 @@ import ros from './ros_interfaces.js'
 ros.checkMaps()
 
 import rclnodejs from 'rclnodejs'
-import set from 'lodash'
+import set from 'lodash/set.js'
 
 const DEFAULT_CAMERA = '0'
 
