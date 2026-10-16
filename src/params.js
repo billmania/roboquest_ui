@@ -7,11 +7,12 @@
 
 import path from 'path'
 
-// TODO: Use only for DEV
+// TODO: Use the DEV or PROD version
 //let __dirname = '/home/bill/projects/roboquest/ros2ws/src/roboquest_ui/src'
+let __dirname = '/usr/src/ros2ws/install/roboquest_ui/share/roboquest_ui/dist'
 
 const RQ_PARAMS = {}
-RQ_PARAMS.VERSION = '36'
+RQ_PARAMS.VERSION = '37rc2'
 RQ_PARAMS.CONFIG_FORMAT_VERSION = '8'
 RQ_PARAMS.SERVER_STATIC_DIR = path.join(
   __dirname, '../public')

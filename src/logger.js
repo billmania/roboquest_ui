@@ -3,7 +3,7 @@ import RQ_PARAMS from './params.js'
 
 const {combine, timestamp, errors, json} = winston.format
 const logger = winston.createLogger({
-    level: 'debug',
+    level: 'info',
     format: combine(timestamp(), json()),
     transports: [
         new winston.transports.Console(),

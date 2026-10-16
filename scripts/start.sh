@@ -83,7 +83,7 @@ copy_file () {
 # $1 - the full path for the file
 #
 browserize_file () {
-    sed -i 's/module.exports =/const ros =/' $1
+    sed -i '/^ *export  *default  *ros/d' $1
 }
 
 make_dir ${PERSIST_DIR}
