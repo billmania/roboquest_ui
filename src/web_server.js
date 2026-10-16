@@ -5,19 +5,23 @@
  * client.
  */
 
-const RQ_PARAMS = require('./params.js')
-const express = require('express')
-const https = require('https')
-const fs = require('fs')
-const ClientComms = require('./client_comms.js')
+import logger from './logger.js'
+
+import RQ_PARAMS from './params.js'
+import express from 'express'
+import https from 'https'
+import fs from 'fs'
+import ClientComms from './client_comms.js'
 
 const options = {
   key: fs.readFileSync(RQ_PARAMS.KEY),
   cert: fs.readFileSync(RQ_PARAMS.CERT)
 }
 
-class WebServer {
+export default class WebServer {
   constructor (clientName, configFile) {
+    logger.debug('WebServer constructor')
+
     this.clientName = clientName
     this.configFile = configFile
     this.incomingEvents = ['update', 'restart', 'choose_camera']
@@ -51,7 +55,7 @@ class WebServer {
 
     this.express_app.use(express.json())
     this.express_app.use((error, request, response, next) => {
-      console.error('Unable to parse config file')
+      logger.error('Unable to parse config file')
       return response.status(400).json(
         { success: false, error: 'Unable to parse config file' }
       )
@@ -70,7 +74,7 @@ class WebServer {
       } else {
         response.status(400).json(
           { success: false, error: 'Failed to save the servo config' })
-        console.error('save_servos: servo config not saved')
+        logger.error('save_servos: servo config not saved')
       }
     })
 
@@ -84,7 +88,7 @@ class WebServer {
        */
       if (!configObject.widgets) {
         response.status(400).json({ success: false, error: 'config missing widgets property' })
-        console.error(
+        logger.error(
           `save_config: no widgets property in the config file ${JSON.stringify(request.body)}`)
         return
       }
@@ -94,7 +98,7 @@ class WebServer {
       } else {
         response.status(400).json(
           { success: false, error: 'Failed to save the config' })
-        console.error('save_config: config not saved')
+        logger.error('save_config: config not saved')
       }
     })
   }
@@ -145,7 +149,7 @@ class WebServer {
    */
   event_cb (eventName, payload) {
     if (!this.incomingEvents.includes(eventName)) {
-      console.warn(`event_cb: ${eventName} not in incomingEvents`)
+      logger.warn(`event_cb: ${eventName} not in incomingEvents`)
       return false
     }
 
@@ -155,10 +159,12 @@ class WebServer {
         break
 
       default:
+        logger.debug(`event_cb(): ${eventName} ${JSON.stringify(payload)}`)
+
         try {
           this.send_to_robot(eventName, payload)
         } catch (error) {
-          console.error(`event_cb: ${error}`)
+          logger.error(`event_cb: ${error}`)
         }
         break
     }
@@ -197,7 +203,7 @@ class WebServer {
    * @returns {boolean} - false if the FIFO doesn't exist
    */
   update_software (command) {
-    console.info(`update_software: ${command}`)
+    logger.info(`update_software: ${command}`)
 
     if (!fs.existsSync(RQ_PARAMS.UPDATE_FIFO)) {
       return false
@@ -218,5 +224,3 @@ class WebServer {
     this.client.send_event_counters()
   }
 }
-
-module.exports = WebServer

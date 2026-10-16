@@ -5,10 +5,10 @@
 
 'use strict'
 
-const { Server } = require('socket.io')
-const RQ_PARAMS = require('./params.js')
+import { Server } from 'socket.io'
+import RQ_PARAMS from './params.js'
 
-class ClientComms {
+export default class ClientComms {
   /**
    * Two-way streaming communication with the browser is implemented
    * using the socket.io module. The browser is allowed to repeatedly
@@ -164,5 +164,3 @@ class ClientComms {
     this.send_event('_counters', eventCountersStr)
   }
 }
-
-module.exports = ClientComms

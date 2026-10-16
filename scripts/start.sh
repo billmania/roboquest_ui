@@ -83,7 +83,7 @@ copy_file () {
 # $1 - the full path for the file
 #
 browserize_file () {
-    sed -i 's/module.exports =/const ros =/' $1
+    sed -i '/^ *export  *default  *ros/d' $1
 }
 
 make_dir ${PERSIST_DIR}
@@ -135,5 +135,5 @@ set +Eeu
 cd /usr/src/ros2ws
 source /opt/ros/humble/setup.bash
 source install/setup.bash
-
+source /root/.nvm/nvm.sh
 ros2 launch roboquest_ui roboquest_ui.launch.py

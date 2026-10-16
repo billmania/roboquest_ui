@@ -4,11 +4,12 @@
  * The interface between the robot information and the UI.
  */
 
-const ros = require('./ros_interfaces.js')
+import logger from './logger.js'
+import ros from './ros_interfaces.js'
 ros.checkMaps()
 
-const rclnodejs = require('rclnodejs')
-const set = require('lodash.set')
+import rclnodejs from 'rclnodejs'
+import set from 'lodash/set.js'
 
 const DEFAULT_CAMERA = '0'
 
@@ -16,7 +17,7 @@ const DEFAULT_CAMERA = '0'
  * RobotComms reads the configuration file and uses its
  * contents to connect to the ROS graph.
  */
-class RobotComms {
+export default class RobotComms {
   #counter
   #telemetryMessages
   #imageMessages
@@ -29,6 +30,8 @@ class RobotComms {
    * @param {Function} sendToClient_cb - The callback for sending payloads to the client.
    */
   constructor (nodeName, sendToClientCb, configFile) {
+    logger.debug('RobotComms constructor')
+
     this.nodeName = nodeName
 
     this.subscribers = {}
@@ -42,8 +45,6 @@ class RobotComms {
     this.rclnodejs = rclnodejs
     this.rclnodejs.init()
     this.node = this.rclnodejs.createNode(this.nodeName)
-    this.logger = this.rclnodejs.logging.getLogger(this.nodeName)
-    this.logger.setLoggerLevel(this.logger.LoggingSeverity.DEBUG)
 
     this.send_to_client_cb = sendToClientCb
     this.configFile = configFile
@@ -56,13 +57,15 @@ class RobotComms {
       'restart'
     )
     if (this._restartServiceClient !== undefined) {
-      this.logger.debug('_restartServiceClient set')
+      logger.debug('_restartServiceClient set')
     }
 
     this.counter = 0
     this.telemetryMessages = 0
     this.imageMessages = 0
     this.configuration = null
+
+    logger.debug('RobotComms instantiated')
   }
 
   /**
@@ -113,12 +116,12 @@ class RobotComms {
       try {
         this.publishers[name].publish(rosMessage)
       } catch (error) {
-        this.logger.warn(
+        logger.warn(
           `handle_payload: ERROR topic:${name}` +
           `, Type:${error.name}` +
           `, Message:${error.message}`
         )
-        this.logger.warn(
+        logger.warn(
           `handle_payload: rosMessage: ${JSON.stringify(rosMessage)}}`
         )
       }
@@ -129,13 +132,13 @@ class RobotComms {
           serviceRequest,
           (response) => {
             if (!response.success) {
-              this.logger.warn(
+              logger.warn(
                 `Service request ${name} failed`)
             }
           }
         )
       } catch (error) {
-        this.logger.warn(
+        logger.warn(
           `handle_payload: ERROR Service request ${name}` +
           `, ${error.name}` +
           `:${error.message}`
@@ -149,13 +152,13 @@ class RobotComms {
            * The restart service has an Empty response, so there's
            * nothing to check, beyond the fact it returned.
            */
-          this.logger.info('handle_payload: restart called')
+          logger.info('handle_payload: restart called')
         }
       )
     } else if (name === 'choose_camera') {
       this.choose_camera(payload)
     } else {
-      this.logger.warn(`handle_payload(): ${name} not recognized as publish or service`)
+      logger.warn(`handle_payload(): ${name} not recognized as publish or service`)
     }
   }
 
@@ -201,10 +204,10 @@ class RobotComms {
     if (destinationName in ros.interfacesMap) {
       rosMessage = ros.interfaceObjects[ros.interfacesMap[destinationName]]
     } else {
-      this.logger.warn(
-        `getRosMessage: ${destinationName} not in interfacesMap`
+      logger.warn(
+        `getRosMessage: ${destinationName} not in ros.interfacesMap`
       )
-      throw new Error(`${destinationName} not in interfacesMap`)
+      throw new Error(`${destinationName} not in ros.interfacesMap`)
     }
 
     if (Object.hasOwn(rosMessage, 'reset') &&
@@ -212,12 +215,12 @@ class RobotComms {
       try {
         rosMessage.reset()
       } catch (error) {
-        this.logger.warn(
+        logger.warn(
           `getRosMessage: ${destinationName} reset() error ${error}`
         )
       }
     } else {
-      this.logger.warn(`getRosMessage: ${destinationName} object doesn't have reset()`)
+      logger.warn(`getRosMessage: ${destinationName} object doesn't have reset()`)
     }
 
     return rosMessage
@@ -249,9 +252,16 @@ class RobotComms {
     const publishMessage = this.getRosMessage(topicName)
 
     set(publishMessage, 'header.stamp', ros.getRosTimestamp())
-    set(publishMessage, 'header.frame_id', '')
+    set(publishMessage, 'header.frame_id', 'cmd_vel')
     for (const attribute in message) {
       set(publishMessage, attribute, message[attribute])
+    }
+
+    if ((topicName == 'cmd_vel') && (message['twist.linear.x'] != 0)) {
+        logger.debug(
+            `buildPublishMessage(): ${JSON.stringify(message)}`
+        )
+        logger.debug(`buildPublishMessage(): ${JSON.stringify(publishMessage)}`)
     }
 
     return publishMessage
@@ -274,7 +284,7 @@ class RobotComms {
     serviceClient.waitForService(1000)
       .then((result) => {
         if (!result) {
-          this.logger.warn(`Service ${serviceName} not available`)
+          logger.warn(`Service ${serviceName} not available`)
           return null
         }
       })
@@ -291,6 +301,7 @@ class RobotComms {
    * @returns {Object} - the subscriber
    */
   create_subscriber (topicName, topicType) {
+    logger.debug('Creating subscriber for ' + topicName)
     const subscriberName = topicName + '_sub'
     const subscriberCallback = topicName + '_cb'
 
@@ -316,6 +327,7 @@ class RobotComms {
    * @returns {Object} - the publisher
    */
   create_publisher (topicName, topicType) {
+    logger.debug('Creating publisher for ' + topicName)
     const publisherName = topicName + '_pub'
 
     this[publisherName] = this.node.createPublisher(
@@ -337,7 +349,7 @@ class RobotComms {
       this.image_sub = null
     }
 
-    this.logger.debug(`choose_camera: ${cameraId}`)
+    logger.debug(`choose_camera: ${cameraId}`)
     const cameraTopic = 'rq_camera_node' + cameraId + '/image_raw/compressed'
     this.image_sub = this.node.createSubscription(
       'sensor_msgs/msg/CompressedImage',
@@ -361,9 +373,9 @@ class RobotComms {
               this.subscribers[widgetData.topic] = this.create_subscriber(
                 widgetData.topic,
                 widgetData.topicType)
-              this.logger.debug('Added subscriber for ' + widgetData.topic)
+              logger.debug('Added subscriber for ' + widgetData.topic)
             } catch (error) {
-              this.logger.warn(`Widget subscribe config error: ${error}`)
+              logger.warn(`Widget subscribe config error: ${error}`)
             }
           }
           return
@@ -376,16 +388,16 @@ class RobotComms {
                 widgetData.topic,
                 widgetData.topicType)
               this.publishedTopics[widgetData.topic] = widgetData.topicType
-              this.logger.debug('Added publisher for ' + widgetData.topic)
+              logger.debug('Added publisher for ' + widgetData.topic)
             } catch (error) {
-              this.logger.warn(`Widget publish config error: ${error}`)
+              logger.warn(`Widget publish config error: ${error}`)
             }
           }
           return
         }
 
         default: {
-          this.logger.warn(
+          logger.warn(
             ' topic ' + widgetData.topic + ' had no direction')
           return
         }
@@ -407,9 +419,9 @@ class RobotComms {
       if (serviceClient) {
         this.serviceClients[widgetData.service] = serviceClient
         this.serviceTypes[widgetData.service] = widgetData.serviceType
-        this.logger.debug('Added serviceClient for ' + widgetData.service)
+        logger.debug('Added serviceClient for ' + widgetData.service)
       } else {
-        this.logger.warn(`Service ${widgetData.service} not available`)
+        logger.warn(`Service ${widgetData.service} not available`)
       }
     }
   }
@@ -427,7 +439,7 @@ class RobotComms {
     this.choose_camera(DEFAULT_CAMERA)
 
     for (const widgetConfig of widgetsConfig) {
-      this.logger.debug(
+      logger.debug(
         'Parsing widget ' +
         widgetConfig.type + ' ' + widgetConfig.label
       )
@@ -485,14 +497,13 @@ class RobotComms {
       this.configuration = this.configFile.get_config()
     } catch (error) {
       this.configuration = null
-      this.logger.fatal(`Reading configuration file: ${error}`)
+      logger.fatal(`Reading configuration file: ${error}`)
       throw new Error('Failed to read configuration file')
     }
   }
 
   main () {
+    logger.debug('RobotComms main() spinning')
     this.rclnodejs.spin(this.node)
   }
 }
-
-module.exports = RobotComms

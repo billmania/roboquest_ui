@@ -5,11 +5,14 @@
  * by server side of the RoboQuest application.
  */
 
-const path = require('path')
+import path from 'path'
+
+// TODO: Use the DEV or PROD version
+//let __dirname = '/home/bill/projects/roboquest/ros2ws/src/roboquest_ui/src'
+let __dirname = '/usr/src/ros2ws/install/roboquest_ui/share/roboquest_ui/dist'
 
 const RQ_PARAMS = {}
-RQ_PARAMS.VERSION = '36'
-
+RQ_PARAMS.VERSION = '37rc2'
 RQ_PARAMS.CONFIG_FORMAT_VERSION = '8'
 RQ_PARAMS.SERVER_STATIC_DIR = path.join(
   __dirname, '../public')
@@ -19,10 +22,13 @@ RQ_PARAMS.CONFIG_FILE = path.join(
   __dirname, '../public/persist/configuration.json')
 RQ_PARAMS.SERVO_FILE = path.join(
   __dirname, '../public/persist/servos_config.json')
+RQ_PARAMS.LOG_FILE = path.join(
+  __dirname, '../public/persist/rq_server.log')
 RQ_PARAMS.KEY = path.join(
   __dirname, '../certs/server.key')
 RQ_PARAMS.CERT = path.join(
   __dirname, '../certs/server.cert')
+// TODO: 8443 for DEV, 443 for PROD
 RQ_PARAMS.SERVER_PORT_NUMBER = 443
 
 /*
@@ -41,4 +47,4 @@ RQ_PARAMS.PING_TIMEOUT_MS = 2000
  */
 RQ_PARAMS.UPDATE_FIFO = '/tmp/update_fifo'
 
-module.exports = RQ_PARAMS
+export default RQ_PARAMS
