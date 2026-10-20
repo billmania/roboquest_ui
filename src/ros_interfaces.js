@@ -253,7 +253,6 @@ const ros = {
         this.servo15.speed_dps = 0
         this.servo15.command_type = 0
       }
-
     },
 
     'rq_msgs/srv/Control': {
@@ -276,7 +275,7 @@ const ros = {
       reset: function () {
         this.script_name = ''
       }
-    },
+    }
   },
 
   /**
