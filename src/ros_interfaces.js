@@ -253,7 +253,6 @@ const ros = {
         this.servo15.speed_dps = 0
         this.servo15.command_type = 0
       }
-
     },
 
     'rq_msgs/srv/Control': {
@@ -269,6 +268,13 @@ const ros = {
         this.set_motors = 'IGNORE'
         this.set_servos = 'IGNORE'
       }
+    },
+
+    'rq_msgs/srv/RunUserScript': {
+      script_name: '',
+      reset: function () {
+        this.script_name = ''
+      }
     }
   },
 
@@ -283,6 +289,10 @@ const ros = {
       'set_fet2:OFF',
       'set_motors:OFF',
       'set_servos:OFF'
+    ],
+
+    'rq_msgs/srv/RunUserScript': [
+      'script_name:NoScript'
     ],
 
     'rq_msgs/msg/MotorSpeed': [
@@ -367,6 +377,7 @@ const ros = {
   interfacesMap: { // eslint-disable-line no-unused-vars
     cmd_vel: 'geometry_msgs/msg/TwistStamped',
     control_hat: 'rq_msgs/srv/Control',
+    run_user_script: 'rq_msgs/srv/RunUserScript',
     motor_speed: 'rq_msgs/msg/MotorSpeed',
     servos: 'rq_msgs/msg/Servos'
   },
@@ -383,7 +394,8 @@ const ros = {
     ],
 
     service: [
-      'control_hat'
+      'control_hat',
+      'run_user_script'
     ]
   },
 
