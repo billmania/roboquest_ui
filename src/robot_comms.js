@@ -131,7 +131,8 @@ export default class RobotComms {
         this.serviceClients[name].sendRequest(
           serviceRequest,
           (response) => {
-            if (!response.success) {
+            if ((Object.hasOwn(response, 'success') && (response.success !== true)) ||
+                (Object.hasOwn(response, 'return_code') && (response.return_code != 0))) {
               logger.warn(
                 `Service request ${name} failed`)
             }

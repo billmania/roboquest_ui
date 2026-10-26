@@ -8,6 +8,11 @@
 import path from 'path'
 
 // TODO: Use the DEV or PROD version
+/**
+ * __dirname was formerly defined by CommonJS scoping details. Since the
+ * project has changed to ES module scope, __dirname is no longer defined
+ * automatically.
+ */
 //let __dirname = '/home/bill/projects/roboquest/ros2ws/src/roboquest_ui/src'
 let __dirname = '/usr/src/ros2ws/install/roboquest_ui/share/roboquest_ui/dist'
 

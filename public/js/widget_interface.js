@@ -53,6 +53,12 @@ const widgetInterface = { // eslint-disable-line no-unused-vars
           'set_fet2',
           'set_charger'
         ]
+      },
+
+      run_user_script: {
+        'rq_msgs/srv/RunUserScript': [
+          'script_name'
+        ]
       }
     }
   },
